@@ -1,0 +1,496 @@
+:root {
+  --bg: #1d1e22;
+  --bg2: #22242a;
+  --bg3: #2a2d35;
+  --cyan: #00e5ff;
+  --blue: #1565ff;
+  --azure: #0ea5e9;
+  --electric: #3b82f6;
+  --soft: #7dd3fc;
+  --text: #e8edf5;
+  --muted: #8899aa;
+  --border: rgba(0, 229, 255, 0.13);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Semantic Tokens */
+  --card-bg: rgba(29, 30, 34, 0.65);
+  --nav-bg: rgba(29, 30, 34, 0.88);
+  --bubble-bg: rgba(29, 30, 34, 0.75);
+  --item-bg: rgba(34, 36, 42, 0.58);
+  --border-subtle: rgba(0, 229, 255, 0.10);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.6);
+  --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.042) 0%, transparent 68%);
+  --heading-gradient: linear-gradient(130deg, #ffffff 35%, var(--cyan) 100%);
+  --divider-gradient: linear-gradient(90deg, rgba(0, 229, 255, 0.3), transparent);
+  --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.15), transparent);
+  --fiber-color-1: #00e5ff;
+  --fiber-color-2: #1565ff;
+  --fiber-color-3: #0ea5e9;
+  --fiber-color-4: #3b82f6;
+  --glow-2: radial-gradient(circle, rgba(21, 101, 255, 0.052) 0%, transparent 68%);
+  --glow-3: radial-gradient(circle, rgba(59, 130, 246, 0.032) 0%, transparent 68%);
+  --dot-grid: rgba(0, 229, 255, 0.055);
+  --selection: rgba(0, 229, 255, 0.22);
+  --nav-active-bg: rgba(0, 229, 255, 0.10);
+  --nav-hover-bg: rgba(0, 229, 255, 0.055);
+  --nav-border: rgba(0, 229, 255, 0.28);
+  --accent-glow: rgba(0, 229, 255, 0.5);
+  --accent-border: rgba(0, 229, 255, 0.22);
+  --accent-border-hover: rgba(0, 229, 255, 0.65);
+  --accent-bg-hover: rgba(0, 229, 255, 0.10);
+  --logo-filter: brightness(1) saturate(1);
+  --tick-opacity: 0.45;
+  --dot-opacity: 0.25;
+  --track-bg: rgba(255, 255, 255, 0.08);
+  --bg-pattern: radial-gradient(var(--dot-grid) 1px, transparent 1px);
+  --bg-pattern-size: 52px 52px;
+}
+
+[data-theme='light'] {
+  --bg: #f0f2f5;
+  --bg2: #cfcfcf;
+  --bg3: #e2e8f0;
+  --text: #121212;
+  --muted: #555555;
+  --cyan: #00838f;
+  --blue: #2563eb;
+  --azure: #0369a1;
+  --electric: #1d4ed8;
+  --soft: #3b82f6;
+
+  --accent-glow: rgba(0, 131, 143, 0.2);
+  --accent-border: rgba(0, 131, 143, 0.2);
+  --accent-border-hover: rgba(0, 131, 143, 0.6);
+  --accent-bg-hover: rgba(0, 131, 143, 0.08);
+  --logo-filter: brightness(0.2) saturate(0.8);
+  --tick-opacity: 0.25;
+  --dot-opacity: 1;
+  --track-bg: rgba(0, 0, 0, 0.12);
+
+  --bg-pattern: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20 L60 20 L80 40 L120 40 M150 10 L150 50 L170 70 M40 100 L40 140 L20 160 M100 120 L140 120 L160 140 L160 180 M10 80 H50 M180 30 V70' fill='none' stroke='rgba(0,0,0,0.12)' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='20' r='1.5' fill='rgba(0,0,0,0.12)'/%3E%3Ccircle cx='120' cy='40' r='1.5' fill='rgba(0,0,0,0.12)'/%3E%3Ccircle cx='170' cy='70' r='1.5' fill='rgba(0,0,0,0.12)'/%3E%3Ccircle cx='20' cy='160' r='1.5' fill='rgba(0,0,0,0.12)'/%3E%3Ccircle cx='160' cy='180' r='1.5' fill='rgba(0,0,0,0.12)'/%3E%3C/svg%3E");
+  --bg-pattern-size: 400px 400px;
+  --selection: rgba(0, 131, 143, 0.15);
+
+  --card-bg: #f4f9ff;
+  --nav-bg: #ffffffb7;
+  --bubble-bg: #e2e8f0;
+  --item-bg: #eff4fc;
+
+  --border: rgba(0, 0, 0, 0.1);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --heading-gradient: linear-gradient(130deg, #121212 40%, var(--cyan) 100%);
+  --divider-gradient: linear-gradient(90deg, rgba(0, 131, 143, 0.25), transparent);
+  --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 131, 143, 0.12), transparent);
+  --fiber-color-1: #00838f;
+  --fiber-color-2: #2563eb;
+  --fiber-color-3: #0369a1;
+  --fiber-color-4: #1d4ed8;
+
+  --glow-1: radial-gradient(circle, rgba(0, 131, 143, 0.03) 0%, transparent 70%);
+  --glow-2: radial-gradient(circle, rgba(37, 99, 235, 0.03) 0%, transparent 70%);
+  --glow-3: radial-gradient(circle, rgba(3, 105, 161, 0.02) 0%, transparent 70%);
+
+  --nav-active-bg: #f0f2f5;
+  --nav-hover-bg: #f8fafc;
+  --nav-border: #d1d5db;
+}
+
+[data-theme='light'] h1,
+[data-theme='light'] h2,
+[data-theme='light'] h3 {
+  color: var(--text);
+}
+
+[data-theme='light'] .marquee-item,
+[data-theme='light'] .pill {
+  background: var(--bg3) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+/* ── Core Viewport Locking ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+#outer-scroll {
+  overscroll-behavior-y: contain;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* ── Corner bracket breath ── */
+@keyframes bracketBreath {
+
+  0%,
+  100% {
+    opacity: .3;
+  }
+
+  50% {
+    opacity: .75;
+  }
+}
+
+/* FIBER OPTIC SWEEP */
+@keyframes fiberH {
+  0% {
+    transform: translateX(-260px);
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  94% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(100vw);
+    opacity: 0;
+  }
+}
+
+@keyframes fiberV {
+  0% {
+    transform: translateY(-180px);
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  94% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* Orbital rings */
+@keyframes orbitCW {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitCCW {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes ringBreath {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: .45;
+  }
+
+  50% {
+    transform: scale(1.06);
+    opacity: .18;
+  }
+}
+
+/* Ambient glow orbs */
+@keyframes glowBreathe {
+
+  0%,
+  100% {
+    opacity: .4;
+  }
+
+  50% {
+    opacity: .9;
+  }
+}
+
+@keyframes scanGlide {
+  0% {
+    top: -20%;
+  }
+
+  100% {
+    top: 120%;
+  }
+}
+
+/* ── Marquee ── */
+.marquee-outer {
+  overflow: hidden;
+  width: 100%;
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marqueeRTL 32s linear infinite;
+}
+
+@keyframes marqueeRTL {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Scroll down chevron bounce */
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(8px);
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .1s !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   RESPONSIVE — Desktop-only helpers
+──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .desktop-only-controls {
+    display: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   MOBILE HERO
+──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  html,
+  body,
+  #root {
+    min-height: 100svh;
+    overflow-x: hidden;
+  }
+
+  #home {
+    min-height: 100svh !important;
+    height: auto !important;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding:
+      calc(env(safe-area-inset-top, 0px) + 60px) 0 calc(env(safe-area-inset-bottom, 0px) + 24px);
+
+    overflow: hidden;
+  }
+
+  .hero-card {
+    width: 90vw !important;
+    max-width: 360px !important;
+
+    margin: 0 auto;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+
+    gap: 16px !important;
+
+    padding: 44px 18px 20px !important;
+
+    border-radius: 18px !important;
+
+    text-align: center !important;
+
+    overflow: hidden !important;
+  }
+
+  .hero-profile-container {
+    flex-shrink: 0 !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto !important;
+  }
+
+  .hero-text-col {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-card h1 {
+    text-align: center !important;
+    font-size: clamp(15px, 4.5vw, 20px) !important;
+    line-height: 1.15 !important;
+    margin-bottom: 12px !important;
+
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .hero-card p {
+    text-align: center !important;
+    font-size: 14px !important;
+    line-height: 1.65 !important;
+    padding-inline: 4px;
+  }
+
+  .service-bubble-wrap {
+    display: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   SMALL PHONES
+──────────────────────────────────────────────── */
+
+@media (max-width: 390px) {
+
+  .hero-card {
+    width: 92vw !important;
+    max-width: 340px !important;
+
+    padding: 40px 14px 18px !important;
+
+    gap: 14px !important;
+  }
+
+  .hero-card h1 {
+    font-size: clamp(14px, 4vw, 18px) !important;
+  }
+
+  .hero-card p {
+    font-size: 13px !important;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   LANDSCAPE PHONES
+──────────────────────────────────────────────── */
+
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 500px) {
+
+  #home {
+    min-height: auto !important;
+    padding: 20px 0 !important;
+  }
+
+  .hero-card {
+    flex-direction: row !important;
+
+    text-align: left !important;
+
+    max-width: 95vw !important;
+
+    padding: 18px !important;
+
+    gap: 18px !important;
+  }
+
+  .hero-text-col {
+    align-items: flex-start !important;
+  }
+
+  .hero-card h1,
+  .hero-card p {
+    text-align: left !important;
+  }
+}
