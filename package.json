@@ -1,4 +1,5 @@
 {
+  "homepage": "https://meepmerp-0.github.io/",
   "name": "jason-selerio-portfolio",
   "private": true,
   "version": "1.0.0",
@@ -10,6 +11,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "test": "jest"
   },
   "dependencies": {
@@ -32,6 +35,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "babel-jest": "^30.4.1",
+    "gh-pages": "^6.3.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jsdom": "^29.1.1",
