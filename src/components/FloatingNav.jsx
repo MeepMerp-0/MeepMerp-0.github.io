@@ -1,14 +1,23 @@
 // components/FloatingNav.jsx
-// Uses Motion (motion.dev) for the slide-in animation.
-// AnimatePresence handles mount/unmount gracefully.
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sun, Moon } from 'lucide-react';
 
-const NAV_ITEMS = ['Home', 'About', 'Projects', 'Contact'];
+const NAV_ITEMS = [
+  'Home',
+  'About',
+  'Projects',
+  'Contact',
+];
 
-export default function FloatingNav({ visible, activeSection, onNav, theme, onToggleTheme }) {
+export default function FloatingNav({
+  visible,
+  activeSection,
+  onNav,
+  theme,
+  onToggleTheme,
+}) {
   const [hov, setHov] = useState(null);
 
   return (
@@ -16,82 +25,236 @@ export default function FloatingNav({ visible, activeSection, onNav, theme, onTo
       {visible && (
         <motion.nav
           aria-label="Site navigation"
-          initial={{ y: -80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -80, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+          initial={{
+            y: -80,
+            opacity: 0,
+          }}
+          animate={{
+            y: 0,
+            opacity: 1,
+          }}
+          exit={{
+            y: -80,
+            opacity: 0,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 260,
+            damping: 28,
+          }}
           style={{
-            position: 'fixed', top: 0, left: 0, right: 0,
+            position: 'fixed',
+            top: 8,
+            left: 0,
+            right: 0,
+
             zIndex: 100,
-            display: 'flex', justifyContent: 'center',
-            padding: '14px 0',
+
+            display: 'flex',
+            justifyContent: 'center',
+
+            padding: '8px',
+
             pointerEvents: 'auto',
           }}
         >
-          <div style={{
-            display: 'flex', gap: 2, alignItems: 'center',
-            background: 'var(--nav-bg)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 40,
-            padding: '5px 8px',
-            boxShadow: 'var(--shadow)',
-          }}>
-            {/* Cyan status pip */}
-            <div style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: 'var(--cyan)', opacity: 0.8,
-              boxShadow: '0 0 8px var(--accent-glow)',
-              margin: '0 8px 0 6px',
-            }} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
 
-            {NAV_ITEMS.map(item => {
-              const active = activeSection === item.toLowerCase();
-              const hovered = hov === item;
-              return (
-                <button
-                  key={item}
-                  onClick={() => onNav(item.toLowerCase())}
-                  onMouseEnter={() => setHov(item)}
-                  onMouseLeave={() => setHov(null)}
-                  style={{
-                    background: active ? 'var(--nav-active-bg)' : hovered ? 'var(--nav-hover-bg)' : 'transparent',
-                    border: `1px solid ${active ? 'var(--nav-border)' : 'transparent'}`,
-                    borderRadius: 22,
-                    color: active ? 'var(--cyan)' : hovered ? 'var(--text)' : 'var(--muted)',
-                    fontFamily: 'var(--font-body)',
-                    fontWeight: active ? 600 : 400,
-                    fontSize: 13, letterSpacing: '0.02em',
-                    padding: '6px 18px',
-                    cursor: 'pointer',
-                    transition: 'color 0.3s ease, background 0.3s ease, border-color 0.3s ease',
-                  }}
-                >{item}</button>
-              );
-            })}
+              gap: 4,
+
+              background: 'var(--nav-bg)',
+
+              backdropFilter: 'blur(20px)',
+
+              border: '1px solid var(--border)',
+
+              borderRadius: 24,
+
+              padding: '4px',
+
+              boxShadow: 'var(--shadow)',
+
+              width: 'min(95vw, 620px)',
+
+              overflow: 'hidden',
+            }}
+          >
+            {/* Status Indicator */}
+            <div
+              style={{
+                width: 7,
+                height: 7,
+
+                borderRadius: '50%',
+
+                background: 'var(--cyan)',
+
+                opacity: 0.8,
+
+                boxShadow:
+                  '0 0 8px var(--accent-glow)',
+
+                marginLeft: 6,
+
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Navigation Items */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+
+                flex: 1,
+
+                justifyContent: 'space-evenly',
+
+                minWidth: 0,
+              }}
+            >
+              {NAV_ITEMS.map((item) => {
+                const active =
+                  activeSection ===
+                  item.toLowerCase();
+
+                const hovered =
+                  hov === item;
+
+                return (
+                  <button
+                    key={item}
+                    onClick={() =>
+                      onNav(
+                        item.toLowerCase()
+                      )
+                    }
+                    onMouseEnter={() =>
+                      setHov(item)
+                    }
+                    onMouseLeave={() =>
+                      setHov(null)
+                    }
+                    style={{
+                      background: active
+                        ? 'var(--nav-active-bg)'
+                        : hovered
+                          ? 'var(--nav-hover-bg)'
+                          : 'transparent',
+
+                      border: `1px solid ${active
+                        ? 'var(--nav-border)'
+                        : 'transparent'
+                        }`,
+
+                      borderRadius: 18,
+
+                      color: active
+                        ? 'var(--cyan)'
+                        : hovered
+                          ? 'var(--text)'
+                          : 'var(--muted)',
+
+                      fontFamily:
+                        'var(--font-body)',
+
+                      fontWeight:
+                        active
+                          ? 600
+                          : 400,
+
+                      fontSize:
+                        'clamp(10px, 2vw, 13px)',
+
+                      letterSpacing:
+                        '0.02em',
+
+                      padding:
+                        '8px clamp(6px, 1.5vw, 18px)',
+
+                      minHeight: 36,
+
+                      flex: 1,
+
+                      whiteSpace:
+                        'nowrap',
+
+                      cursor: 'pointer',
+
+                      transition:
+                        'all 0.3s ease',
+
+                      minWidth: 0,
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Divider */}
+            <div
+              style={{
+                width: 1,
+                height: 18,
+
+                background:
+                  'var(--border)',
+
+                margin: '0 4px',
+
+                flexShrink: 0,
+              }}
+            />
 
             {/* Theme Toggle */}
-            <div style={{
-              width: 1, height: 20, background: 'var(--border)', margin: '0 8px'
-            }} />
-
             <button
               onClick={onToggleTheme}
               style={{
-                background: 'transparent',
+                background:
+                  'transparent',
+
                 border: 'none',
-                color: 'var(--muted)',
+
+                color:
+                  'var(--muted)',
+
                 cursor: 'pointer',
-                padding: '6px 12px',
+
+                padding: '8px',
+
                 display: 'flex',
-                alignItems: 'center',
-                transition: 'color 0.3s ease',
+
+                alignItems:
+                  'center',
+
+                justifyContent:
+                  'center',
+
+                flexShrink: 0,
+
+                transition:
+                  'color 0.3s ease',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--cyan)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+              onMouseEnter={(e) =>
+              (e.currentTarget.style.color =
+                'var(--cyan)')
+              }
+              onMouseLeave={(e) =>
+              (e.currentTarget.style.color =
+                'var(--muted)')
+              }
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? (
+                <Sun size={16} />
+              ) : (
+                <Moon size={16} />
+              )}
             </button>
           </div>
         </motion.nav>
