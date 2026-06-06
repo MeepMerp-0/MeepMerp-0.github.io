@@ -23,7 +23,7 @@
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.6);
   --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.042) 0%, transparent 68%);
-  --heading-gradient: linear-gradient(130deg, #ffffff 35%, var(--cyan) 100%);
+  --heading-gradient: linear-gradient(130deg, #ffffff 5%, var(--cyan) 100%);
   --divider-gradient: linear-gradient(90deg, rgba(0, 229, 255, 0.3), transparent);
   --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.15), transparent);
   --fiber-color-1: #00e5ff;
@@ -75,7 +75,7 @@
   --selection: rgba(0, 131, 143, 0.15);
 
   --card-bg: #f4f9ff;
-  --nav-bg: #ffffffb7;
+  --nav-bg: #ffffff96;
   --bubble-bg: #e2e8f0;
   --item-bg: #eff4fc;
 

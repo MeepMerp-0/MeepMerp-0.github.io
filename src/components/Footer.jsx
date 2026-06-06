@@ -16,7 +16,7 @@ export default function Footer() {
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--cyan)", opacity: 0.6 }} />
         <div style={{ width: 40, height: 1, background: "var(--center-divider-gradient)" }} />
       </div>
-      © 2026 · CRAFTED WITH PRECISION
+      © 2026 Jason Selerio · CRAFTED WITH PRECISION · Code licensed under MIT License.
     </footer>
   );
 }
