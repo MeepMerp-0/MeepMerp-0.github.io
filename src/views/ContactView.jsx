@@ -25,6 +25,23 @@ const ICON_MAP = {
   github: Github,
 };
 
+function navigateToHref(href) {
+  if (!href) return;
+
+  if (href.startsWith('http')) {
+    const link = document.createElement('a');
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return;
+  }
+
+  location.href = href;
+}
+
 function ContactCard({ icon, label, value, href, delay }) {
   const [hov, setHov] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -33,16 +50,13 @@ function ContactCard({ icon, label, value, href, delay }) {
 
   function handleClick(e) {
     e.preventDefault();
+
     navigator.clipboard.writeText(value).then(() => {
       setCopied(true);
-      // Show "COPIED" for 900ms, then navigate the same way the href would have
+
       setTimeout(() => {
         setCopied(false);
-        if (href.startsWith('http')) {
-          window.open(href, '_blank', 'noopener,noreferrer');
-        } else {
-          window.location.href = href; // mailto:, tel:, etc.
-        }
+        navigateToHref(href);
       }, 900);
     });
   }
@@ -78,13 +92,16 @@ function ContactCard({ icon, label, value, href, delay }) {
           cursor: 'pointer',
           boxShadow: hov ? 'var(--shadow-hover)' : 'none',
           minWidth: 0,
+          width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
-        {/* Icon box */}
         <div
           style={{
             width: 40,
             height: 40,
+            minWidth: 40,
             borderRadius: 8,
             background: hov ? 'var(--accent-bg-hover)' : 'var(--border-subtle)',
             border: '1px solid var(--accent-border)',
@@ -97,8 +114,13 @@ function ContactCard({ icon, label, value, href, delay }) {
           <Icon size={18} color="var(--cyan)" strokeWidth={1.5} />
         </div>
 
-        {/* Label + value */}
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            minWidth: 0,
+            flex: 1,
+            overflow: 'hidden',
+          }}
+        >
           <div
             style={{
               fontFamily: 'var(--font-mono)',
@@ -117,14 +139,14 @@ function ContactCard({ icon, label, value, href, delay }) {
               fontFamily: 'var(--font-body)',
               fontSize: 13.5,
               color: hov ? 'var(--cyan)' : 'var(--text)',
-              overflowWrap: 'break-word',
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
             }}
           >
             {value}
           </div>
         </div>
 
-        {/* "COPIED" pill — animates in from the right */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, x: 6 }}
           animate={
@@ -135,7 +157,7 @@ function ContactCard({ icon, label, value, href, delay }) {
           transition={{ duration: 0.2 }}
           style={{
             flexShrink: 0,
-            display: 'flex',
+            display: copied ? 'flex' : 'none',
             alignItems: 'center',
             gap: 5,
             padding: '3px 9px',
@@ -143,6 +165,7 @@ function ContactCard({ icon, label, value, href, delay }) {
             background: 'var(--accent-bg-hover)',
             border: '1px solid var(--accent-border)',
             pointerEvents: 'none',
+            maxWidth: '40%',
           }}
         >
           <div
@@ -171,16 +194,20 @@ function ContactCard({ icon, label, value, href, delay }) {
   );
 }
 
-
 function useIsMobile(bp = 768) {
   const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth <= bp
+    () => typeof globalThis !== 'undefined' && globalThis.innerWidth <= bp
   );
 
   useEffect(() => {
-    const mq = window.matchMedia(`(max-width:${bp}px)`);
-    const handler = e => setIsMobile(e.matches);
+    if (typeof globalThis === 'undefined' || !globalThis.matchMedia) return;
+
+    const mq = globalThis.matchMedia(`(max-width:${bp}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+
+    setIsMobile(mq.matches);
     mq.addEventListener('change', handler);
+
     return () => mq.removeEventListener('change', handler);
   }, [bp]);
 
@@ -201,7 +228,7 @@ export default function ContactView() {
 
   const isMobile = useIsMobile();
 
-  const fieldStyle = f => ({
+  const fieldStyle = (f) => ({
     width: '100%',
     background: focused === f ? 'var(--nav-hover-bg)' : 'var(--item-bg)',
     border: `1px solid ${focused === f ? 'var(--cyan)' : 'var(--border-subtle)'}`,
@@ -242,13 +269,12 @@ export default function ContactView() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,minmax(0,1fr))',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))',
             gap: 'clamp(24px,4vw,40px)',
             alignItems: 'start',
           }}
         >
-          {/* ── Left column ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
             <ScrollReveal variant="fromLeft" delay={0}>
               <p
                 style={{
@@ -283,6 +309,8 @@ export default function ContactView() {
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 8,
                   marginTop: 4,
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 <div
@@ -292,6 +320,7 @@ export default function ContactView() {
                     borderRadius: '50%',
                     background: 'var(--cyan)',
                     opacity: 0.7,
+                    flexShrink: 0,
                   }}
                 />
                 <span
@@ -299,6 +328,8 @@ export default function ContactView() {
                     fontFamily: 'var(--font-mono)',
                     fontSize: 10.5,
                     color: 'var(--muted)',
+                    overflowWrap: 'anywhere',
+                    wordBreak: 'break-word',
                   }}
                 >
                   {PERSONAL.location}
@@ -307,171 +338,173 @@ export default function ContactView() {
             </ScrollReveal>
           </div>
 
-          {/* ── Right column: form ── */}
-          <ScrollReveal variant="fromRight" delay={0.12}>
-            {sent ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                style={{
-                  padding: 'clamp(24px,5vw,44px)',
-                  textAlign: 'center',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 14,
-                  background: 'var(--glow-1)',
-                }}
-              >
-                <div style={{ fontSize: 34, marginBottom: 14, color: 'var(--cyan)' }}>
-                  ✦
-                </div>
-                <h3
+          <div style={{ minWidth: 0 }}>
+            <ScrollReveal variant="fromRight" delay={0.12}>
+              {sent ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
                   style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 20,
-                    marginBottom: 10,
-                    color: 'var(--cyan)',
+                    padding: 'clamp(24px,5vw,44px)',
+                    textAlign: 'center',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 14,
+                    background: 'var(--glow-1)',
                   }}
                 >
-                  Message Transmitted
-                </h3>
-                <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
-                  Thanks for reaching out. I'll reply within 24 hours.
-                </p>
-              </motion.div>
-            ) : (
-              <div
-                style={{
-                  background: 'var(--nav-bg)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 18,
-                  padding: 'clamp(20px,4vw,38px)',
-                  backdropFilter: 'blur(14px)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: 'var(--shadow)',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: '18%',
-                    right: '18%',
-                    height: 1,
-                    background: 'var(--center-divider-gradient)',
-                  }}
-                />
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                    gap: 16,
-                    marginBottom: 16,
-                  }}
-                >
-                  {['name', 'email'].map(f => (
-                    <div key={f}>
-                      <label
-                        style={{
-                          display: 'block',
-                          marginBottom: 7,
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 9,
-                          letterSpacing: '0.14em',
-                          textTransform: 'uppercase',
-                          color: 'var(--muted)',
-                        }}
-                      >
-                        {f === 'name' ? 'Name' : 'Email'}
-                      </label>
-                      <input
-                        placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
-                        type={f === 'email' ? 'email' : 'text'}
-                        value={vals[f]}
-                        onChange={e => setVals(v => ({ ...v, [f]: e.target.value }))}
-                        onFocus={() => setFocused(f)}
-                        onBlur={() => setFocused(null)}
-                        style={fieldStyle(f)}
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label
+                  <div style={{ fontSize: 34, marginBottom: 14, color: 'var(--cyan)' }}>
+                    ✦
+                  </div>
+                  <h3
                     style={{
-                      display: 'block',
-                      marginBottom: 7,
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)',
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 20,
+                      marginBottom: 10,
+                      color: 'var(--cyan)',
                     }}
                   >
-                    Subject
-                  </label>
-                  <input
-                    placeholder="Purpose / Title"
-                    value={vals.purpose}
-                    onChange={e => setVals(v => ({ ...v, purpose: e.target.value }))}
-                    onFocus={() => setFocused('purpose')}
-                    onBlur={() => setFocused(null)}
-                    style={fieldStyle('purpose')}
-                  />
-                </div>
-
-                <div style={{ marginBottom: 24 }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      marginBottom: 7,
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)',
-                    }}
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    rows={5}
-                    placeholder="Describe your project or opportunity..."
-                    value={vals.message}
-                    onChange={e => setVals(v => ({ ...v, message: e.target.value }))}
-                    onFocus={() => setFocused('message')}
-                    onBlur={() => setFocused(null)}
-                    style={{ ...fieldStyle('message'), resize: 'vertical' }}
-                  />
-                </div>
-
-                <button
-                  onClick={() => {
-                    if (vals.name && vals.email && vals.purpose && vals.message) {
-                      setSent(true);
-                    }
-                  }}
-                  onMouseEnter={() => setBtnHov(true)}
-                  onMouseLeave={() => setBtnHov(false)}
+                    Message Transmitted
+                  </h3>
+                  <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
+                    Thanks for reaching out. I'll reply within 24 hours.
+                  </p>
+                </motion.div>
+              ) : (
+                <div
                   style={{
-                    width: '100%',
-                    background: btnHov ? 'var(--accent-bg-hover)' : 'var(--accent-glow)',
-                    border: '1px solid var(--accent-border-hover)',
-                    borderRadius: 7,
-                    padding: '14px 20px',
-                    color: 'var(--cyan)',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 600,
-                    cursor: 'pointer',
+                    background: 'var(--nav-bg)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 18,
+                    padding: 'clamp(20px,4vw,38px)',
+                    backdropFilter: 'blur(14px)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: 'var(--shadow)',
+                    minWidth: 0,
                   }}
                 >
-                  TRANSMIT MESSAGE
-                </button>
-              </div>
-            )}
-          </ScrollReveal>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '18%',
+                      right: '18%',
+                      height: 1,
+                      background: 'var(--center-divider-gradient)',
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+                      gap: 16,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {['name', 'email'].map((f) => (
+                      <div key={f} style={{ minWidth: 0 }}>
+                        <label
+                          style={{
+                            display: 'block',
+                            marginBottom: 7,
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 9,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            color: 'var(--muted)',
+                          }}
+                        >
+                          {f === 'name' ? 'Name' : 'Email'}
+                        </label>
+                        <input
+                          placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
+                          type={f === 'email' ? 'email' : 'text'}
+                          value={vals[f]}
+                          onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))}
+                          onFocus={() => setFocused(f)}
+                          onBlur={() => setFocused(null)}
+                          style={fieldStyle(f)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        marginBottom: 7,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--muted)',
+                      }}
+                    >
+                      Subject
+                    </label>
+                    <input
+                      placeholder="Purpose / Title"
+                      value={vals.purpose}
+                      onChange={(e) => setVals((v) => ({ ...v, purpose: e.target.value }))}
+                      onFocus={() => setFocused('purpose')}
+                      onBlur={() => setFocused(null)}
+                      style={fieldStyle('purpose')}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 24 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        marginBottom: 7,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--muted)',
+                      }}
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      rows={5}
+                      placeholder="Describe your project or opportunity..."
+                      value={vals.message}
+                      onChange={(e) => setVals((v) => ({ ...v, message: e.target.value }))}
+                      onFocus={() => setFocused('message')}
+                      onBlur={() => setFocused(null)}
+                      style={{ ...fieldStyle('message'), resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (vals.name && vals.email && vals.purpose && vals.message) {
+                        setSent(true);
+                      }
+                    }}
+                    onMouseEnter={() => setBtnHov(true)}
+                    onMouseLeave={() => setBtnHov(false)}
+                    style={{
+                      width: '100%',
+                      background: btnHov ? 'var(--accent-bg-hover)' : 'var(--accent-glow)',
+                      border: '1px solid var(--accent-border-hover)',
+                      borderRadius: 7,
+                      padding: '14px 20px',
+                      color: 'var(--cyan)',
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    TRANSMIT MESSAGE
+                  </button>
+                </div>
+              )}
+            </ScrollReveal>
+          </div>
         </div>
       </div>
 
