@@ -1,5 +1,5 @@
+// App.jsx
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 
 import AmbientBg from './components/AmbientBg';
 import HudFrame from './components/HudFrame';
@@ -40,42 +40,24 @@ export default function App() {
   };
 
   const [pageKeys, setPageKeys] = useState({
-    home: 0,
-    about: 0,
-    projects: 0,
-    contact: 0,
+    home: 0, about: 0, projects: 0, contact: 0,
   });
 
-  const {
-    activeSection,
-    navVisible,
-    scrollTo,
-  } = useScrollController(
-    pageRefs,
-    setPageKeys
-  );
+  const { activeSection, navVisible, scrollTo } = useScrollController(pageRefs, setPageKeys);
 
+  // CSS-only opacity fade — no Framer Motion, no will-change, no stacking context
   const pageStyle = (section) => ({
     position: 'absolute',
     inset: 0,
-
     overflowY: 'auto',
     overflowX: 'hidden',
-
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
-
     WebkitOverflowScrolling: 'touch',
-
-    pointerEvents:
-      activeSection === section
-        ? 'auto'
-        : 'none',
-
-    zIndex:
-      activeSection === section
-        ? 10
-        : 1,
+    opacity: activeSection === section ? 1 : 0,
+    transition: 'opacity 0.18s ease',
+    pointerEvents: activeSection === section ? 'auto' : 'none',
+    zIndex: activeSection === section ? 10 : 1,
   });
 
   return (
@@ -88,6 +70,7 @@ export default function App() {
         position: 'relative',
       }}
     >
+      {/* position:fixed — must have zero transformed/will-changed ancestors */}
       <AmbientBg />
       <HudFrame />
 
@@ -99,87 +82,40 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <motion.div
-        ref={homeRef}
-        animate={{
-          opacity:
-            activeSection === 'home'
-              ? 1
-              : 0,
-        }}
-        transition={{ duration: 0.18 }}
-        style={pageStyle('home')}
-      >
+      {/* HeroView: full viewport, outside the inset content container */}
+      <div ref={homeRef} style={pageStyle('home')}>
         <HeroView
           key={`home-${pageKeys.home}`}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
-      </motion.div>
+      </div>
 
-      {/* CONTENT VIEWPORT */}
+      {/* Content viewport — overflow:clip instead of overflow:hidden.
+          clip = same visual clipping but does NOT create a containing block,
+          so position:fixed children (AmbientBg, HudFrame) escape correctly. */}
       <div
         style={{
           position: 'absolute',
-
-          top: 56,       // push below top HUD line
+          top: 56,
           left: 40,
           right: 40,
           bottom: 40,
-
-          overflow: 'hidden',
+          overflow: 'clip',
           zIndex: 5,
         }}
       >
+        <div ref={aboutRef} style={pageStyle('about')}>
+          <AboutView key={`about-${pageKeys.about}`} />
+        </div>
 
-        <motion.div
-          ref={aboutRef}
-          animate={{
-            opacity:
-              activeSection === 'about'
-                ? 1
-                : 0,
-          }}
-          transition={{ duration: 0.18 }}
-          style={pageStyle('about')}
-        >
-          <AboutView
-            key={`about-${pageKeys.about}`}
-          />
-        </motion.div>
+        <div ref={projectsRef} style={pageStyle('projects')}>
+          <ProjectsView key={`projects-${pageKeys.projects}`} />
+        </div>
 
-        <motion.div
-          ref={projectsRef}
-          animate={{
-            opacity:
-              activeSection === 'projects'
-                ? 1
-                : 0,
-          }}
-          transition={{ duration: 0.18 }}
-          style={pageStyle('projects')}
-        >
-          <ProjectsView
-            key={`projects-${pageKeys.projects}`}
-          />
-        </motion.div>
-
-        <motion.div
-          ref={contactRef}
-          animate={{
-            opacity:
-              activeSection === 'contact'
-                ? 1
-                : 0,
-          }}
-          transition={{ duration: 0.18 }}
-          style={pageStyle('contact')}
-        >
-          <ContactView
-            key={`contact-${pageKeys.contact}`}
-          />
-        </motion.div>
-
+        <div ref={contactRef} style={pageStyle('contact')}>
+          <ContactView key={`contact-${pageKeys.contact}`} />
+        </div>
       </div>
     </div>
   );

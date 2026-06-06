@@ -250,13 +250,13 @@ body,
 
   0%,
   100% {
+    opacity: 0.45;
     transform: scale(1);
-    opacity: .45;
   }
 
   50% {
+    opacity: 0.18;
     transform: scale(1.06);
-    opacity: .18;
   }
 }
 
