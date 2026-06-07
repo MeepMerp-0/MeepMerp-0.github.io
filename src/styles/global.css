@@ -494,3 +494,248 @@ body,
     text-align: left !important;
   }
 }
+
+
+/* ════════════════════════════════════════════════
+   ABOUT VIEW
+   All layout, typography, and responsive rules
+   for AboutView.jsx live here — no <style> block
+   in the component.
+════════════════════════════════════════════════ */
+
+/* ── Section shell ── */
+.about-section {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  padding: 40px clamp(16px, 5vw, 72px) 80px;
+  box-sizing: border-box;
+  /* Prevent any child from blowing out horizontal scroll */
+  overflow-x: hidden;
+}
+
+/* ── Two-column grid (collapses to 1 on mobile via media query) ── */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 52px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ── Shared column rules ──
+   min-width:0 is the critical fix that stops grid items
+   from overflowing their track when content is wide.     */
+.about-col {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Body paragraphs ──
+   Justified with inter-word spacing (not inter-character,
+   which creates awkward letter gaps on narrow columns).
+   word-spacing is tightened so gaps stay visually small. */
+.about-para {
+  color: var(--muted);
+  line-height: 1.75;
+  font-size: clamp(13px, 3.5vw, 14.5px);
+  margin-bottom: 16px;
+
+  text-align: justify;
+  text-justify: inter-word;
+  /* Rein in the gap — browsers default is 0.25em;
+     pulling it in to 0.05em keeps lines tight        */
+  word-spacing: 0.05em;
+
+  /* No hyphens ever */
+  hyphens: none;
+  -webkit-hyphens: none;
+
+  /* Long tech words / URLs wrap instead of overflow */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* ── Stats: fixed 2 × 2 grid, never collapses ── */
+.about-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+  margin-top: 36px;
+  width: 100%;
+}
+
+.stat-item {
+  min-width: 0;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+}
+
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 2vw, 9px);
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-top: 3px;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ── Experience card — stacked 3-line layout ── */
+.about-exp-row {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.about-exp-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--accent-bg-hover);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.about-exp-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+.about-exp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  /* flex:1 + min-width:0 lets the text column shrink
+     and wrap instead of overflowing the card          */
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.exp-company {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 2.8vw, 11px);
+  color: var(--text);
+  font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+
+.exp-role {
+  font-family: var(--font-mono);
+  font-size: clamp(9.5px, 2.6vw, 10.5px);
+  color: var(--cyan);
+  opacity: 0.9;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.exp-period {
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 2.4vw, 9.5px);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+}
+
+/* ── "Technical Proficiency" section label ── */
+.proficiency-heading {
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 2.2vw, 10px);
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+  margin-top: 30px;
+  opacity: 0.8;
+}
+
+/* ────────────────────────────────────────────────
+   ABOUT — MOBILE  ≤ 767px
+──────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .about-section {
+    padding: clamp(20px, 5vw, 32px) clamp(14px, 4vw, 20px) 60px;
+  }
+
+  /* Single-column layout — explicit override so
+     auto-fit doesn't try to fit two 280px tracks   */
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   ABOUT — SMALL PHONES  ≤ 390px
+──────────────────────────────────────────────── */
+@media (max-width: 390px) {
+  .about-section {
+    padding: 20px 14px 56px;
+  }
+
+  /* Justified text on ultra-narrow columns still
+     risks big gaps on very short lines — left-align
+     is cleaner and more readable at this width      */
+  .about-para {
+    text-align: left;
+    word-spacing: normal;
+  }
+
+  .about-stats {
+    gap: 16px 16px;
+  }
+}
+
+
+/* ════════════════════════════════════════════════
+   PROJECTS VIEW
+════════════════════════════════════════════════ */
+
+/* ── Card description paragraph ──
+   Justified, tight word spacing, no hyphens.
+   display:-webkit-box is kept so WebkitLineClamp
+   still works for the collapsed (3-line) state.   */
+.project-desc {
+  color: var(--muted);
+  line-height: 1.75;
+
+  text-align: justify;
+  text-justify: inter-word;
+  word-spacing: 0.05em;
+
+  hyphens: none;
+  -webkit-hyphens: none;
+
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  /* Required for WebkitLineClamp to function */
+  display: -webkit-box;
+}
