@@ -700,14 +700,6 @@ body,
     padding: 20px 14px 56px;
   }
 
-  /* Justified text on ultra-narrow columns still
-     risks big gaps on very short lines — left-align
-     is cleaner and more readable at this width      */
-  .about-para {
-    text-align: left;
-    word-spacing: normal;
-  }
-
   .about-stats {
     gap: 16px 16px;
   }
