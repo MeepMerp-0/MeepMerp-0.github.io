@@ -280,6 +280,8 @@ export default function ContactView() {
                 style={{
                   color: 'var(--muted)',
                   fontSize: 14,
+                  textAlign: 'justify',
+                  wordBreak: 'break-word',
                   lineHeight: 1.82,
                   marginBottom: 8,
                 }}
