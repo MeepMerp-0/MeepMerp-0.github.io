@@ -24,7 +24,6 @@ const CARD_COLLAPSED_H = 320;
 
 const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
   const [hov, setHov] = useState(false);
-  // ref lives on the INNER div (no overflow:hidden) so scrollHeight is accurate
   const innerRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(CARD_COLLAPSED_H);
 
@@ -35,21 +34,13 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
   const visibleHighlights = isExpanded ? highlights : highlights.slice(0, MAX_HIGHLIGHTS_COLLAPSED);
   const hasSite = Boolean(site);
 
-  // useLayoutEffect fires after DOM mutations, before paint — gives accurate scrollHeight
   useLayoutEffect(() => {
     if (!innerRef.current) return;
-
     const el = innerRef.current;
-
-    const update = () => {
-      setContentHeight(el.scrollHeight);
-    };
-
+    const update = () => setContentHeight(el.scrollHeight);
     update();
-
     const observer = new ResizeObserver(update);
     observer.observe(el);
-
     return () => observer.disconnect();
   }, []);
 
@@ -59,11 +50,6 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
 
   return (
     <ScrollReveal variant="fromBottom" delay={index * 0.08}>
-      {/*
-        OUTER shell: fixed collapsed height, clips overflow, animates height.
-        Does NOT hold the ref — measuring scrollHeight on overflow:hidden
-        returns the clipped size, not the full content size.
-      */}
       <motion.div
         onMouseEnter={() => !isMobile && setHov(true)}
         onMouseLeave={() => !isMobile && setHov(false)}
@@ -77,13 +63,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
           y: isExpanded ? -4 : 0,
         }}
         transition={{
-          height: {
-            duration: 0.55,
-            ease: [0.16, 1, 0.3, 1],
-          },
-          y: {
-            duration: 0.3,
-          },
+          height: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
+          y: { duration: 0.3 },
         }}
         style={{
           background: 'var(--item-bg)',
@@ -97,10 +78,6 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
           transition: 'border-color 0.35s ease, box-shadow 0.35s ease',
         }}
       >
-        {/*
-          INNER div: no height constraint, no overflow hidden.
-          ref lives here — scrollHeight always reflects true content height.
-        */}
         <div
           ref={innerRef}
           style={{
@@ -194,18 +171,14 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
             {title}
           </h3>
 
-          {/* ── Description — clamps to 2 lines when collapsed ── */}
-          <p
+          {/* ── Description ── */}
+          <p className="project-desc"
             style={{
-              color: 'var(--muted)',
               fontSize: isMobile ? 12 : 13,
-              lineHeight: 1.75,
               marginBottom: 16,
-              display: '-webkit-box',
               WebkitLineClamp: isExpanded || isMobile ? 'unset' : 3,
               WebkitBoxOrient: 'vertical',
               overflow: isExpanded || isMobile ? 'visible' : 'hidden',
-              transition: 'all 0.3s ease',
             }}
           >
             {desc}

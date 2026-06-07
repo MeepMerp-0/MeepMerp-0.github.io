@@ -78,7 +78,7 @@ export default function SkillMarquee() {
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <span style={{ opacity: 0.4 }}>◆</span>
-        Tech Stack
+        Tech Stack & Tools
         <span style={{ flex: 1, height: 1, background: 'var(--divider-gradient)' }} />
       </div>
 
