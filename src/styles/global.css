@@ -335,6 +335,18 @@ body,
     transition-duration: .1s !important;
   }
 
+  /* Orbital dots are intentionally slow — exempt them from the 2s blanket.
+     A class selector beats * in specificity even when both use !important. */
+  .pp-orbit-outer {
+    animation-duration: 22s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .pp-orbit-inner {
+    animation-duration: 22s !important;
+    animation-iteration-count: infinite !important;
+  }
+
   .marquee-track {
     animation: none !important;
   }
