@@ -87,8 +87,14 @@ export default function ProfilePortal({ size = 300, opacity = 1 }) {
         className="pp-avatar"
         style={{ width: size, height: size, marginTop: -(size / 2), marginLeft: -(size / 2) }}
       >
-        <img src={LIGHT_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-light" />
-        <img src={DARK_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-dark" />
+        <img src={LIGHT_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-light"
+          onDragStart={(e) => e.preventDefault()}
+          onContextMenu={(e) => e.preventDefault()}
+        />
+        <img src={DARK_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-dark"
+          onDragStart={(e) => e.preventDefault()}
+          onContextMenu={(e) => e.preventDefault()}
+        />
       </div>
     </div>
   );
