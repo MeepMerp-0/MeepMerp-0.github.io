@@ -8,8 +8,6 @@ import ServiceBubble from '../components/ServiceBubble.jsx';
 import TypingIndicator from '../components/TypingIndicator.jsx';
 import useDeviceType from '../hooks/useDeviceType.js';
 
-import avatar from '../assets/avatar.jpg';
-
 import {
   PERSONAL,
   SERVICES,
@@ -388,7 +386,6 @@ export default function HeroView({
                 : 300
             }
             opacity={1}
-            photoSrc={avatar}
           />
         </motion.div>
 
