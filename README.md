@@ -40,15 +40,30 @@ This project is built with React, Vite, and Motion. If you're interested in the 
 
 ### Development
 
-```bash
-# Clone the repository
-git clone https://github.com/MeepMerp-0/jason-selerio-portfolio.git
+If you're curious about the code or want to run it yourself:
 
-# Install dependencies
-npm install
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MeepMerp-0/jason-selerio-portfolio.git
+   ```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+   Then open [http://localhost:8888](http://localhost:8888) in your browser.
 
-# Run the development server
-npm run dev
-```
+*Note: The contact form can be configured to use Google Apps Script, SMTP API, or third-party services via environment variables (see `.env.example`).*
+
+---
+
+## Built With
+
+- **React 18** + **React Router 7** - UI and navigation
+- **Motion** - Smooth, performant animations
+- **Vite 8** - Lightning-fast dev server and builds
 
 *Built with passion, engineered for impact.*

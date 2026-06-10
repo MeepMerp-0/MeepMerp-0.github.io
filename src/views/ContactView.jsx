@@ -17,6 +17,8 @@ import {
   CONTACT_INFO,
   PERSONAL,
 } from '../models/portfolioData.js';
+import { submitContactForm } from '../services/formService.js';
+import { validateEmail } from '../utils/validation.js';
 
 const ICON_MAP = {
   mail: Mail,
@@ -24,6 +26,8 @@ const ICON_MAP = {
   linkedin: Linkedin,
   github: Github,
 };
+
+const MAX_MESSAGE_LENGTH = 500;
 
 function navigateToHref(href) {
   if (!href) return;
@@ -220,18 +224,28 @@ export default function ContactView() {
     email: '',
     purpose: '',
     message: '',
+    website: '',
   });
 
   const [focused, setFocused] = useState(null);
   const [sent, setSent] = useState(false);
   const [btnHov, setBtnHov] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  // Track which fields should show fireorange asterisk (empty/invalid on submit)
+  const [showAsterisk, setShowAsterisk] = useState({
+    name: false,
+    email: false,
+    purpose: false,
+    message: false,
+  });
 
   const isMobile = useIsMobile();
 
   const fieldStyle = (f) => ({
     width: '100%',
-    background: focused === f ? 'var(--nav-hover-bg)' : 'var(--item-bg)',
-    border: `1px solid ${focused === f ? 'var(--cyan)' : 'var(--border-subtle)'}`,
+    background: 'var(--item-bg)',
+    border: `1px solid ${focused === f ? 'var(--cyan)' : showAsterisk[f] ? 'var(--fireorange)' : 'var(--border-subtle)'}`,
     borderRadius: 7,
     padding: '13px 15px',
     color: 'var(--text)',
@@ -239,8 +253,7 @@ export default function ContactView() {
     fontFamily: 'var(--font-body)',
     outline: 'none',
     boxSizing: 'border-box',
-    transition: 'border-color 0.3s ease, background 0.3s ease',
-    boxShadow: focused === f ? '0 0 0 3px var(--accent-glow)' : 'none',
+    transition: 'border-color 0.3s ease',
   });
 
   return (
@@ -371,6 +384,69 @@ export default function ContactView() {
                     Thanks for reaching out. I'll reply within 24 hours.
                   </p>
                 </motion.div>
+              ) : error ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  style={{
+                    padding: 'clamp(24px,5vw,44px)',
+                    textAlign: 'center',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 14,
+                    background: 'var(--glow-1)',
+                  }}
+                >
+                  <div style={{ fontSize: 34, marginBottom: 14, color: 'var(--cyan)' }}>
+                    ⚠
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 20,
+                      marginBottom: 10,
+                      color: 'var(--cyan)',
+                    }}
+                  >
+                    Transmission Failed
+                  </h3>
+                  <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSent(false);
+                      setError(null);
+                      setShowAsterisk({
+                        name: false,
+                        email: false,
+                        purpose: false,
+                        message: false,
+                      });
+                      setVals({
+                        name: '',
+                        email: '',
+                        purpose: '',
+                        message: '',
+                        website: '',
+                      });
+                    }}
+                    onMouseEnter={() => setBtnHov(true)}
+                    onMouseLeave={() => setBtnHov(false)}
+                    style={{
+                      width: '100%',
+                      background: btnHov ? 'var(--accent-bg-hover)' : 'var(--accent-glow)',
+                      border: '1px solid var(--accent-border-hover)',
+                      borderRadius: 7,
+                      padding: '14px 20px',
+                      color: 'var(--cyan)',
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    TRY AGAIN
+                  </button>
+                </motion.div>
               ) : (
                 <div
                   style={{
@@ -411,19 +487,33 @@ export default function ContactView() {
                             display: 'block',
                             marginBottom: 7,
                             fontFamily: 'var(--font-mono)',
-                            fontSize: 9,
+                            fontSize: 12,
                             letterSpacing: '0.14em',
                             textTransform: 'uppercase',
                             color: 'var(--muted)',
                           }}
                         >
-                          {f === 'name' ? 'Name' : 'Email'}
+                          {f === 'name' ? 'Name' : 'Email'}{showAsterisk[f] && <span style={{ color: 'var(--fireorange)' }}>*</span>}
                         </label>
                         <input
                           placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
                           type={f === 'email' ? 'email' : 'text'}
                           value={vals[f]}
-                          onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))}
+                          onChange={(e) => {
+                            const newval = e.target.value;
+                            setVals((v) => ({ ...v, [f]: newval }));
+                            // For email: only clear asterisk when valid
+                            // For name: clear on any input
+                            if (f === 'email') {
+                              if (validateEmail(newval)) {
+                                setShowAsterisk(prev => ({ ...prev, email: false }));
+                              }
+                            } else {
+                              if (showAsterisk[f]) {
+                                setShowAsterisk(prev => ({ ...prev, [f]: false }));
+                              }
+                            }
+                          }}
                           onFocus={() => setFocused(f)}
                           onBlur={() => setFocused(null)}
                           style={fieldStyle(f)}
@@ -438,21 +528,40 @@ export default function ContactView() {
                         display: 'block',
                         marginBottom: 7,
                         fontFamily: 'var(--font-mono)',
-                        fontSize: 9,
+                        fontSize: 12,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
                         color: 'var(--muted)',
                       }}
                     >
-                      Subject
+                      Subject{showAsterisk.purpose && <span style={{ color: 'var(--fireorange)' }}>*</span>}
                     </label>
                     <input
                       placeholder="Purpose / Title"
                       value={vals.purpose}
-                      onChange={(e) => setVals((v) => ({ ...v, purpose: e.target.value }))}
+                      onChange={(e) => {
+                        setVals((v) => ({ ...v, purpose: e.target.value }));
+                        if (showAsterisk.purpose) {
+                          setShowAsterisk(prev => ({ ...prev, purpose: false }));
+                        }
+                      }}
                       onFocus={() => setFocused('purpose')}
                       onBlur={() => setFocused(null)}
                       style={fieldStyle('purpose')}
+                    />
+                  </div>
+
+                  <div style={{ position: 'absolute', left: '-9999px' }}>
+                    <label htmlFor="website-hp" aria-hidden="true">
+                      Website
+                    </label>
+                    <input
+                      id="website-hp"
+                      type="text"
+                      tabIndex={-1}
+                      value={vals.website}
+                      onChange={(e) => setVals((v) => ({ ...v, website: e.target.value }))}
+                      style={{ width: '1px', height: '1px', padding: 0, margin: 0, overflow: 'hidden', position: 'absolute' }}
                     />
                   </div>
 
@@ -462,46 +571,133 @@ export default function ContactView() {
                         display: 'block',
                         marginBottom: 7,
                         fontFamily: 'var(--font-mono)',
-                        fontSize: 9,
+                        fontSize: 12,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
                         color: 'var(--muted)',
                       }}
                     >
-                      Message
+                      Message{showAsterisk.message && <span style={{ color: 'var(--fireorange)' }}>*</span>}
                     </label>
                     <textarea
                       rows={5}
                       placeholder="Describe your project or opportunity..."
                       value={vals.message}
-                      onChange={(e) => setVals((v) => ({ ...v, message: e.target.value }))}
+                      onChange={(e) => {
+                        setVals((v) => ({ ...v, message: e.target.value }));
+                        if (showAsterisk.message) {
+                          setShowAsterisk(prev => ({ ...prev, message: false }));
+                        }
+                      }}
                       onFocus={() => setFocused('message')}
                       onBlur={() => setFocused(null)}
                       style={{ ...fieldStyle('message'), resize: 'vertical' }}
                     />
+                    <div style={{
+                      textAlign: 'right',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      color: vals.message.length >= MAX_MESSAGE_LENGTH ? 'var(--cyber-red)'
+                        : vals.message.length >= MAX_MESSAGE_LENGTH * 0.8 ? 'var(--fireorange)'
+                          : vals.message.length >= MAX_MESSAGE_LENGTH * 0.6 ? 'var(--yellow)'
+                            : 'var(--cyan)',
+                      marginTop: 4
+                    }}>
+                      {vals.message.length > MAX_MESSAGE_LENGTH ? 'Message exceeds maximum length' : `${vals.message.length}/${MAX_MESSAGE_LENGTH}`}
+                    </div>
                   </div>
 
                   <button
-                    onClick={() => {
-                      if (vals.name && vals.email && vals.purpose && vals.message) {
-                        setSent(true);
+                    onClick={async (e) => {
+                      e.preventDefault();
+
+                      if (vals.website.trim() !== '') {
+                        return;
+                      }
+
+                      // Validate required fields
+                      const isMessageTooLong = vals.message.trim().length > MAX_MESSAGE_LENGTH;
+                      const isValid =
+                        vals.name.trim() !== '' &&
+                        vals.email.trim() !== '' &&
+                        vals.purpose.trim() !== '' &&
+                        vals.message.trim() !== '' &&
+                        !isMessageTooLong;
+
+                      // Show fireorange asterisks for empty/invalid fields
+                      setShowAsterisk({
+                        name: vals.name.trim() === '',
+                        email: vals.email.trim() === '',
+                        purpose: vals.purpose.trim() === '',
+                        message: vals.message.trim() === '' || isMessageTooLong,
+                      });
+
+                      if (!isValid) {
+                        return;
+                      }
+
+                      // Submit form
+                      setLoading(true);
+                      setError(null);
+
+                      try {
+                        const result = await submitContactForm({
+                          name: vals.name.trim(),
+                          email: vals.email.trim(),
+                          purpose: vals.purpose.trim(),
+                          message: vals.message.trim(),
+                        });
+
+                        if (result.success) {
+                          setSent(true);
+                          setTimeout(() => {
+                            setSent(false);
+                            setVals({
+                              name: '',
+                              email: '',
+                              purpose: '',
+                              message: '',
+                              website: '',
+                            });
+                            setShowAsterisk({
+                              name: false,
+                              email: false,
+                              purpose: false,
+                              message: false,
+                            });
+                          }, 2000);
+                        } else {
+                          throw new Error(result.error || 'Submission failed');
+                        }
+                      } catch (err) {
+                        setError(err.message);
+                      } finally {
+                        setLoading(false);
                       }
                     }}
-                    onMouseEnter={() => setBtnHov(true)}
+                    disabled={loading}
+                    onMouseEnter={() => !loading && setBtnHov(true)}
                     onMouseLeave={() => setBtnHov(false)}
                     style={{
                       width: '100%',
-                      background: btnHov ? 'var(--accent-bg-hover)' : 'var(--accent-glow)',
+                      background: loading
+                        ? 'var(--item-bg)'
+                        : btnHov
+                          ? 'var(--accent-bg-hover)'
+                          : 'var(--accent-glow)',
                       border: '1px solid var(--accent-border-hover)',
                       borderRadius: 7,
                       padding: '14px 20px',
-                      color: 'var(--cyan)',
+                      color: loading
+                        ? 'var(--muted)'
+                        : 'var(--cyan)',
                       fontFamily: 'var(--font-display)',
                       fontWeight: 600,
-                      cursor: 'pointer',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      opacity: loading ? 0.7 : 1,
                     }}
                   >
-                    TRANSMIT MESSAGE
+                    {loading ? 'TRANSMITTING...' : 'TRANSMIT MESSAGE'}
                   </button>
                 </div>
               )}

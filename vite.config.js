@@ -10,6 +10,13 @@ export default defineConfig({
   },
   server: {
     port: 8888,
-    strictPort: true
+    strictPort: true,
+    host: '0.0.0.0',
+    proxy: {
+      '/api/contact': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   }
 })

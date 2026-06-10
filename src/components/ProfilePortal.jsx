@@ -11,109 +11,70 @@ export default function ProfilePortal({ size = 300, opacity = 1 }) {
   const cy = svgSize / 2;
 
   return (
-    <>
-      <style>{`
-        @keyframes pp-breath {
-          0%, 100% { opacity: 0.45; }
-          50%       { opacity: 0.18; }
-        }
-        .pp-img {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: opacity 0.6s ease;
-        }
-        /* Default: dark theme shows dark image */
-        .pp-img-light { opacity: 0; }
-        .pp-img-dark  { opacity: 1; }
+    <div className="pp-wrapper" style={{
+      position: 'relative',
+      width: svgSize,
+      height: svgSize,
+      flexShrink: 0,
+      opacity,
+    }}>
 
-        /* Light theme: swap */
-        [data-theme="light"] .pp-img-light { opacity: 1; }
-        [data-theme="light"] .pp-img-dark  { opacity: 0; }
+      <svg
+        width={svgSize}
+        height={svgSize}
+        className="pp-svg"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <filter id={`pp-gc-${size}`} x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id={`pp-gb-${size}`} x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-        /* System preference fallback (no data-theme set) */
-        @media (prefers-color-scheme: light) {
-          :not([data-theme]) .pp-img-light { opacity: 1; }
-          :not([data-theme]) .pp-img-dark  { opacity: 0; }
-        }
-      `}</style>
+        <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="var(--accent-border)" strokeWidth="1" />
+        <circle cx={cx} cy={cy} r={innerR} fill="none" stroke="var(--accent-border)" strokeWidth="1" />
 
-      <div style={{
-        position: 'relative',
-        width: svgSize,
-        height: svgSize,
-        flexShrink: 0,
-        opacity,
+        <circle cx={cx} cy={cy - outerR} r={3} fill="var(--cyan)" filter={`url(#pp-gc-${size})`}>
+          <animateTransform attributeName="transform" type="rotate"
+            from={`0 ${cx} ${cy}`} to={`360 ${cx} ${cy}`} dur="28s" repeatCount="indefinite" />
+        </circle>
+
+        <circle cx={cx} cy={cy + innerR} r={2} fill="var(--blue)" filter={`url(#pp-gb-${size})`}>
+          <animateTransform attributeName="transform" type="rotate"
+            from={`0 ${cx} ${cy}`} to={`-360 ${cx} ${cy}`} dur="18s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+
+      {/* Breath ring */}
+      <div className="pp-breath-ring" style={{
+        width: size,
+        height: size,
+        marginTop: -(size / 2),
+        marginLeft: -(size / 2),
+      }} />
+
+      {/* Avatar with crossfade */}
+      <div className="pp-avatar" style={{
+        width: size,
+        height: size,
+        marginTop: -(size / 2),
+        marginLeft: -(size / 2),
       }}>
-
-        <svg
-          width={svgSize}
-          height={svgSize}
-          style={{ position: 'absolute', inset: 0 }}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <filter id={`pp-gc-${size}`} x="-150%" y="-150%" width="400%" height="400%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id={`pp-gb-${size}`} x="-150%" y="-150%" width="400%" height="400%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="var(--accent-border)" strokeWidth="1" />
-          <circle cx={cx} cy={cy} r={innerR} fill="none" stroke="var(--accent-border)" strokeWidth="1" />
-
-          <circle cx={cx} cy={cy - outerR} r={3} fill="var(--cyan)" filter={`url(#pp-gc-${size})`}>
-            <animateTransform attributeName="transform" type="rotate"
-              from={`0 ${cx} ${cy}`} to={`360 ${cx} ${cy}`} dur="28s" repeatCount="indefinite" />
-          </circle>
-
-          <circle cx={cx} cy={cy + innerR} r={2} fill="var(--blue)" filter={`url(#pp-gb-${size})`}>
-            <animateTransform attributeName="transform" type="rotate"
-              from={`0 ${cx} ${cy}`} to={`-360 ${cx} ${cy}`} dur="18s" repeatCount="indefinite" />
-          </circle>
-        </svg>
-
-        {/* Breath ring */}
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: size, height: size,
-          marginTop: -(size / 2), marginLeft: -(size / 2),
-          borderRadius: '50%',
-          border: '1.5px solid var(--accent-border-hover)',
-          animation: 'pp-breath 8s ease-in-out infinite',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Avatar with crossfade */}
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: size, height: size,
-          marginTop: -(size / 2), marginLeft: -(size / 2),
-          borderRadius: '50%',
-          overflow: 'hidden',
-          border: '1.5px solid var(--accent-border-hover)',
-          boxShadow: 'var(--shadow)',
-          background: 'linear-gradient(145deg, var(--bg2), var(--bg3))',
-        }}>
-          <img src={LIGHT_SRC} alt="Jason Selerio" className="pp-img pp-img-light" />
-          <img src={DARK_SRC} alt="Jason Selerio" className="pp-img pp-img-dark" />
-        </div>
-
+        <img src={LIGHT_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" decode="async" className="pp-img pp-img-light" />
+        <img src={DARK_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" decode="async" className="pp-img pp-img-dark" />
       </div>
-    </>
+
+    </div>
   );
 }
