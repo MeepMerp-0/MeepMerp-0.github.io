@@ -24,6 +24,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_FORM_BACKEND: ${{ secrets.VITE_FORM_BACKEND }}
+          VITE_FORM_SCRIPT_URL: ${{ secrets.VITE_FORM_SCRIPT_URL }}
         run: npm run build
 
       - name: Deploy
