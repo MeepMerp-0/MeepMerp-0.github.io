@@ -6,7 +6,7 @@ export default defineConfig({
     include: ['@lobehub/icons']
   },
   build: {
-    sourcemap: true,
+    sourcemap: false,
   },
   server: {
     port: 8888,
