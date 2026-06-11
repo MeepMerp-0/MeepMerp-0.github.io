@@ -11,7 +11,7 @@ import useDeviceType from '../hooks/useDeviceType.js';
 import {
   PERSONAL,
   SERVICES,
-} from '../models/portfolioData.js';
+} from '../data/portfolioData.js';
 
 export default function HeroView({
   theme,

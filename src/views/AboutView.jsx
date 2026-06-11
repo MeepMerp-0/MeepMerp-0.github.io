@@ -9,7 +9,7 @@ import {
   ABOUT_PARAGRAPHS,
   STATS,
   PROFICIENCY,
-} from '../models/portfolioData.js';
+} from '../data/portfolioData.js';
 
 // All styles live in global.css under "/* ── ABOUT VIEW ── */"
 const EXPERIENCE = [

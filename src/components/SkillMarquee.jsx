@@ -1,4 +1,4 @@
-import { MARQUEE_LOGOS } from '../models/portfolioData.js';
+import { MARQUEE_LOGOS } from '../data/portfolioData.js';
 
 function LogoItem({ name, img }) {
   return (

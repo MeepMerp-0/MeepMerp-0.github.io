@@ -1,23 +1,11 @@
 // views/ProjectsView.jsx
 
-import { useState, memo, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, memo, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import SectionHeading from '../components/SectionHeading.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
-import { PROJECTS } from '../models/portfolioData.js';
-
-function useIsMobile(bp = 768) {
-  const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth <= bp
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width:${bp}px)`);
-    const handler = (e) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [bp]);
-  return isMobile;
-}
+import { PROJECTS } from '../data/portfolioData.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
 const MAX_HIGHLIGHTS_COLLAPSED = 3;
 const CARD_COLLAPSED_H = 320;
