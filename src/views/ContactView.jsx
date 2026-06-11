@@ -1,245 +1,50 @@
 // views/ContactView.jsx
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import {
-  Mail,
-  Phone,
-  Linkedin,
-  Github,
-} from 'lucide-react';
 
 import SectionHeading from '../components/SectionHeading.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 import Footer from '../components/Footer.jsx';
+import ContactCard from '../components/ContactCard.jsx';
 
 import {
   CONTACT_INFO,
   PERSONAL,
-} from '../models/portfolioData.js';
+} from '../data/portfolioData.js';
 import { submitContactForm } from '../services/formService.js';
-import { validateEmail } from '../utils/validation.js';
+import { useContactForm } from '../hooks/useContactForm.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
-const ICON_MAP = {
-  mail: Mail,
-  phone: Phone,
-  linkedin: Linkedin,
-  github: Github,
-};
-
-const MAX_MESSAGE_LENGTH = 500;
-
-function navigateToHref(href) {
-  if (!href) return;
-
-  if (href.startsWith('http')) {
-    const link = document.createElement('a');
-    link.href = href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    return;
-  }
-
-  location.href = href;
-}
-
-function ContactCard({ icon, label, value, href, delay }) {
-  const [hov, setHov] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const Icon = ICON_MAP[icon] || Mail;
-
-  function handleClick(e) {
-    e.preventDefault();
-
-    navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-        navigateToHref(href);
-      }, 900);
-    });
-  }
-
-  return (
-    <ScrollReveal variant="popUp" delay={delay}>
-      <motion.a
-        href={href}
-        onClick={handleClick}
-        target={href.startsWith('http') ? '_blank' : undefined}
-        rel="noopener noreferrer"
-        onMouseEnter={() => setHov(true)}
-        onMouseLeave={() => setHov(false)}
-        animate={{
-          borderColor: copied
-            ? 'var(--cyan)'
-            : hov
-              ? 'var(--cyan)'
-              : 'var(--border-subtle)',
-          background: hov ? 'var(--nav-hover-bg)' : 'var(--item-bg)',
-        }}
-        transition={{ duration: 0.35 }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          padding: '18px 20px',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 12,
-          background: 'var(--item-bg)',
-          backdropFilter: 'blur(8px)',
-          textDecoration: 'none',
-          cursor: 'pointer',
-          boxShadow: hov ? 'var(--shadow-hover)' : 'none',
-          minWidth: 0,
-          width: '100%',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            minWidth: 40,
-            borderRadius: 8,
-            background: hov ? 'var(--accent-bg-hover)' : 'var(--border-subtle)',
-            border: '1px solid var(--accent-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Icon size={18} color="var(--cyan)" strokeWidth={1.5} />
-        </div>
-
-        <div
-          style={{
-            minWidth: 0,
-            flex: 1,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: 'var(--muted)',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              marginBottom: 3,
-            }}
-          >
-            {label}
-          </div>
-
-          <div
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 13.5,
-              color: hov ? 'var(--cyan)' : 'var(--text)',
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
-            {value}
-          </div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: 6 }}
-          animate={
-            copied
-              ? { opacity: 1, scale: 1, x: 0 }
-              : { opacity: 0, scale: 0.8, x: 6 }
-          }
-          transition={{ duration: 0.2 }}
-          style={{
-            flexShrink: 0,
-            display: copied ? 'flex' : 'none',
-            alignItems: 'center',
-            gap: 5,
-            padding: '3px 9px',
-            borderRadius: 20,
-            background: 'var(--accent-bg-hover)',
-            border: '1px solid var(--accent-border)',
-            pointerEvents: 'none',
-            maxWidth: '40%',
-          }}
-        >
-          <div
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: '50%',
-              background: 'var(--cyan)',
-              flexShrink: 0,
-            }}
-          />
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: 'var(--cyan)',
-              letterSpacing: '0.1em',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            COPIED
-          </span>
-        </motion.div>
-      </motion.a>
-    </ScrollReveal>
-  );
-}
-
-function useIsMobile(bp = 768) {
-  const [isMobile, setIsMobile] = useState(
-    () => typeof globalThis !== 'undefined' && globalThis.innerWidth <= bp
-  );
-
-  useEffect(() => {
-    if (typeof globalThis === 'undefined' || !globalThis.matchMedia) return;
-
-    const mq = globalThis.matchMedia(`(max-width:${bp}px)`);
-    const handler = (e) => setIsMobile(e.matches);
-
-    setIsMobile(mq.matches);
-    mq.addEventListener('change', handler);
-
-    return () => mq.removeEventListener('change', handler);
-  }, [bp]);
-
-  return isMobile;
+// Sanitize error messages to prevent information leakage
+function sanitizeError(error) {
+  if (!error) return 'An error occurred';
+  const sanitized = error
+    .replace(/stack trace[\s\S]*/gi, '')
+    .replace(/at\s+.*\(.*\):/gi, '')
+    .replace(/Error:\s*/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return sanitized || 'Submission failed. Please try again.';
 }
 
 export default function ContactView() {
-  const [vals, setVals] = useState({
-    name: '',
-    email: '',
-    purpose: '',
-    message: '',
-    website: '',
-  });
+  const {
+    values,
+    focused,
+    sent,
+    loading,
+    error,
+    showAsterisk,
+    handleChange,
+    handleFocus,
+    handleBlur,
+    handleSubmit,
+    reset,
+    MAX_MESSAGE_LENGTH,
+  } = useContactForm(submitContactForm);
 
-  const [focused, setFocused] = useState(null);
-  const [sent, setSent] = useState(false);
   const [btnHov, setBtnHov] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  // Track which fields should show fireorange asterisk (empty/invalid on submit)
-  const [showAsterisk, setShowAsterisk] = useState({
-    name: false,
-    email: false,
-    purpose: false,
-    message: false,
-  });
-
   const isMobile = useIsMobile();
 
   const fieldStyle = (f) => ({
@@ -410,25 +215,11 @@ export default function ContactView() {
                     Transmission Failed
                   </h3>
                   <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
-                    {error}
+                    {sanitizeError(error)}
                   </p>
                   <button
                     onClick={() => {
-                      setSent(false);
-                      setError(null);
-                      setShowAsterisk({
-                        name: false,
-                        email: false,
-                        purpose: false,
-                        message: false,
-                      });
-                      setVals({
-                        name: '',
-                        email: '',
-                        purpose: '',
-                        message: '',
-                        website: '',
-                      });
+                      reset();
                     }}
                     onMouseEnter={() => setBtnHov(true)}
                     onMouseLeave={() => setBtnHov(false)}
@@ -498,24 +289,10 @@ export default function ContactView() {
                         <input
                           placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
                           type={f === 'email' ? 'email' : 'text'}
-                          value={vals[f]}
-                          onChange={(e) => {
-                            const newval = e.target.value;
-                            setVals((v) => ({ ...v, [f]: newval }));
-                            // For email: only clear asterisk when valid
-                            // For name: clear on any input
-                            if (f === 'email') {
-                              if (validateEmail(newval)) {
-                                setShowAsterisk(prev => ({ ...prev, email: false }));
-                              }
-                            } else {
-                              if (showAsterisk[f]) {
-                                setShowAsterisk(prev => ({ ...prev, [f]: false }));
-                              }
-                            }
-                          }}
-                          onFocus={() => setFocused(f)}
-                          onBlur={() => setFocused(null)}
+                          value={values[f]}
+                          onChange={(e) => handleChange(f)(e.target.value)}
+                          onFocus={handleFocus(f)}
+                          onBlur={handleBlur}
                           style={fieldStyle(f)}
                         />
                       </div>
@@ -538,15 +315,10 @@ export default function ContactView() {
                     </label>
                     <input
                       placeholder="Purpose / Title"
-                      value={vals.purpose}
-                      onChange={(e) => {
-                        setVals((v) => ({ ...v, purpose: e.target.value }));
-                        if (showAsterisk.purpose) {
-                          setShowAsterisk(prev => ({ ...prev, purpose: false }));
-                        }
-                      }}
-                      onFocus={() => setFocused('purpose')}
-                      onBlur={() => setFocused(null)}
+                      value={values.purpose}
+                      onChange={(e) => handleChange('purpose')(e.target.value)}
+                      onFocus={handleFocus('purpose')}
+                      onBlur={handleBlur}
                       style={fieldStyle('purpose')}
                     />
                   </div>
@@ -559,8 +331,8 @@ export default function ContactView() {
                       id="website-hp"
                       type="text"
                       tabIndex={-1}
-                      value={vals.website}
-                      onChange={(e) => setVals((v) => ({ ...v, website: e.target.value }))}
+                      value={values.website}
+                      onChange={(e) => handleChange('website')(e.target.value)}
                       style={{ width: '1px', height: '1px', padding: 0, margin: 0, overflow: 'hidden', position: 'absolute' }}
                     />
                   </div>
@@ -582,99 +354,28 @@ export default function ContactView() {
                     <textarea
                       rows={5}
                       placeholder="Describe your project or opportunity..."
-                      value={vals.message}
-                      onChange={(e) => {
-                        setVals((v) => ({ ...v, message: e.target.value }));
-                        if (showAsterisk.message) {
-                          setShowAsterisk(prev => ({ ...prev, message: false }));
-                        }
-                      }}
-                      onFocus={() => setFocused('message')}
-                      onBlur={() => setFocused(null)}
+                      value={values.message}
+                      onChange={(e) => handleChange('message')(e.target.value)}
+                      onFocus={handleFocus('message')}
+                      onBlur={handleBlur}
                       style={{ ...fieldStyle('message'), resize: 'vertical' }}
                     />
                     <div style={{
                       textAlign: 'right',
                       fontFamily: 'var(--font-mono)',
                       fontSize: 10,
-                      color: vals.message.length >= MAX_MESSAGE_LENGTH ? 'var(--cyber-red)'
-                        : vals.message.length >= MAX_MESSAGE_LENGTH * 0.8 ? 'var(--fireorange)'
-                          : vals.message.length >= MAX_MESSAGE_LENGTH * 0.6 ? 'var(--yellow)'
+                      color: values.message.length >= MAX_MESSAGE_LENGTH ? 'var(--cyber-red)'
+                        : values.message.length >= MAX_MESSAGE_LENGTH * 0.8 ? 'var(--fireorange)'
+                          : values.message.length >= MAX_MESSAGE_LENGTH * 0.6 ? 'var(--yellow)'
                             : 'var(--cyan)',
                       marginTop: 4
                     }}>
-                      {vals.message.length > MAX_MESSAGE_LENGTH ? 'Message exceeds maximum length' : `${vals.message.length}/${MAX_MESSAGE_LENGTH}`}
+                      {values.message.length > MAX_MESSAGE_LENGTH ? 'Message exceeds maximum length' : `${values.message.length}/${MAX_MESSAGE_LENGTH}`}
                     </div>
                   </div>
 
                   <button
-                    onClick={async (e) => {
-                      e.preventDefault();
-
-                      if (vals.website.trim() !== '') {
-                        return;
-                      }
-
-                      // Validate required fields
-                      const isMessageTooLong = vals.message.trim().length > MAX_MESSAGE_LENGTH;
-                      const isValid =
-                        vals.name.trim() !== '' &&
-                        vals.email.trim() !== '' &&
-                        vals.purpose.trim() !== '' &&
-                        vals.message.trim() !== '' &&
-                        !isMessageTooLong;
-
-                      // Show fireorange asterisks for empty/invalid fields
-                      setShowAsterisk({
-                        name: vals.name.trim() === '',
-                        email: vals.email.trim() === '',
-                        purpose: vals.purpose.trim() === '',
-                        message: vals.message.trim() === '' || isMessageTooLong,
-                      });
-
-                      if (!isValid) {
-                        return;
-                      }
-
-                      // Submit form
-                      setLoading(true);
-                      setError(null);
-
-                      try {
-                        const result = await submitContactForm({
-                          name: vals.name.trim(),
-                          email: vals.email.trim(),
-                          purpose: vals.purpose.trim(),
-                          message: vals.message.trim(),
-                        });
-
-                        if (result.success) {
-                          setSent(true);
-                          setTimeout(() => {
-                            setSent(false);
-                            setVals({
-                              name: '',
-                              email: '',
-                              purpose: '',
-                              message: '',
-                              website: '',
-                            });
-                            setShowAsterisk({
-                              name: false,
-                              email: false,
-                              purpose: false,
-                              message: false,
-                            });
-                          }, 2000);
-                        } else {
-                          throw new Error(result.error || 'Submission failed');
-                        }
-                      } catch (err) {
-                        setError(err.message);
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
+                    onClick={handleSubmit}
                     disabled={loading}
                     onMouseEnter={() => !loading && setBtnHov(true)}
                     onMouseLeave={() => setBtnHov(false)}
