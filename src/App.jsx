@@ -10,7 +10,7 @@ import AboutView from './views/AboutView';
 import ProjectsView from './views/ProjectsView';
 import ContactView from './views/ContactView';
 
-import { useScrollController } from './controllers/useScrollController';
+import { useScrollNavigation } from './hooks/useScrollNavigation';
 
 export default function App() {
   const [theme, setTheme] = useState(() => {
@@ -43,7 +43,7 @@ export default function App() {
     home: 0, about: 0, projects: 0, contact: 0,
   });
 
-  const { activeSection, navVisible, scrollTo } = useScrollController(pageRefs, setPageKeys);
+  const { activeSection, navVisible, scrollTo } = useScrollNavigation(pageRefs, setPageKeys);
 
   // CSS-only opacity fade — no Framer Motion, no will-change, no stacking context
   const pageStyle = (section) => ({
