@@ -29,8 +29,20 @@ jobs:
           VITE_FORM_SCRIPT_URL: ${{ secrets.VITE_FORM_SCRIPT_URL }}
         run: npm run build
 
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
       - name: Deploy
+        id: deployment
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Build or deploy failed"
+          exit 1
