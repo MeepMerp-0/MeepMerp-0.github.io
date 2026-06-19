@@ -15,7 +15,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
   const innerRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(CARD_COLLAPSED_H);
 
-  const { tag, title, desc, tech, accent, status, year, highlights, site } = project;
+  const { tag, title, desc, tech, accent, status, year, highlights, site, metrics } = project;
 
   const isExpanded = !isMobile && hov;
   const extraHighlights = highlights.length - MAX_HIGHLIGHTS_COLLAPSED;
@@ -237,6 +237,38 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
               )}
             </AnimatePresence>
           </ul>
+
+          {/* ── Metrics ── */}
+          {metrics && (
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              {metrics.map((m) => (
+                <div key={m.label} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 12px',
+                  background: 'var(--nav-active-bg)',
+                  border: '1px solid var(--accent-border)',
+                  borderRadius: 8,
+                  minWidth: 70,
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: accent,
+                  }}>{m.value}</span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    color: 'var(--muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* ── Tech chips ── */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
