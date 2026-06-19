@@ -4,23 +4,25 @@ import { useState, memo, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import SectionHeading from '../components/SectionHeading.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import ProjectModal from '../components/ProjectModal.jsx';
 import { PROJECTS } from '../data/portfolioData.js';
 import { useIsMobile } from '../hooks/useIsMobile.js';
 
 const MAX_HIGHLIGHTS_COLLAPSED = 3;
 const CARD_COLLAPSED_H = 320;
 
-const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
+const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShowMessage }) {
   const [hov, setHov] = useState(false);
   const innerRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(CARD_COLLAPSED_H);
 
-  const { tag, title, desc, tech, accent, status, year, highlights, site, metrics } = project;
+  const { tag, title, desc, tech, accent, status, year, highlights, site, metrics, clickMessage } = project;
 
   const isExpanded = !isMobile && hov;
   const extraHighlights = highlights.length - MAX_HIGHLIGHTS_COLLAPSED;
   const visibleHighlights = isExpanded ? highlights : highlights.slice(0, MAX_HIGHLIGHTS_COLLAPSED);
   const hasSite = Boolean(site);
+  const hasMessage = Boolean(clickMessage);
 
   useLayoutEffect(() => {
     if (!innerRef.current) return;
@@ -33,7 +35,11 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
   }, []);
 
   function handleClick() {
-    if (hasSite) window.open(site, '_blank', 'noopener,noreferrer');
+    if (hasMessage) {
+      onShowMessage({ title, message: clickMessage, accent });
+    } else if (hasSite) {
+      window.open(site, '_blank', 'noopener,noreferrer');
+    }
   }
 
   return (
@@ -60,7 +66,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
           borderRadius: 14,
           position: 'relative',
           overflow: 'hidden',
-          cursor: hasSite ? 'pointer' : 'default',
+          cursor: (hasSite || hasMessage) ? 'pointer' : 'default',
           backdropFilter: 'blur(6px)',
           boxShadow: isExpanded ? 'var(--shadow-hover)' : 'none',
           transition: 'border-color 0.35s ease, box-shadow 0.35s ease',
@@ -310,7 +316,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
                 color: accent,
               }}
             >
-              {hasSite && (
+              {(hasSite || hasMessage) && (
                 <span
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -320,10 +326,10 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
                     opacity: 0.75,
                   }}
                 >
-                  Visit site
+                  {hasMessage ? 'Details' : 'Visit site'}
                 </span>
               )}
-              <span style={{ fontSize: 17 }}>{hasSite ? '↗' : '→'}</span>
+              <span style={{ fontSize: 17 }}>{hasMessage ? 'ℹ' : hasSite ? '↗' : '→'}</span>
             </motion.div>
           )}
 
@@ -335,6 +341,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile }) {
 
 export default function ProjectsView() {
   const isMobile = useIsMobile();
+  const [modal, setModal] = useState({ open: false, title: '', message: '', accent: '' });
 
   return (
     <section
@@ -370,9 +377,18 @@ export default function ProjectsView() {
             project={project}
             index={i}
             isMobile={isMobile}
+            onShowMessage={({ title, message, accent }) => setModal({ open: true, title, message, accent })}
           />
         ))}
       </div>
+
+      <ProjectModal
+        open={modal.open}
+        onClose={() => setModal({ ...modal, open: false })}
+        title={modal.title}
+        message={modal.message}
+        accent={modal.accent}
+      />
     </section>
   );
 }
