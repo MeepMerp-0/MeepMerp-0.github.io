@@ -1,7 +1,21 @@
 import { motion, AnimatePresence } from 'motion/react';
+import { useEffect } from 'react';
 import CloseButton from './CloseButton.jsx';
 
 export default function ProjectModal({ open, onClose, title, message, accent }) {
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (
