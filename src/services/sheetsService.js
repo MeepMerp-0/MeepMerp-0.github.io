@@ -50,13 +50,3 @@ export async function appendToSheet({ name, email, purpose, message, submissionI
     return { success: false, error: error.message };
   }
 }
-
-// For testing purposes only
-export const __setSheetsInstance = (instance) => {
-  sheetsInstance = instance;
-};
-
-// For testing purposes only
-export const __resetSheetsInstance = () => {
-  sheetsInstance = null;
-};
