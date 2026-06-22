@@ -29,8 +29,6 @@ export default function ProfilePortal({ size = 300, opacity = 1 }) {
         <circle cx={cx} cy={cy} r={innerR} fill="none" stroke="var(--accent-border)" strokeWidth="1" />
       </svg>
 
-      {/* className="pp-orbit-outer" lets global.css exempt this from the
-          prefers-reduced-motion blanket 2s override */}
       <div
         className="pp-orbit-outer"
         style={{
@@ -54,7 +52,6 @@ export default function ProfilePortal({ size = 300, opacity = 1 }) {
         }} />
       </div>
 
-      {/* className="pp-orbit-inner" — same exemption for the inner dot */}
       <div
         className="pp-orbit-inner"
         style={{
