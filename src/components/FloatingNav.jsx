@@ -125,7 +125,7 @@ export default function FloatingNav({
                   hov === item;
 
                 return (
-                  <button
+                  <button className="cyber-glitch"
                     key={item}
                     onClick={() =>
                       onNav(
@@ -212,7 +212,7 @@ export default function FloatingNav({
             />
 
             {/* Theme Toggle */}
-            <button
+            <button className="cyber-glitch"
               onClick={onToggleTheme}
               style={{
                 background:

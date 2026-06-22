@@ -32,9 +32,10 @@
   --fiber-color-2: #1565ff;
   --fiber-color-3: #0ea5e9;
   --fiber-color-4: #3b82f6;
-  --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.042) 0%, transparent 68%);
-  --glow-2: radial-gradient(circle, rgba(21, 101, 255, 0.052) 0%, transparent 68%);
-  --glow-3: radial-gradient(circle, rgba(59, 130, 246, 0.032) 0%, transparent 68%);
+  --fiber-bright: #00e5ff;
+  --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.07) 0%, transparent 68%);
+  --glow-2: radial-gradient(circle, rgba(21, 101, 255, 0.08) 0%, transparent 68%);
+  --glow-3: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 68%);
   --dot-grid: rgba(0, 229, 255, 0.055);
   --selection: rgba(0, 229, 255, 0.22);
   --nav-active-bg: rgba(0, 229, 255, 0.10);
@@ -50,6 +51,12 @@
   --track-bg: rgba(255, 255, 255, 0.08);
   --bg-pattern: radial-gradient(var(--dot-grid) 1px, transparent 1px);
   --bg-pattern-size: 52px 52px;
+  --pixel-grid: repeating-linear-gradient(0deg, transparent 0px, transparent 1px, var(--dot-grid) 1px, var(--dot-grid) 2px);
+  --pixel-grid-size: 2px 2px;
+  --scanline-opacity: 0.9;
+  --pixel-overlay: linear-gradient(0deg, transparent 0px, rgba(0, 229, 255, 0.1) 1px), linear-gradient(90deg, transparent 0px, rgba(0, 229, 255, 0.1) 1px);
+  --pixel-overlay-size: 2px 2px;
+  --scanline-gradient: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.041) 50%, rgba(255, 255, 255, 0) 100%);
 }
 
 [data-theme='light'] {
@@ -272,7 +279,18 @@ body,
   }
 
   50% {
-    opacity: .9;
+    opacity: .4;
+  }
+}
+
+/* Scanline sweep animation */
+@keyframes scanlineSweep {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
   }
 }
 
@@ -347,6 +365,42 @@ body,
 
   .marquee-track {
     animation: none !important;
+  }
+
+  /* Cyber pulse animations always run */
+  .cyber-scanline {
+    animation-duration: 32s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .cyber-glow {
+    animation-duration: inherit !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* ── Hover glitch effects ── */
+.cyber-glitch {
+  transition: transform 50ms ease-out;
+}
+
+.cyber-glitch:hover {
+  transform: translateX(2px);
+}
+
+.cyber-glitch:focus-visible {
+  outline: none;
+  animation: glitchPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes glitchPulse {
+  0%,
+  100% {
+    border-width: 2px;
+  }
+
+  50% {
+    border-width: 3px;
   }
 }
 
