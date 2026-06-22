@@ -4,7 +4,7 @@ export default function CloseButton({ onClick }) {
   const [hover, setHover] = useState(false);
 
   return (
-    <button
+    <button className="cyber-glitch"
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}

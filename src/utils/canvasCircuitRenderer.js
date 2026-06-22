@@ -2,6 +2,8 @@ const PACKET_SPEED = 0.0008;
 const PACKET_RADIUS = 2.8;
 const PULSE_LENGTH = 40;
 const MOUSE_TRIGGER_RADIUS = 250;
+const FLICKER_CHANCE = 0.01; // 1% of paths flicker
+const FLICKER_DURATION = 300; // ms
 
 function seededRandom(index) {
   return ((index * 0.618033988749895) % 1 + 1) % 1;
@@ -166,7 +168,8 @@ export function getStaticCircuitPaths(width, height) {
   return paths;
 }
 
-function isFinePointerCanvasTheme(theme, isDesktopFinePointer) {
+function isFinePointerCanvasTheme(theme, isDesktopFinePointer, prefersReducedMotion) {
+  // prefersReducedMotion is ignored - cyber pulse animations always run
   return theme === 'light' && isDesktopFinePointer === true;
 }
 
@@ -214,11 +217,21 @@ function resizeCanvas(canvas, state) {
 // bounce cycle runs on one linear timer with no stateful phase tracking.
 const BOUNCE_PAUSE_MS = 400;
 
-function drawPulses(context, paths, colors, time, fadeInAlpha, mousePos, isInitialPulse) {
+function drawPulses(context, paths, colors, time, fadeInAlpha, mousePos, isInitialPulse, flickerMap) {
   const { packetRgb } = colors;
 
-  paths.forEach((path) => {
+  paths.forEach((path, pathIndex) => {
     if (!path.hasStartCircle && !path.hasEndCircle) return;
+
+    // Flicker effect: randomly dim this path
+    const now = performance.now();
+    const shouldFlicker = flickerMap[pathIndex] && now < flickerMap[pathIndex].expireTime;
+    const flickerAlpha = shouldFlicker ? (0.5 + Math.random() * 0.5) : 1;
+
+    // Randomly trigger flicker on valid paths
+    if (Math.random() < FLICKER_CHANCE && !flickerMap[pathIndex]) {
+      flickerMap[pathIndex] = { expireTime: now + FLICKER_DURATION };
+    }
 
     const { totalLength, segmentLengths } = path;
 
@@ -309,7 +322,7 @@ function drawPulses(context, paths, colors, time, fadeInAlpha, mousePos, isIniti
       alpha *= (1 - minDist / MOUSE_TRIGGER_RADIUS);
     }
 
-    context.globalAlpha = alpha;
+    context.globalAlpha = alpha * flickerAlpha;
 
     const brightPos = getPathPositionAtDistance(path, brightDist);
     const fadePos = getPathPositionAtDistance(path, fadeDist);
@@ -418,6 +431,7 @@ export function createCircuitRenderer({
     isDesktopFinePointer,
     prefersReducedMotion,
     paths: [],
+    flickerMap: {}, // pathIndex -> { expireTime }
     fadeInAlpha: 0,
     fadeStartTime: 0,
     deltaSeconds: 0,
@@ -429,6 +443,8 @@ export function createCircuitRenderer({
       ratio: window.devicePixelRatio || 1,
     },
     colors: getThemeColors(theme),
+    sweepProgress: 0,
+    sweepDirection: 1,
   };
 
   function handleResize() {
@@ -440,6 +456,14 @@ export function createCircuitRenderer({
 
   function frame(time) {
     const now = performance.now();
+
+    // Cleanup flickerMap entries that have expired
+    for (const idx in state.flickerMap) {
+      if (now > state.flickerMap[idx].expireTime) {
+        delete state.flickerMap[idx];
+      }
+    }
+
     state.deltaSeconds = Math.min(0.05, (now - state.lastFrameTime) / 1000 || 0);
     state.lastFrameTime = now;
 
@@ -458,7 +482,23 @@ export function createCircuitRenderer({
     const fadeInElapsed = (time - state.fadeStartTime) / 1000;
     state.fadeInAlpha = Math.min(1, fadeInElapsed / 1.5);
 
-    drawPulses(context, state.paths, state.colors, time, state.fadeInAlpha, state.mousePos, state.isInitialPulse);
+    // Sweep line overlay
+    state.sweepProgress += 0.002 * state.sweepDirection;
+    if (state.sweepProgress > 1 || state.sweepProgress < 0) {
+      state.sweepDirection *= -1;
+      state.sweepProgress = Math.max(0, Math.min(1, state.sweepProgress));
+    }
+    const { width, height } = state.size;
+    const sweepX = width * state.sweepProgress;
+    context.globalAlpha = 0.1;
+    context.strokeStyle = '#00e5ff';
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(sweepX, 0);
+    context.lineTo(sweepX, height);
+    context.stroke();
+
+    drawPulses(context, state.paths, state.colors, time, state.fadeInAlpha, state.mousePos, state.isInitialPulse, state.flickerMap);
 
     state.rafId = requestAnimationFrame(frame);
   }
