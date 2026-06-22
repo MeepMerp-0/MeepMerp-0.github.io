@@ -71,7 +71,7 @@ export default function App() {
       }}
     >
       {/* position:fixed — must have zero transformed/will-changed ancestors */}
-      <AmbientBg />
+      <AmbientBg theme={theme} />
       <HudFrame />
 
       <FloatingNav

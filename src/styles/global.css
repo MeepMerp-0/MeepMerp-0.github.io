@@ -25,7 +25,6 @@
   --border-subtle: rgba(0, 229, 255, 0.10);
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.6);
-  --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.042) 0%, transparent 68%);
   --heading-gradient: linear-gradient(130deg, #ffffff 5%, var(--cyan) 100%);
   --divider-gradient: linear-gradient(90deg, rgba(0, 229, 255, 0.3), transparent);
   --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.15), transparent);
@@ -33,6 +32,7 @@
   --fiber-color-2: #1565ff;
   --fiber-color-3: #0ea5e9;
   --fiber-color-4: #3b82f6;
+  --glow-1: radial-gradient(circle, rgba(0, 229, 255, 0.042) 0%, transparent 68%);
   --glow-2: radial-gradient(circle, rgba(21, 101, 255, 0.052) 0%, transparent 68%);
   --glow-3: radial-gradient(circle, rgba(59, 130, 246, 0.032) 0%, transparent 68%);
   --dot-grid: rgba(0, 229, 255, 0.055);
@@ -90,8 +90,8 @@
   --heading-gradient: linear-gradient(130deg, #121212 40%, var(--cyan) 100%);
   --divider-gradient: linear-gradient(90deg, rgba(0, 131, 143, 0.25), transparent);
   --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 131, 143, 0.12), transparent);
-  --fiber-color-1: #00838f;
-  --fiber-color-2: #2563eb;
+  --fiber-color-1: rgba(0, 131, 143, 0.9);
+  --fiber-color-2: rgba(37, 99, 255, 0.95);
   --fiber-color-3: #0369a1;
   --fiber-color-4: #1d4ed8;
 
@@ -335,15 +335,13 @@ body,
     transition-duration: .1s !important;
   }
 
-  /* Orbital dots are intentionally slow — exempt them from the 2s blanket.
-     A class selector beats * in specificity even when both use !important. */
   .pp-orbit-outer {
     animation-duration: 22s !important;
     animation-iteration-count: infinite !important;
   }
 
   .pp-orbit-inner {
-    animation-duration: 22s !important;
+    animation-duration: 25s !important;
     animation-iteration-count: infinite !important;
   }
 
