@@ -443,8 +443,6 @@ export function createCircuitRenderer({
       ratio: window.devicePixelRatio || 1,
     },
     colors: getThemeColors(theme),
-    sweepProgress: 0,
-    sweepDirection: 1,
   };
 
   function handleResize() {
@@ -481,22 +479,6 @@ export function createCircuitRenderer({
 
     const fadeInElapsed = (time - state.fadeStartTime) / 1000;
     state.fadeInAlpha = Math.min(1, fadeInElapsed / 1.5);
-
-    // Sweep line overlay
-    state.sweepProgress += 0.002 * state.sweepDirection;
-    if (state.sweepProgress > 1 || state.sweepProgress < 0) {
-      state.sweepDirection *= -1;
-      state.sweepProgress = Math.max(0, Math.min(1, state.sweepProgress));
-    }
-    const { width, height } = state.size;
-    const sweepX = width * state.sweepProgress;
-    context.globalAlpha = 0.1;
-    context.strokeStyle = '#00e5ff';
-    context.lineWidth = 2;
-    context.beginPath();
-    context.moveTo(sweepX, 0);
-    context.lineTo(sweepX, height);
-    context.stroke();
 
     drawPulses(context, state.paths, state.colors, time, state.fadeInAlpha, state.mousePos, state.isInitialPulse, state.flickerMap);
 
