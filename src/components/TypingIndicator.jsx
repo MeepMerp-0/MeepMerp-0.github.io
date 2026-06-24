@@ -3,11 +3,13 @@ import { motion } from 'motion/react';
 
 export default function TypingIndicator() {
   const words = [
+    '// Jason Selerio',
+    '// Full-Stack Developer',
     '// Software Developer',
-    '// Software Engineering',
-    '// Programmer',
+    '// Software Engineer',
     '// Web Developer',
     '// Mobile Developer',
+    '// Programmer',
     '// Penetration Tester'
   ];
 
