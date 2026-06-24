@@ -15,7 +15,11 @@ import { useScrollNavigation } from './hooks/useScrollNavigation';
 export default function App() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') || 'dark';
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved;
+      // Detect system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? 'dark' : 'light';
     }
     return 'dark';
   });
