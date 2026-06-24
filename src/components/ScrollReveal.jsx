@@ -1,44 +1,45 @@
 // components/ScrollReveal.jsx
-// Reusable motion wrapper that triggers when element enters viewport.
-// variant prop controls the entry direction/style.
-// Powered by Motion (motion.dev) whileInView.
 
 import { motion } from 'motion/react';
 
 const VARIANTS = {
   fadeUp: {
-    hidden:  { opacity:0, y:48 },
-    visible: { opacity:1, y:0  },
+    hidden: { opacity: 0, y: 48 },
+    visible: { opacity: 1, y: 0 },
   },
   fadeDown: {
-    hidden:  { opacity:0, y:-40 },
-    visible: { opacity:1, y:0  },
+    hidden: { opacity: 0, y: -40 },
+    visible: { opacity: 1, y: 0 },
   },
   fromLeft: {
-    hidden:  { opacity:0, x:-60 },
-    visible: { opacity:1, x:0  },
+    hidden: { opacity: 0, x: -60 },
+    visible: { opacity: 1, x: 0 },
   },
   fromRight: {
-    hidden:  { opacity:0, x:60 },
-    visible: { opacity:1, x:0  },
+    hidden: { opacity: 0, x: 60 },
+    visible: { opacity: 1, x: 0 },
+  },
+  fromBottom: {
+    hidden: { opacity: 0, y: 48 },
+    visible: { opacity: 1, y: 0 },
   },
   popUp: {
-    hidden:  { opacity:0, scale:0.88, y:24 },
-    visible: { opacity:1, scale:1,    y:0  },
+    hidden: { opacity: 0, scale: 0.88, y: 24 },
+    visible: { opacity: 1, scale: 1, y: 0 },
   },
   fadeIn: {
-    hidden:  { opacity:0 },
-    visible: { opacity:1 },
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
   },
 };
 
 export default function ScrollReveal({
   children,
-  variant   = 'fadeUp',
-  delay     = 0,
-  duration  = 0.65,
+  variant = 'fadeUp',
+  delay = 0,
+  duration = 0.65,
   threshold = 0.12,
-  style     = {},
+  style = {},
   className = '',
 }) {
   const selected = VARIANTS[variant] || VARIANTS.fadeUp;
@@ -46,10 +47,17 @@ export default function ScrollReveal({
   return (
     <motion.div
       className={className}
-      style={style}
+      style={{
+        width: '100%',
+        minWidth: 0,
+        boxSizing: 'border-box',
+        // clip prevents x-axis transforms from causing page-level horizontal scroll
+        overflowX: 'clip',
+        ...style,
+      }}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once:true, amount:threshold }}
+      viewport={{ once: true, amount: threshold }}
       variants={selected}
       transition={{
         duration,

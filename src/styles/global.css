@@ -157,6 +157,7 @@ body,
 
 #outer-scroll {
   overscroll-behavior-y: contain;
+  overflow-x: clip;
 }
 
 .scroll-container::-webkit-scrollbar {
@@ -426,6 +427,10 @@ body,
   #root {
     min-height: 100svh;
     overflow-x: hidden;
+  }
+
+  #outer-scroll {
+    overflow-x: clip;
   }
 
   #home {

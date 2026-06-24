@@ -44,338 +44,340 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
 
   return (
     <ScrollReveal variant="fromBottom" delay={index * 0.08}>
-      {/* width:100% + minWidth:0 ensures ScrollReveal's child fills
-          the grid column and doesn't escape it */}
-      <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-        <motion.div
-          onMouseEnter={() => !isMobile && setHov(true)}
-          onMouseLeave={() => !isMobile && setHov(false)}
-          onClick={handleClick}
-          animate={{
-            height: isMobile
-              ? 'auto'
-              : isExpanded && contentHeight > CARD_COLLAPSED_H
-                ? contentHeight
-                : CARD_COLLAPSED_H,
-            y: isExpanded ? -4 : 0,
-          }}
-          transition={{
-            height: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-            y: { duration: 0.3 },
-          }}
+      <motion.div
+        onMouseEnter={() => !isMobile && setHov(true)}
+        onMouseLeave={() => !isMobile && setHov(false)}
+        onClick={handleClick}
+        animate={{
+          height: isMobile
+            ? 'auto'
+            : isExpanded && contentHeight > CARD_COLLAPSED_H
+              ? contentHeight
+              : CARD_COLLAPSED_H,
+          y: isExpanded ? -4 : 0,
+        }}
+        transition={{
+          height: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
+          y: { duration: 0.3 },
+        }}
+        style={{
+          background: 'var(--item-bg)',
+          border: `1px solid ${isExpanded ? accent : 'var(--border-subtle)'}`,
+          borderRadius: 14,
+          position: 'relative',
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          cursor: (hasSite || hasMessage) ? 'pointer' : 'default',
+          backdropFilter: 'blur(6px)',
+          boxShadow: isExpanded ? 'var(--shadow-hover)' : 'none',
+          transition: 'border-color 0.35s ease, box-shadow 0.35s ease',
+        }}
+      >
+        <div
+          ref={innerRef}
           style={{
-            background: 'var(--item-bg)',
-            border: `1px solid ${isExpanded ? accent : 'var(--border-subtle)'}`,
-            borderRadius: 14,
-            position: 'relative',
-            overflow: 'hidden',
+            padding: isMobile ? '18px 18px 16px' : '26px 26px 22px',
+            height: 'fit-content',
             width: '100%',
-            maxWidth: '100%',
             boxSizing: 'border-box',
-            cursor: (hasSite || hasMessage) ? 'pointer' : 'default',
-            backdropFilter: 'blur(6px)',
-            boxShadow: isExpanded ? 'var(--shadow-hover)' : 'none',
-            transition: 'border-color 0.35s ease, box-shadow 0.35s ease',
+            overflowX: 'hidden',
           }}
         >
+
+          {/* ── Accent top line ── */}
           <div
-            ref={innerRef}
             style={{
-              padding: isMobile ? '18px 18px 16px' : '26px 26px 22px',
-              height: 'fit-content',
-              width: '100%',
-              boxSizing: 'border-box',
-              overflowX: 'hidden',
+              position: 'absolute',
+              top: 0, left: 0, right: 0,
+              height: 1.5,
+              background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+              opacity: isExpanded ? 0.9 : 0.3,
+              transition: 'opacity 0.4s ease',
+            }}
+          />
+
+          {/* ── Scanline on hover ── */}
+          {isExpanded && (
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0, right: 0,
+                  height: '20%',
+                  background: `linear-gradient(180deg, transparent, ${accent}08, transparent)`,
+                  animation: 'scanGlide 2.5s linear infinite',
+                }}
+              />
+            </div>
+          )}
+
+          {/* ── Header row ── */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'nowrap',
+              gap: 8,
+              marginBottom: 12,
+              minWidth: 0,
             }}
           >
-
-            {/* ── Accent top line ── */}
-            <div
+            {/* Tag — truncates before hitting year/status */}
+            <span
               style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0,
-                height: 1.5,
-                background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-                opacity: isExpanded ? 0.9 : 0.3,
-                transition: 'opacity 0.4s ease',
-              }}
-            />
-
-            {/* ── Scanline on hover ── */}
-            {isExpanded && (
-              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0, right: 0,
-                    height: '20%',
-                    background: `linear-gradient(180deg, transparent, ${accent}08, transparent)`,
-                    animation: 'scanGlide 2.5s linear infinite',
-                  }}
-                />
-              </div>
-            )}
-
-            {/* ── Header row ── */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'nowrap',
-                gap: 8,
-                marginBottom: 12,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: accent,
+                opacity: 0.75,
+                flex: '1 1 0',
                 minWidth: 0,
+                // On mobile always wrap; on desktop truncate until hovered
+                overflow: (isMobile || hov) ? 'visible' : 'hidden',
+                whiteSpace: (isMobile || hov) ? 'normal' : 'nowrap',
+                textOverflow: (isMobile || hov) ? 'unset' : 'ellipsis',
+                transition: 'opacity 0.2s ease',
               }}
             >
-              {/* Tag — truncates before hitting year/status */}
+              {tag}
+            </span>
+
+            {/* Year + status — never shrinks */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.45, color: 'var(--muted)' }}>
+                {year}
+              </span>
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 9,
-                  letterSpacing: '0.16em',
-                  textTransform: 'uppercase',
+                  padding: '2px 10px',
+                  border: `1px solid ${accent}38`,
+                  borderRadius: 20,
                   color: accent,
-                  opacity: 0.75,
-                  flex: '1 1 0',
-                  minWidth: 0,
-                  overflow: hov ? 'visible' : 'hidden',
-                  whiteSpace: hov ? 'normal' : 'nowrap',
-                  textOverflow: hov ? 'unset' : 'ellipsis',
-                  transition: 'opacity 0.2s ease',
+                  background: `${accent}0d`,
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {tag}
+                {status}
               </span>
+            </div>
+          </div>
 
-              {/* Year + status — never shrinks */}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.45, color: 'var(--muted)' }}>
-                  {year}
-                </span>
+          {/* ── Title ── */}
+          <h3
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: isMobile ? 16 : 18,
+              fontWeight: 600,
+              marginBottom: 11,
+              lineHeight: 1.35,
+              color: 'var(--text)',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+            }}
+          >
+            {title}
+          </h3>
+
+          {/* ── Description ── */}
+          <p className="project-desc"
+            style={{
+              fontSize: isMobile ? 12 : 13,
+              marginBottom: 16,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              WebkitLineClamp: isExpanded || isMobile ? 'unset' : 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: isExpanded || isMobile ? 'visible' : 'hidden',
+            }}
+          >
+            {desc}
+          </p>
+
+          {/* ── Highlights ── */}
+          <ul
+            style={{
+              listStyle: 'none',
+              marginBottom: 18,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 5,
+              minWidth: 0,
+            }}
+          >
+            <AnimatePresence initial={false}>
+              {visibleHighlights.map((h) => (
+                <motion.li
+                  key={h}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: isMobile ? 10 : 11,
+                    color: 'var(--muted)',
+                    opacity: 0.75,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                    overflow: 'hidden',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
+                >
+                  <span style={{ color: accent, flexShrink: 0 }}>▸</span>
+                  <span style={{ minWidth: 0 }}>{h}</span>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+
+            {/* "+N more" pill */}
+            <AnimatePresence>
+              {!isExpanded && !isMobile && extraHighlights > 0 && (
+                <motion.li
+                  key="more-pill"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span style={{ color: accent, flexShrink: 0 }}>▸</span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: isMobile ? 9 : 10,
+                      padding: '2px 9px',
+                      border: `1px solid ${accent}38`,
+                      borderRadius: 20,
+                      color: accent,
+                      background: `${accent}0d`,
+                      opacity: 0.8,
+                    }}
+                  >
+                    +{extraHighlights} more
+                  </span>
+                </motion.li>
+              )}
+            </AnimatePresence>
+          </ul>
+
+          {/* ── Metrics ── */}
+          {metrics && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${metrics.length}, 1fr)`,
+              gap: 10,
+              marginBottom: 16,
+              width: '100%',
+            }}>
+              {metrics.map((m) => (
+                <div key={m.label} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 12px',
+                  background: 'var(--nav-active-bg)',
+                  border: '1px solid var(--accent-border)',
+                  borderRadius: 8,
+                  boxSizing: 'border-box',
+                  minWidth: 0,
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: accent,
+                    wordBreak: 'break-word',
+                    textAlign: 'center',
+                  }}>{m.value}</span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    color: 'var(--muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    textAlign: 'center',
+                    wordBreak: 'break-word',
+                  }}>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Tech chips ── */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 7,
+            width: '100%',
+            minWidth: 0,
+          }}>
+            {tech.map((t) => (
+              <span
+                key={t}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: isMobile ? 9 : 10,
+                  padding: '3px 8px',
+                  background: 'var(--bg3)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 3,
+                  color: 'var(--muted)',
+                  wordBreak: 'break-word',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+
+          {/* ── Bottom-right CTA ── */}
+          {!isMobile && (
+            <motion.div
+              animate={{
+                opacity: hov ? 1 : 0,
+                x: hov ? 0 : -6,
+                y: hov ? 0 : 6,
+              }}
+              transition={{ duration: 0.3 }}
+              style={{
+                position: 'absolute',
+                bottom: 22,
+                right: 22,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                color: accent,
+              }}
+            >
+              {(hasSite || hasMessage) && (
                 <span
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: 9,
-                    padding: '2px 10px',
-                    border: `1px solid ${accent}38`,
-                    borderRadius: 20,
-                    color: accent,
-                    background: `${accent}0d`,
-                    whiteSpace: 'nowrap',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    opacity: 0.75,
                   }}
                 >
-                  {status}
+                  {hasMessage ? 'Details' : 'Visit site'}
                 </span>
-              </div>
-            </div>
+              )}
+              <span style={{ fontSize: 17 }}>{hasMessage ? 'ℹ' : hasSite ? '↗' : '→'}</span>
+            </motion.div>
+          )}
 
-            {/* ── Title ── */}
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: isMobile ? 16 : 18,
-                fontWeight: 600,
-                marginBottom: 11,
-                lineHeight: 1.35,
-                color: 'var(--text)',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-              }}
-            >
-              {title}
-            </h3>
-
-            {/* ── Description ── */}
-            <p className="project-desc"
-              style={{
-                fontSize: isMobile ? 12 : 13,
-                marginBottom: 16,
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                WebkitLineClamp: isExpanded || isMobile ? 'unset' : 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: isExpanded || isMobile ? 'visible' : 'hidden',
-              }}
-            >
-              {desc}
-            </p>
-
-            {/* ── Highlights ── */}
-            <ul
-              style={{
-                listStyle: 'none',
-                marginBottom: 18,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 5,
-                minWidth: 0,
-              }}
-            >
-              <AnimatePresence initial={false}>
-                {visibleHighlights.map((h) => (
-                  <motion.li
-                    key={h}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.22, ease: 'easeOut' }}
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: isMobile ? 10 : 11,
-                      color: 'var(--muted)',
-                      opacity: 0.75,
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 8,
-                      overflow: 'hidden',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'break-word',
-                    }}
-                  >
-                    <span style={{ color: accent, flexShrink: 0 }}>▸</span>
-                    <span style={{ minWidth: 0 }}>{h}</span>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-
-              {/* "+N more" pill */}
-              <AnimatePresence>
-                {!isExpanded && !isMobile && extraHighlights > 0 && (
-                  <motion.li
-                    key="more-pill"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                  >
-                    <span style={{ color: accent, flexShrink: 0 }}>▸</span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: isMobile ? 9 : 10,
-                        padding: '2px 9px',
-                        border: `1px solid ${accent}38`,
-                        borderRadius: 20,
-                        color: accent,
-                        background: `${accent}0d`,
-                        opacity: 0.8,
-                      }}
-                    >
-                      +{extraHighlights} more
-                    </span>
-                  </motion.li>
-                )}
-              </AnimatePresence>
-            </ul>
-
-            {/* ── Metrics ── */}
-            {metrics && (
-              <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-                {metrics.map((m) => (
-                  <div key={m.label} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '6px 12px',
-                    background: 'var(--nav-active-bg)',
-                    border: '1px solid var(--accent-border)',
-                    borderRadius: 8,
-                    minWidth: 70,
-                    flex: '1 1 auto',
-                    maxWidth: '48%',
-                    boxSizing: 'border-box',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: accent,
-                      wordBreak: 'break-word',
-                    }}>{m.value}</span>
-                    <span style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 9,
-                      color: 'var(--muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      textAlign: 'center',
-                      wordBreak: 'break-word',
-                    }}>{m.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ── Tech chips ── */}
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 7,
-              width: '100%',
-              minWidth: 0,
-            }}>
-              {tech.map((t) => (
-                <span
-                  key={t}
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: isMobile ? 9 : 10,
-                    padding: '3px 8px',
-                    background: 'var(--bg3)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 3,
-                    color: 'var(--muted)',
-                    wordBreak: 'break-word',
-                    maxWidth: '100%',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-
-            {/* ── Bottom-right CTA ── */}
-            {!isMobile && (
-              <motion.div
-                animate={{
-                  opacity: hov ? 1 : 0,
-                  x: hov ? 0 : -6,
-                  y: hov ? 0 : 6,
-                }}
-                transition={{ duration: 0.3 }}
-                style={{
-                  position: 'absolute',
-                  bottom: 22,
-                  right: 22,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  color: accent,
-                }}
-              >
-                {(hasSite || hasMessage) && (
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      opacity: 0.75,
-                    }}
-                  >
-                    {hasMessage ? 'Details' : 'Visit site'}
-                  </span>
-                )}
-                <span style={{ fontSize: 17 }}>{hasMessage ? 'ℹ' : hasSite ? '↗' : '→'}</span>
-              </motion.div>
-            )}
-
-          </div>{/* /inner */}
-        </motion.div>
-      </div>
+        </div>{/* /inner */}
+      </motion.div>
     </ScrollReveal>
   );
 });
@@ -414,7 +416,7 @@ export default function ProjectsView() {
           width: '100%',
           boxSizing: 'border-box',
           margin: isMobile ? '0 auto' : '0',
-          padding: isMobile ? '0 4px' : '0',
+          padding: 0,
         }}
       >
         {PROJECTS.map((project, i) => (
