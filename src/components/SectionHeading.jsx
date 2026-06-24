@@ -6,6 +6,7 @@ export default function SectionHeading({
   tag,
   title,
   subtitle,
+  variant = 'fromLeft',
 }) {
   return (
     <div
@@ -14,7 +15,7 @@ export default function SectionHeading({
       }}
     >
       <ScrollReveal
-        variant="fromLeft"
+        variant={variant}
         delay={0}
       >
         <div
