@@ -394,6 +394,7 @@ body,
 }
 
 @keyframes glitchPulse {
+
   0%,
   100% {
     border-width: 2px;
@@ -565,9 +566,6 @@ body,
 
 /* ════════════════════════════════════════════════
    ABOUT VIEW
-   All layout, typography, and responsive rules
-   for AboutView.jsx live here — no <style> block
-   in the component.
 ════════════════════════════════════════════════ */
 
 /* ── Section shell ── */
@@ -577,7 +575,6 @@ body,
   min-height: 100%;
   padding: 40px clamp(16px, 5vw, 72px) 80px;
   box-sizing: border-box;
-  /* Prevent any child from blowing out horizontal scroll */
   overflow-x: hidden;
 }
 
@@ -590,9 +587,7 @@ body,
   max-width: 100%;
 }
 
-/* ── Shared column rules ──
-   min-width:0 is the critical fix that stops grid items
-   from overflowing their track when content is wide.     */
+/* ── Shared column rules ── */
 .about-col {
   width: 100%;
   max-width: 100%;
@@ -600,10 +595,7 @@ body,
   overflow: hidden;
 }
 
-/* ── Body paragraphs ──
-   Justified with inter-word spacing (not inter-character,
-   which creates awkward letter gaps on narrow columns).
-   word-spacing is tightened so gaps stay visually small. */
+/* ── Body paragraphs ── */
 .about-para {
   color: var(--muted);
   line-height: 1.75;
@@ -612,15 +604,11 @@ body,
 
   text-align: justify;
   text-justify: inter-word;
-  /* Rein in the gap — browsers default is 0.25em;
-     pulling it in to 0.05em keeps lines tight        */
   word-spacing: 0.05em;
 
-  /* No hyphens ever */
   hyphens: none;
   -webkit-hyphens: none;
 
-  /* Long tech words / URLs wrap instead of overflow */
   overflow-wrap: break-word;
   word-break: break-word;
   max-width: 100%;
@@ -696,8 +684,6 @@ body,
   display: flex;
   flex-direction: column;
   gap: 3px;
-  /* flex:1 + min-width:0 lets the text column shrink
-     and wrap instead of overflowing the card          */
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -751,8 +737,6 @@ body,
     padding: clamp(20px, 5vw, 32px) clamp(14px, 4vw, 20px) 60px;
   }
 
-  /* Single-column layout — explicit override so
-     auto-fit doesn't try to fit two 280px tracks   */
   .about-grid {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -777,10 +761,6 @@ body,
    PROJECTS VIEW
 ════════════════════════════════════════════════ */
 
-/* ── Card description paragraph ──
-   Justified, tight word spacing, no hyphens.
-   display:-webkit-box is kept so WebkitLineClamp
-   still works for the collapsed (3-line) state.   */
 .project-desc {
   color: var(--muted);
   line-height: 1.75;
@@ -795,9 +775,22 @@ body,
   overflow-wrap: break-word;
   word-break: break-word;
 
-  /* Required for WebkitLineClamp to function */
   display: -webkit-box;
 }
+
+/* ── Projects — mobile overflow guard ── */
+@media (max-width: 768px) {
+  #projects {
+    overflow-x: hidden;
+  }
+
+  #projects>div,
+  #projects>div>* {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 
 /* ════════════════════════════════════════════════
    PROFILE PORTAL
