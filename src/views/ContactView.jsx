@@ -7,6 +7,7 @@ import SectionHeading from '../components/SectionHeading.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 import Footer from '../components/Footer.jsx';
 import ContactCard from '../components/ContactCard.jsx';
+import DownloadResumeButton from '../components/DownloadResumeButton.jsx';
 
 import {
   CONTACT_INFO,
@@ -110,6 +111,8 @@ export default function ContactView() {
               </p>
             </ScrollReveal>
 
+            <DownloadResumeButton delay={0.08} />
+
             {CONTACT_INFO.map((info, i) => (
               <ContactCard
                 key={info.label}
@@ -183,7 +186,7 @@ export default function ContactView() {
                       color: 'var(--cyan)',
                     }}
                   >
-                    Message Transmitted
+                    Message Sent
                   </h3>
                   <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
                     Thanks for reaching out. I'll reply within 24 hours.
@@ -212,7 +215,7 @@ export default function ContactView() {
                       color: 'var(--cyan)',
                     }}
                   >
-                    Transmission Failed
+                    Sending Failed
                   </h3>
                   <p style={{ color: 'var(--muted)', lineHeight: 1.75 }}>
                     {sanitizeError(error)}
@@ -398,7 +401,7 @@ export default function ContactView() {
                       opacity: loading ? 0.7 : 1,
                     }}
                   >
-                    {loading ? 'TRANSMITTING...' : 'TRANSMIT MESSAGE'}
+                    {loading ? 'SENDING...' : 'SEND MESSAGE'}
                   </button>
                 </div>
               )}
