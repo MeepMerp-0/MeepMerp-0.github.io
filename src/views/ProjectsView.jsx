@@ -357,7 +357,7 @@ export default function ProjectsView() {
       style={{
         minHeight: '100%',
         padding: isMobile
-          ? '20px 16px 60px'
+          ? '20px 20px 60px'
           : '40px clamp(24px, 5vw, 72px) 80px',
         width: '100%',
         boxSizing: 'border-box',
@@ -375,8 +375,11 @@ export default function ProjectsView() {
           gridTemplateColumns: isMobile
             ? '1fr'
             : 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: isMobile ? 16 : 24,
+          gap: isMobile ? 20 : 24,
           alignItems: 'start',
+          maxWidth: isMobile ? '100%' : '100%',
+          margin: isMobile ? '0 auto' : '0',
+          padding: isMobile ? '0 4px' : '0',
         }}
       >
         {PROJECTS.map((project, i) => (
