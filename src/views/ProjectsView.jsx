@@ -112,12 +112,13 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
+              alignItems: 'center',
+              flexWrap: 'nowrap',
               gap: 8,
               marginBottom: 12,
             }}
           >
+            {/* Tag — grows to fill space, truncates with ellipsis before hitting year/status */}
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -126,12 +127,19 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                 textTransform: 'uppercase',
                 color: accent,
                 opacity: 0.75,
+                flex: '1 1 0',
+                minWidth: 0,
+                overflow: hov ? 'visible' : 'hidden',
+                whiteSpace: hov ? 'normal' : 'nowrap',
+                textOverflow: hov ? 'unset' : 'ellipsis',
+                transition: 'opacity 0.2s ease',
               }}
             >
               {tag}
             </span>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Year + status — never shrinks */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.45, color: 'var(--muted)' }}>
                 {year}
               </span>
