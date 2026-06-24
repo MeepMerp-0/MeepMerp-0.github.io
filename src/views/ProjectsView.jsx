@@ -66,6 +66,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
           borderRadius: 14,
           position: 'relative',
           overflow: 'hidden',
+          width: '100%',
+          boxSizing: 'border-box',
           cursor: (hasSite || hasMessage) ? 'pointer' : 'default',
           backdropFilter: 'blur(6px)',
           boxShadow: isExpanded ? 'var(--shadow-hover)' : 'none',
@@ -77,6 +79,9 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
           style={{
             padding: isMobile ? '18px 18px 16px' : '26px 26px 22px',
             height: 'fit-content',
+            width: '100%',
+            boxSizing: 'border-box',
+            overflowX: 'hidden',
           }}
         >
 
@@ -116,9 +121,10 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
               flexWrap: 'nowrap',
               gap: 8,
               marginBottom: 12,
+              minWidth: 0,
             }}
           >
-            {/* Tag — grows to fill space, truncates with ellipsis before hitting year/status */}
+            {/* Tag — truncates before hitting year/status */}
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -152,6 +158,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                   borderRadius: 20,
                   color: accent,
                   background: `${accent}0d`,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {status}
@@ -168,6 +175,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
               marginBottom: 11,
               lineHeight: 1.35,
               color: 'var(--text)',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
             }}
           >
             {title}
@@ -178,6 +187,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
             style={{
               fontSize: isMobile ? 12 : 13,
               marginBottom: 16,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
               WebkitLineClamp: isExpanded || isMobile ? 'unset' : 3,
               WebkitBoxOrient: 'vertical',
               overflow: isExpanded || isMobile ? 'visible' : 'hidden',
@@ -194,6 +205,7 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
               display: 'flex',
               flexDirection: 'column',
               gap: 5,
+              minWidth: 0,
             }}
           >
             <AnimatePresence initial={false}>
@@ -210,13 +222,15 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                     color: 'var(--muted)',
                     opacity: 0.75,
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 8,
                     overflow: 'hidden',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
                   }}
                 >
                   <span style={{ color: accent, flexShrink: 0 }}>▸</span>
-                  {h}
+                  <span style={{ minWidth: 0 }}>{h}</span>
                 </motion.li>
               ))}
             </AnimatePresence>
@@ -265,12 +279,16 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                   border: '1px solid var(--accent-border)',
                   borderRadius: 8,
                   minWidth: 70,
+                  flex: '1 1 auto',
+                  maxWidth: '48%',
+                  boxSizing: 'border-box',
                 }}>
                   <span style={{
                     fontFamily: 'var(--font-display)',
                     fontSize: 14,
                     fontWeight: 600,
                     color: accent,
+                    wordBreak: 'break-word',
                   }}>{m.value}</span>
                   <span style={{
                     fontFamily: 'var(--font-mono)',
@@ -278,6 +296,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                     color: 'var(--muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
+                    textAlign: 'center',
+                    wordBreak: 'break-word',
                   }}>{m.label}</span>
                 </div>
               ))}
@@ -285,7 +305,13 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
           )}
 
           {/* ── Tech chips ── */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 7,
+            width: '100%',
+            minWidth: 0,
+          }}>
             {tech.map((t) => (
               <span
                 key={t}
@@ -298,6 +324,8 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
                   borderRadius: 3,
                   color: 'var(--muted)',
                   wordBreak: 'break-word',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 {t}
@@ -361,6 +389,7 @@ export default function ProjectsView() {
           : '40px clamp(24px, 5vw, 72px) 80px',
         width: '100%',
         boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       <SectionHeading
@@ -377,7 +406,8 @@ export default function ProjectsView() {
             : 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: isMobile ? 20 : 24,
           alignItems: 'start',
-          maxWidth: isMobile ? '100%' : '100%',
+          width: '100%',
+          boxSizing: 'border-box',
           margin: isMobile ? '0 auto' : '0',
           padding: isMobile ? '0 4px' : '0',
         }}
