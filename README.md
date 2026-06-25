@@ -58,6 +58,17 @@ If you're curious about the code or want to run it yourself:
 
 *Note: The contact form can be configured to use Google Apps Script, SMTP API, or third-party services via environment variables (see `.env.example`).*
 
+#### Profile Portal Images
+
+The profile avatar in the hero section uses two image sources:
+
+- `LIGHT_SRC` - Light theme avatar (default: Cloudflare URL)
+- `DARK_SRC` - Dark theme avatar (default: Cloudflare URL)
+- `LIGHT_FALLBACK` → `/dp-white.jpg` (used on load error)
+- `DARK_FALLBACK` → `/dp-black.jpg` (used on load error)
+
+To change the photo URL or fallbacks, edit `src/components/ProfilePortal.jsx` constants.
+
 ---
 
 ## Built With
