@@ -1,8 +1,14 @@
 // components/ProfilePortal.jsx
+import { useState } from 'react';
+
 const LIGHT_SRC = "https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/profile-avatar-github/jdsW.jpg";
 const DARK_SRC = "https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/profile-avatar-github/jdsB.jpg";
+const LIGHT_FALLBACK = "/dp-white.jpg";
+const DARK_FALLBACK = "/dp-black.jpg";
 
 export default function ProfilePortal({ size = 300, opacity = 1 }) {
+  const [lightImgErrored, setLightImgErrored] = useState(false);
+  const [darkImgErrored, setDarkImgErrored] = useState(false);
   const outerR = size / 2 + Math.max(8, size * 0.07);
   const innerR = size / 2 + Math.max(4, size * 0.03);
   const svgSize = outerR * 2 + 20;
@@ -84,11 +90,35 @@ export default function ProfilePortal({ size = 300, opacity = 1 }) {
         className="pp-avatar"
         style={{ width: size, height: size, marginTop: -(size / 2), marginLeft: -(size / 2) }}
       >
-        <img src={LIGHT_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-light"
+        <img
+          src={lightImgErrored ? LIGHT_FALLBACK : LIGHT_SRC}
+          alt="Jason Selerio"
+          width={size}
+          height={size}
+          loading="lazy"
+          className="pp-img pp-img-light"
+          onError={(e) => {
+            if (!e.target.dataset.fallback) {
+              e.target.dataset.fallback = 'true';
+              setLightImgErrored(true);
+            }
+          }}
           onDragStart={(e) => e.preventDefault()}
           onContextMenu={(e) => e.preventDefault()}
         />
-        <img src={DARK_SRC} alt="Jason Selerio" width={size} height={size} loading="lazy" className="pp-img pp-img-dark"
+        <img
+          src={darkImgErrored ? DARK_FALLBACK : DARK_SRC}
+          alt="Jason Selerio"
+          width={size}
+          height={size}
+          loading="lazy"
+          className="pp-img pp-img-dark"
+          onError={(e) => {
+            if (!e.target.dataset.fallback) {
+              e.target.dataset.fallback = 'true';
+              setDarkImgErrored(true);
+            }
+          }}
           onDragStart={(e) => e.preventDefault()}
           onContextMenu={(e) => e.preventDefault()}
         />
