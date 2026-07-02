@@ -37,6 +37,8 @@ export default function ContactView() {
     loading,
     error,
     showAsterisk,
+    emailValid,
+    emailTouched,
     handleChange,
     handleFocus,
     handleBlur,
@@ -289,15 +291,32 @@ export default function ContactView() {
                         >
                           {f === 'name' ? 'Name' : 'Email'}{showAsterisk[f] && <span style={{ color: 'var(--fireorange)' }}>*</span>}
                         </label>
-                        <input
-                          placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
-                          type={f === 'email' ? 'email' : 'text'}
-                          value={values[f]}
-                          onChange={(e) => handleChange(f)(e.target.value)}
-                          onFocus={handleFocus(f)}
-                          onBlur={handleBlur}
-                          style={fieldStyle(f)}
-                        />
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            placeholder={f === 'name' ? 'Your name' : 'you@example.com'}
+                            type={f === 'email' ? 'email' : 'text'}
+                            value={values[f]}
+                            onChange={(e) => handleChange(f)(e.target.value)}
+                            onFocus={handleFocus(f)}
+                            onBlur={handleBlur}
+                            style={fieldStyle(f)}
+                          />
+                          {f === 'email' && emailTouched && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                right: 12,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: emailValid ? 'var(--cyan)' : 'var(--fireorange)',
+                                fontSize: 16,
+                                pointerEvents: 'none',
+                              }}
+                            >
+                              {emailValid ? '✓' : '✗'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

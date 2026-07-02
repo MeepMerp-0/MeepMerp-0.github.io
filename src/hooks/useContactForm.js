@@ -44,13 +44,16 @@ export function useContactForm(submitFn) {
     purpose: false,
     message: false,
   });
+  const [emailValid, setEmailValid] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const submissionTimesRef = useRef([]);
 
   const handleChange = (field) => (value) => {
     setValues((v) => ({ ...v, [field]: value }));
     if (field === 'email') {
-      if (validateEmail(value)) {
-        setShowAsterisk((prev) => ({ ...prev, email: false }));
+      setShowAsterisk((prev) => ({ ...prev, email: false }));
+      if (!validateEmail(value)) {
+        setEmailValid(false);
       }
     } else if (showAsterisk[field]) {
       setShowAsterisk((prev) => ({ ...prev, [field]: false }));
@@ -58,7 +61,12 @@ export function useContactForm(submitFn) {
   };
 
   const handleFocus = (field) => () => setFocused(field);
-  const handleBlur = () => setFocused(null);
+  const handleBlur = () => {
+    setFocused(null);
+    const isValid = validateEmail(values.email);
+    setEmailValid(isValid);
+    if (values.email) setEmailTouched(true);
+  };
 
   const reset = () => {
     setValues({
@@ -74,6 +82,8 @@ export function useContactForm(submitFn) {
       purpose: false,
       message: false,
     });
+    setEmailValid(false);
+    setEmailTouched(false);
     setError(null);
     setSent(false);
   };
@@ -143,6 +153,8 @@ export function useContactForm(submitFn) {
             purpose: false,
             message: false,
           });
+          setEmailValid(false);
+          setEmailTouched(false);
         }, 2000);
       } else {
         throw new Error(result.error || 'Submission failed');
@@ -162,6 +174,8 @@ export function useContactForm(submitFn) {
     loading,
     error,
     showAsterisk,
+    emailValid,
+    emailTouched,
     handleChange,
     handleFocus,
     handleBlur,
