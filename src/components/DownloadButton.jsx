@@ -3,12 +3,12 @@ import { motion } from 'motion/react';
 import { FileDown } from 'lucide-react';
 import { PERSONAL } from '../data/portfolioData.js';
 
-export default function DownloadResumeButton({ delay }) {
+export default function DownloadButton({ delay }) {
   const [hov, setHov] = useState(false);
   const [useLocal, setUseLocal] = useState(false);
 
   useEffect(() => {
-    // check if /resume-file-name.pdf exists in public folder
+    // check if /cv-file-name.pdf exists in public folder
     fetch('/jason_selerio.pdf', { method: 'HEAD', cache: 'no-cache' })
       .then(r => {
         const isPDF = r.ok && r.headers.get('content-type')?.includes('pdf');
@@ -18,7 +18,7 @@ export default function DownloadResumeButton({ delay }) {
   }, []);
 
   const handleClick = () => {
-    const url = useLocal ? '/jason_selerio.pdf' : PERSONAL.resumeUrl;
+    const url = useLocal ? '/jason_selerio.pdf' : PERSONAL.cvDownloadUrl;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -51,7 +51,7 @@ export default function DownloadResumeButton({ delay }) {
         }}
       >
         <FileDown size={18} strokeWidth={1.5} />
-        Download Resume
+        Download CV
       </button>
     </motion.span>
   );

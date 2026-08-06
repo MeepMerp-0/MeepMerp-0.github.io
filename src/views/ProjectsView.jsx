@@ -311,70 +311,86 @@ const ProjectCard = memo(function ProjectCard({ project, index, isMobile, onShow
             </div>
           )}
 
-          {/* ── Tech chips ── */}
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 7,
-            width: '100%',
-            minWidth: 0,
-          }}>
-            {tech.map((t) => (
-              <span
-                key={t}
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: isMobile ? 9 : 10,
-                  padding: '3px 8px',
-                  background: 'var(--bg3)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 3,
-                  color: 'var(--muted)',
-                  wordBreak: 'break-word',
-                  maxWidth: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-
-          {/* ── Bottom-right CTA ── */}
-          {!isMobile && (
-            <motion.div
-              animate={{
-                opacity: hov ? 1 : 0,
-                x: hov ? 0 : -6,
-                y: hov ? 0 : 6,
-              }}
-              transition={{ duration: 0.3 }}
+          {/* ── Tech chips + CTA (same row, own space, no overlap) ── */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 10,
+              width: '100%',
+              minWidth: 0,
+            }}
+          >
+            <div
               style={{
-                position: 'absolute',
-                bottom: 22,
-                right: 22,
                 display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                color: accent,
+                flexWrap: 'wrap',
+                gap: 7,
+                flex: '1 1 auto',
+                minWidth: 0,
               }}
             >
-              {(hasSite || hasMessage) && (
+              {tech.map((t) => (
                 <span
+                  key={t}
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: 9,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    opacity: 0.75,
+                    fontSize: isMobile ? 9 : 10,
+                    padding: '3px 8px',
+                    background: 'var(--bg3)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 3,
+                    color: 'var(--muted)',
+                    wordBreak: 'break-word',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
-                  {hasMessage ? 'Details' : 'Visit site'}
+                  {t}
                 </span>
-              )}
-              <span style={{ fontSize: 17 }}>{hasMessage ? 'ℹ' : hasSite ? '↗' : '→'}</span>
-            </motion.div>
-          )}
+              ))}
+            </div>
+
+            {!isMobile && (
+              <AnimatePresence>
+                {isExpanded && (hasSite || hasMessage) && (
+                  <motion.div
+                    key="cta"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 8 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      flexShrink: 0,
+                      marginLeft: 'auto',
+                      paddingLeft: 12,
+                      borderLeft: `1px solid ${accent}30`,
+                      color: accent,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        opacity: 0.85,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {hasMessage ? 'Details' : 'Visit site'}
+                    </span>
+                    <span style={{ fontSize: 16 }}>{hasMessage ? 'ℹ' : hasSite ? '↗' : '→'}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+          </div>
 
         </div>{/* /inner */}
       </motion.div>

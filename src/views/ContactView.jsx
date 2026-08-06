@@ -7,7 +7,7 @@ import SectionHeading from '../components/SectionHeading.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 import Footer from '../components/Footer.jsx';
 import ContactCard from '../components/ContactCard.jsx';
-import DownloadResumeButton from '../components/DownloadResumeButton.jsx';
+import DownloadButton from '../components/DownloadButton.jsx';
 
 import {
   CONTACT_INFO,
@@ -113,7 +113,7 @@ export default function ContactView() {
               </p>
             </ScrollReveal>
 
-            <DownloadResumeButton delay={0.08} />
+            <DownloadButton delay={0.08} />
 
             {CONTACT_INFO.map((info, i) => (
               <ContactCard

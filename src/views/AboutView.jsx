@@ -9,16 +9,10 @@ import {
   ABOUT_PARAGRAPHS,
   STATS,
   PROFICIENCY,
+  EXPERIENCE,
 } from '../data/portfolioData.js';
 
 // All styles live in global.css under "/* ── ABOUT VIEW ── */"
-const EXPERIENCE = [
-  {
-    company: 'CliqueHA Information Service OPC',
-    role: 'Software Developer Intern',
-    period: 'Feb – May 2026',
-  },
-];
 
 export default function AboutView() {
   return (
@@ -75,16 +69,28 @@ export default function AboutView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            {EXPERIENCE.map(({ company, role, period }, i) => (
-              <div key={i} className="about-exp-card">
-                <div className="about-exp-dot" />
-                <div className="about-exp-body">
-                  <span className="exp-company">{company}</span>
-                  <span className="exp-role">{role}</span>
-                  <span className="exp-period">{period}</span>
-                </div>
-              </div>
-            ))}
+            {EXPERIENCE.map(({ company, role, period, link }, i) => {
+              const CardTag = link ? 'a' : 'div';
+              const linkProps = link
+                ? { href: link, target: '_blank', rel: 'noopener noreferrer' }
+                : {};
+
+              return (
+                <CardTag
+                  key={i}
+                  className="about-exp-card"
+                  data-clickable={link ? true : undefined}
+                  {...linkProps}
+                >
+                  <div className="about-exp-dot" />
+                  <div className="about-exp-body">
+                    <span className="exp-company">{company}</span>
+                    <span className="exp-role">{role}</span>
+                    <span className="exp-period">{period}</span>
+                  </div>
+                </CardTag>
+              );
+            })}
           </motion.div>
         </motion.div>
 
@@ -103,7 +109,7 @@ export default function AboutView() {
             <TechBar
               key={item.label}
               label={item.label}
-              pct={item.pct}
+              step={item.step}
               delay={i * 0.06}
             />
           ))}
