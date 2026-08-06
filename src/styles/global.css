@@ -385,10 +385,6 @@ body,
   transition: transform 50ms ease-out;
 }
 
-.cyber-glitch:hover {
-  transform: translateX(2px);
-}
-
 .cyber-glitch:focus-visible {
   outline: none;
   animation: glitchPulse 0.8s ease-in-out infinite;
@@ -684,7 +680,7 @@ body,
 
 .about-exp-card[data-clickable]:hover,
 .about-exp-card[data-clickable]:focus-visible {
-  transform: translateX(3px);
+  transform: translateY(-3px);
   border-color: var(--cyan);
   box-shadow: 0 0 14px rgba(0, 229, 255, 0.15);
 }

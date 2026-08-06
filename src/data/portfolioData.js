@@ -179,7 +179,7 @@ export const PROJECTS = [
     site: 'https://www.shesmydeamondhesmyjem.site/',
     metrics: [
       { value: '50+', label: 'Guests Served' },
-      { value: '100%', label: 'Response Tracking Automated' },
+      { value: '100%', label: 'Response Automated' },
       { value: '30%', label: 'Faster Page Load' },
     ],
     highlights: [
