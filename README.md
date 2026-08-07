@@ -35,8 +35,8 @@ This portfolio highlights projects focused on business efficiency, usability, an
 **INNERCIRCLE°** | July 2026 – Present  
 [https://www.innercirclerealtors.com/](https://www.innercirclerealtors.com/)
 
-* Design multi-agent AI workflows using n8n, APIs, and automation tools.
-* Build AI assistants that automate customer communication, document generation, and internal business processes.
+* Designing multi-agent AI workflows using n8n, APIs, and automation tools.
+* Building AI assistants that automate customer communication, document generation, and internal business processes.
 
 ### Freelance Developer  
 **Independent Work** | February 2026 – Present  
