@@ -16,18 +16,17 @@ import {
 
 export default function AboutView() {
   return (
-    <section
-      className="about-section"
-    >
+    <section className="about-section">
       <SectionHeading
         tag="About"
-        title="Engineered for Impact"
-        subtitle="A full-stack developer who builds operational systems, not just interfaces."
+        title="Engineer for Impact"
+        subtitle="Building operational systems, not just interfaces."
       />
 
+      {/* ── Two-column main grid ── */}
       <div className="about-grid">
 
-        {/* ── LEFT column ── */}
+        {/* ── LEFT column: Engineer for Impact + description ── */}
         <motion.div
           className="about-col about-col-left"
           initial={{ opacity: 0, x: -40 }}
@@ -45,64 +44,15 @@ export default function AboutView() {
               {para}
             </motion.p>
           ))}
-
-          {/* Stats — 2 × 2 */}
-          <div className="about-stats">
-            {STATS.map(({ value, label }, index) => (
-              <motion.div
-                key={label}
-                className="stat-item"
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: 0.5 + index * 0.08, duration: 0.5 }}
-              >
-                <div className="stat-value">{value}</div>
-                <div className="stat-label">{label}</div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Experience */}
-          <motion.div
-            className="about-exp-row"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            {EXPERIENCE.map(({ company, role, period, link }, i) => {
-              const CardTag = link ? 'a' : 'div';
-              const linkProps = link
-                ? { href: link, target: '_blank', rel: 'noopener noreferrer' }
-                : {};
-
-              return (
-                <CardTag
-                  key={i}
-                  className="about-exp-card"
-                  data-clickable={link ? true : undefined}
-                  {...linkProps}
-                >
-                  <div className="about-exp-dot" />
-                  <div className="about-exp-body">
-                    <span className="exp-company">{company}</span>
-                    <span className="exp-role">{role}</span>
-                    <span className="exp-period">{period}</span>
-                  </div>
-                </CardTag>
-              );
-            })}
-          </motion.div>
         </motion.div>
 
-        {/* ── RIGHT column ── */}
+        {/* ── RIGHT column: Technical Proficiency + Stats ── */}
         <motion.div
           className="about-col"
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.25, duration: 0.7 }}
         >
-          <SkillMarquee />
-
           <div className="proficiency-heading">Technical Proficiency</div>
 
           {PROFICIENCY.map((item, i) => (
@@ -113,8 +63,60 @@ export default function AboutView() {
               delay={i * 0.06}
             />
           ))}
+
+          {/* Stats — 2 × 2, below proficiency ── */}
+          <div className="about-stats about-stats-bottom" style={{ marginTop: 36 }}>
+            {STATS.map(({ value, label }, index) => (
+              <motion.div
+                key={label}
+                className="stat-item"
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.35 + index * 0.08, duration: 0.5 }}
+              >
+                <div className="stat-value">{value}</div>
+                <div className="stat-label">{label}</div>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
+      </div>
+
+      {/* ── Tech Stack & Tools (full width) ── */}
+      <motion.div
+        className="tech-stack-section"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        <SkillMarquee />
+      </motion.div>
+
+      {/* ── 4-column Experience Grid at Bottom ── */}
+      <div className="about-exp-grid">
+        {EXPERIENCE.map(({ company, role, period, link }, i) => {
+          const CardTag = link ? 'a' : 'div';
+          const linkProps = link
+            ? { href: link, target: '_blank', rel: 'noopener noreferrer' }
+            : {};
+
+          return (
+            <CardTag
+              key={i}
+              className="about-exp-grid-card"
+              data-clickable={link ? true : undefined}
+              {...linkProps}
+            >
+              <div className="about-exp-dot" />
+              <div className="about-exp-body">
+                <span className="exp-company">{company}</span>
+                <span className="exp-role">{role}</span>
+                <span className="exp-period">{period}</span>
+              </div>
+            </CardTag>
+          );
+        })}
       </div>
     </section>
   );

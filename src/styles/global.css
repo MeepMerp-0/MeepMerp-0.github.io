@@ -94,9 +94,9 @@
 
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.1);
   --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
-  --heading-gradient: linear-gradient(130deg, #121212 40%, var(--cyan) 100%);
-  --divider-gradient: linear-gradient(90deg, rgba(0, 131, 143, 0.25), transparent);
-  --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 131, 143, 0.12), transparent);
+  --heading-gradient: linear-gradient(130deg, #000000 5%, var(--cyan) 100%);
+  --divider-gradient: linear-gradient(90deg, rgba(0, 131, 143, 0.45), transparent);
+  --center-divider-gradient: linear-gradient(90deg, transparent, rgba(0, 131, 143, 0.25), transparent);
   --fiber-color-1: rgba(0, 131, 143, 0.9);
   --fiber-color-2: rgba(37, 99, 255, 0.95);
   --fiber-color-3: #0369a1;
@@ -596,6 +596,20 @@ body,
   overflow: hidden;
 }
 
+/* ── Left column for intro text ── */
+.about-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Tech Stack section (marquee wrapper) ── */
+.tech-stack-section {
+  margin-top: 12px;
+  width: 100%;
+  overflow: hidden;
+}
+
 /* ── Body paragraphs ── */
 .about-para {
   color: var(--muted);
@@ -624,6 +638,10 @@ body,
   width: 100%;
 }
 
+.about-stats-bottom {
+  margin-top: 0;
+}
+
 .stat-item {
   min-width: 0;
 }
@@ -632,6 +650,7 @@ body,
   font-family: var(--font-display);
   font-size: clamp(20px, 5vw, 26px);
   font-weight: 700;
+  opacity: 0.6;
   color: var(--cyan);
   letter-spacing: -0.02em;
   overflow-wrap: break-word;
@@ -648,15 +667,7 @@ body,
   word-break: break-word;
 }
 
-/* ── Experience card — stacked 3-line layout ── */
-.about-exp-row {
-  margin-top: 28px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-  width: 100%;
-}
-
+/* ── Experience card — kept for grid bottom section ── */
 .about-exp-card {
   display: flex;
   align-items: flex-start;
@@ -672,6 +683,17 @@ body,
   color: inherit;
   text-decoration: none;
   transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.about-exp-card[data-clickable] {
+  cursor: pointer;
+}
+
+.about-exp-card[data-clickable]:hover,
+.about-exp-card[data-clickable]:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.15);
 }
 
 .about-exp-card[data-clickable] {
@@ -740,8 +762,42 @@ body,
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 22px;
-  margin-top: 30px;
   opacity: 0.8;
+}
+
+/* ── 4-column Experience Grid at bottom ── */
+.about-exp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.about-exp-grid-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--accent-bg-hover);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+
+.about-exp-grid-card[data-clickable] {
+  cursor: pointer;
+}
+
+.about-exp-grid-card[data-clickable]:hover,
+.about-exp-grid-card[data-clickable]:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
 }
 
 /* ────────────────────────────────────────────────
@@ -749,7 +805,7 @@ body,
 ──────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .about-section {
-    padding: clamp(20px, 5vw, 32px) clamp(14px, 4vw, 20px) 60px;
+    padding: clamp(20px, 5vw, 32px) clamp(14px, 4vw, 20px) 80px;
   }
 
   .about-grid {
@@ -768,6 +824,10 @@ body,
 
   .about-stats {
     gap: 16px 16px;
+  }
+
+  .about-exp-grid {
+    grid-template-columns: 1fr;
   }
 }
 

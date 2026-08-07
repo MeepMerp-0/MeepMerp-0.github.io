@@ -54,7 +54,7 @@ export default function SkillMarquee() {
   const track = [...MARQUEE_LOGOS, ...MARQUEE_LOGOS];
 
   return (
-    <div style={{ marginBottom: 48 }}>
+    <div style={{ marginBottom: 32 }}>
       {/* 1. Self-contained Keyframes style block injection */}
       <style>{`
         @keyframes forcedMarquee {

@@ -37,6 +37,8 @@ export const ABOUT_PARAGRAPHS = [
 export const STATS = [
   { value: 'BSIT', label: '@STI Muñoz-EDSA' },
   { value: 'Full-Stack', label: 'Web & Mobile Developer' },
+  { value: 'AI Engineer', label: 'Multi-Agent Workflows' },
+  { value: 'Freelance', label: 'Independent Contractor' },
 ];
 
 // Flaticon CDN SVG images for the marquee
@@ -180,7 +182,6 @@ export const PROJECTS = [
     metrics: [
       { value: '50+', label: 'Guests Served' },
       { value: '100%', label: 'Response Automated' },
-      { value: '30%', label: 'Faster Page Load' },
     ],
     highlights: [
       'Custom-built RSVP system',
@@ -200,7 +201,7 @@ export const PROJECTS = [
     year: '2025',
     site: 'https://asseroglobal-phil.com/',
     metrics: [
-      { value: '5–10 days → instant', label: 'Payroll Processing' },
+      { value: '5+ days → instant', label: 'Payroll Processing' },
       { value: 'Real-time', label: 'Attendance Verification' },
     ],
     highlights: [

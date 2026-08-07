@@ -11,7 +11,7 @@ export default function SectionHeading({
   return (
     <div
       style={{
-        marginBottom: 'clamp(36px, 6vw, 64px)',
+        marginBottom: 'clamp(36px, 6vw, 28px)',
       }}
     >
       <ScrollReveal
