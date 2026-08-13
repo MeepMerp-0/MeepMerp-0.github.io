@@ -8,10 +8,10 @@ Software Engineer specializing in full stack development, AI workflow automation
 
 I build practical software that improves how teams operate, manage data, and deliver services. My work focuses on:
 
-* **Full-Stack Development:** Building web and mobile applications with React, React Native, Node.js, Laravel, and PostgreSQL.
-* **Operational Systems:** Developing attendance, payroll, and admin platforms that reduce manual work and speed up processing.
-* **Responsive UI Engineering:** Creating polished, mobile-friendly interfaces with strong performance and clear user flows.
+* **Full-Stack Development:** Building web and mobile applications with React, React Native, Next.js, Node.js, Laravel, and PostgreSQL.
 * **AI Workflow Automation:** Designing multi-agent AI workflows using n8n, APIs, and automation tools to streamline customer communication, document generation, and internal business processes.
+* **Operational Systems:** Developing attendance, payroll, inventory, and admin platforms that reduce manual work and speed up processing.
+* **Responsive UI Engineering:** Creating polished, mobile-friendly interfaces with strong performance and clear user flows.
 
 ---
 
@@ -21,8 +21,8 @@ This portfolio highlights projects focused on business efficiency, usability, an
 
 * **Timekeeping & Payroll System:** Led development of a full-stack web and mobile system for security guard attendance and payroll, reducing processing time from 5–10 days to instant generation.
 * **Real-Time Workforce Tracking:** Built attendance verification with face recognition, GPS tracking, and real-time synchronization to improve accuracy and compliance.
-* **AI & Workflow Automation:** Built an AI-assisted workflow automation system using n8n with webhook-triggered pipelines, approval routing, and API integrations to reduce repetitive manual work.
 * **ERP-Style Admin Dashboard:** Designed and built an ERP-style admin interface with role-based access control, module-level permission gating, audit trails, and a filterable activity log for operational workflows.
+* **AI & Workflow Automation:** Built an AI-assisted workflow automation system using n8n with webhook-triggered pipelines, approval routing, and API integrations to reduce repetitive manual work.
 * **Wedding Invitation & RSVP Platform:** Built a wedding website used by 50+ guests with a custom RSVP system, real-time Google Sheets integration, and a dynamic photo gallery.
 * **Digital Christening Invitation:** Created a mobile-friendly digital christening invitation with a responsive design that improved event information clarity and accessibility for guests.
 * **Interactive 360° Property Tour:** Prototyped an interactive 360° property tour that captures and stitches panoramic images into an immersive walkthrough.
@@ -32,7 +32,7 @@ This portfolio highlights projects focused on business efficiency, usability, an
 ## Experience
 
 ### AI Engineer  
-**INNERCIRCLE°** | July 2026 – Present  
+**INNERCIRCLE°** | May 2026 – Present  
 [https://www.innercirclerealtors.com/](https://www.innercirclerealtors.com/)
 
 * Designing multi-agent AI workflows using n8n, APIs, and automation tools.
@@ -42,22 +42,22 @@ This portfolio highlights projects focused on business efficiency, usability, an
 **Independent Work** | February 2026 – Present  
 
 * Built a wedding website used by 50+ guests, centralizing event details, RSVPs, and coordination with a custom RSVP system and real-time Google Sheets integration, reducing manual coordination by 70%.
-* Developed a mobile-friendly digital christening invitation with responsive design and performance optimization.
+* Developed a mobile-friendly digital christening invitation with responsive design and accessibility-focused layout decisions.
 
 ### Software Developer Intern  
-**CliqueHA Information Service OPC** | February 2026 – May 2026  
+**CliqueHA Information Services OPC** | February 2026 – May 2026  
 [https://cliqueha.com/](https://cliqueha.com/)
 
+* Resolved production issues and improved frontend features using Laravel and Livewire.
 * Collaborated in an Agile environment with distributed team members to deliver recurring updates on schedule.
-* Improved page loading speeds by an average of 30% through responsive layout implementation and front-end performance optimization.
 * Created and maintained user manuals and software documentation, reducing client onboarding time by 25% and improving team efficiency by 15%.
 
 ### Desktop Application Developer  
 **JsquarEd Co. Ltd.** | July 2024 – August 2025  
 
-* Developed desktop applications for internal business operations using JavaFX and C#.
-* Implemented responsive UI components and integrated SQLite for data persistence.
-* Collaborated with team members to design modular, maintainable application architecture.
+* Built a Windows inventory system in C# and SQL Server for a battery business.
+* Streamlined CRUD workflows and auto-generated battery IDs for faster tracking.
+* Added revenue logging and integrated the business API for waybill generation and printing across marketplace orders.
 
 ---
 
@@ -87,10 +87,10 @@ This portfolio highlights projects focused on business efficiency, usability, an
 
 I'm open to full-time opportunities, freelance work, and collaborative projects.
 
-* **Email:** [jasonselerio@gmail.com](mailto:jasonselerio@gmail.com)
-* **Phone:** 123-456-7890
-* **LinkedIn:** [linkedin.com/in/jason-selerio](https://linkedin.com/in/jason-selerio)
-* **Portfolio:** [meepmerp-0.github.io](https://meepmerp-0.github.io)
+* **Email:** [jason.selerio@gmail.com](mailto:jason.selerio@gmail.com)
+* **Phone:** +971 50 448 2694
+* **Website:** [meepmerp-0.github.io](https://meepmerp-0.github.io)
+* **Resume:** [/jason__selerio.pdf](/jason__selerio.pdf)
 * **GitHub:** [github.com/MeepMerp-0](https://github.com/MeepMerp-0)
 
 ---

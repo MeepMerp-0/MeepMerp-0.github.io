@@ -1,0 +1,3 @@
+{"created_at_ms":1786111483314,"model":"anthropic/claude-opus-4-7","session_id":"session-1786111483315-0","type":"session_meta","updated_at_ms":1786111483314,"version":1,"workspace_root":"/home/meepmerp/pf/jason_selerio"}
+{"text":"doctor","timestamp_ms":1786111487441,"type":"prompt_history"}
+{"message":{"blocks":[{"text":"doctor","type":"text"}],"role":"user"},"type":"message"}

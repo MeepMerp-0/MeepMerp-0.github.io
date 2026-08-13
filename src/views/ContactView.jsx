@@ -109,7 +109,7 @@ export default function ContactView() {
               >
                 I'm currently open to full-time roles, freelance engagements,
                 and collaborative projects. The best way to reach me is via
-                email or LinkedIn.
+                email or the website.
               </p>
             </ScrollReveal>
 
