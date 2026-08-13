@@ -8,8 +8,8 @@ export default function DownloadButton({ delay }) {
   const [useLocal, setUseLocal] = useState(false);
 
   useEffect(() => {
-    // check if /cv-file-name.pdf exists in public folder
-    fetch('/jason_selerio.pdf', { method: 'HEAD', cache: 'no-cache' })
+    // check if /jason__selerio.pdf exists in public folder
+    fetch('/jason__selerio.pdf', { method: 'HEAD', cache: 'no-cache' })
       .then(r => {
         const isPDF = r.ok && r.headers.get('content-type')?.includes('pdf');
         setUseLocal(isPDF);
@@ -18,7 +18,7 @@ export default function DownloadButton({ delay }) {
   }, []);
 
   const handleClick = () => {
-    const url = useLocal ? '/jason_selerio.pdf' : PERSONAL.cvDownloadUrl;
+    const url = useLocal ? '/jason__selerio.pdf' : PERSONAL.cvDownloadUrl;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

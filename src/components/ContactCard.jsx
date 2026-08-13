@@ -7,6 +7,7 @@ import {
   Phone,
   Linkedin,
   Github,
+  Globe,
 } from 'lucide-react';
 
 import ScrollReveal from './ScrollReveal.jsx';
@@ -16,6 +17,7 @@ const ICON_MAP = {
   phone: Phone,
   linkedin: Linkedin,
   github: Github,
+  website: Globe,
 };
 
 function navigateToHref(href) {
