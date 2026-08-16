@@ -768,7 +768,7 @@ body,
 /* ── 4-column Experience Grid at bottom ── */
 .about-exp-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
 }
 
@@ -782,6 +782,7 @@ body,
   border-radius: 8px;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
   color: inherit;
@@ -824,10 +825,6 @@ body,
 
   .about-stats {
     gap: 16px 16px;
-  }
-
-  .about-exp-grid {
-    grid-template-columns: 1fr;
   }
 }
 

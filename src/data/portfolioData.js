@@ -115,7 +115,7 @@ export const PROJECTS = [
   {
     id: 'christening-invitation',
     tag: 'Personal Project · Full-Stack Developer',
-    title: 'Christening Invitation',
+    title: 'Mobile Event Invitation Platform',
     desc: 'Created a mobile-friendly digital christening invitation that improved event information clarity and accessibility for guests.',
     tech: ['Canva'],
     accent: 'var(--soft)',
