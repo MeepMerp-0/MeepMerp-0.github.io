@@ -439,7 +439,7 @@ export default function HeroView({
               fontSize:
                 isNarrow
                   ? 'clamp(15px,4.5vw,20px)'
-                  : 'clamp(21px,3.4vw,34px)',
+                  : 'clamp(20px,2.8vw,32px)',
 
               lineHeight:
                 1.15,
@@ -454,10 +454,12 @@ export default function HeroView({
                   ? 'center'
                   : 'left',
 
-              overflowWrap:
-                'break-word',
+              whiteSpace:
+                isNarrow
+                  ? 'normal'
+                  : 'nowrap',
 
-              wordBreak:
+              overflowWrap:
                 'break-word',
             }}
           >

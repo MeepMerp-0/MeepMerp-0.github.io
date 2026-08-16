@@ -3,7 +3,7 @@
 export const PERSONAL = {
   name: 'Jason Selerio',
   title: 'Software Engineer',
-  tagline: 'Full Stack Development · AI Workflow Automation · Web & Mobile Systems',
+  tagline: 'Software Engineer',
   headline:
     'Software Engineer specializing in full stack development, AI workflow automation, and modern web applications. Experienced in building practical business solutions using React, React Native, Laravel, Node.js, and cloud technologies, with a strong focus on AI-driven engineering and enterprise systems.',
   email: 'jason.selerio@gmail.com',
@@ -12,7 +12,7 @@ export const PERSONAL = {
   website: 'https://meepmerp-0.github.io',
   location: 'Reem Island, Abu Dhabi, United Arab Emirates',
   cvDownloadUrl:
-    'https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/CV/jason__selerio.pdf',
+    'https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/resume/Jason%20Selerio%20CV%20%20Software%20Engineer.pdf',
 };
 
 export const SERVICES = [
