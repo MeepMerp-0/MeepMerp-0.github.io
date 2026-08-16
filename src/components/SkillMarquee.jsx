@@ -84,6 +84,7 @@ export default function SkillMarquee() {
 
       {/* Outer Viewport Box */}
       <div
+        className="skill-marquee-viewport"
         style={{
           position: 'relative',
           paddingBottom: 4,

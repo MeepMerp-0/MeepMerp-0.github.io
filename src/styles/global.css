@@ -812,6 +812,22 @@ body,
     grid-template-columns: 1fr;
     gap: 32px;
   }
+
+  .skill-marquee-viewport {
+    overflow-x: auto !important;
+    touch-action: pan-x;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+    scrollbar-width: none;
+  }
+
+  .skill-marquee-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skill-marquee-viewport .forced-track-container {
+    animation: none !important;
+  }
 }
 
 /* ────────────────────────────────────────────────
