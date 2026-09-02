@@ -1,25 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { FileDown } from 'lucide-react';
 import { PERSONAL } from '../data/portfolioData.js';
 
 export default function DownloadButton({ delay }) {
   const [hov, setHov] = useState(false);
-  const [useLocal, setUseLocal] = useState(false);
-
-  useEffect(() => {
-    // check if /jason__selerio.pdf exists in public folder
-    fetch('/jason__selerio.pdf', { method: 'HEAD', cache: 'no-cache' })
-      .then(r => {
-        const isPDF = r.ok && r.headers.get('content-type')?.includes('pdf');
-        setUseLocal(isPDF);
-      })
-      .catch(() => setUseLocal(false));
-  }, []);
-
   const handleClick = () => {
-    const url = useLocal ? '/jason__selerio.pdf' : PERSONAL.cvDownloadUrl;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(PERSONAL.cvDownloadUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
