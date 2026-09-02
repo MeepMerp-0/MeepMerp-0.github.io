@@ -12,7 +12,7 @@ export const PERSONAL = {
   website: 'https://meepmerp-0.github.io',
   location: 'Reem Island, Abu Dhabi, United Arab Emirates',
   cvDownloadUrl:
-    'https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/resume/Jason%20Selerio%20CV%20%20Software%20Engineer.pdf',
+    'https://pub-c10ba7365a8240d2a24c50e217e1da90.r2.dev/personal/resume/Jason_Selerio-CV_Software%20Engineer.pdf',
 };
 
 export const SERVICES = [
