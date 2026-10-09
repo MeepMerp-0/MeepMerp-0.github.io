@@ -23,17 +23,34 @@ These roles and descriptions reflect the experience details shared for this port
 - **About:** real roles, dates where provided, contributions, and a concise technical toolkit.
 - **Process:** a five-stage AUDIT → DESIGN → BUILD → TEST → SHIP panel inspired by an editor-style reference. The role instructions in `.github/agents/` are documentation, **not** autonomous services running on this site.
 - **Contact:** email and GitHub links plus a form using the existing configurable backend.
-- **Motion:** quiet, transform-only Motion-powered entrance and scroll reveals for typography and project rows, gentle transitions when changing process stages, and restrained CSS hover affordances. Important text and links remain fully opaque from the first frame, including headless browser captures. There are no looping decorative animations or scroll-hijacking effects; reduced-motion preferences are respected.
+- **Scroll interactions:** a thin page reading-progress line follows scroll; Hero field notes move with gentle parallax; Work rows enter from alternating sides; About columns counter-slide into view; Process includes its own scroll-linked progress rule; and Contact combines an offset text entrance with a rising form. Stage selection and hover affordances remain subtle. Important text and links stay fully opaque throughout.
 - **Accessibility:** semantic content, natural scrolling, skip link, keyboard-accessible controls, responsive layout, high-contrast light/dark themes, and reduced-motion support.
 
 The design intentionally avoids stock screenshots, floating blobs, template-style animations, unverifiable performance claims, and elaborate decorations. More detail: [DESIGN_NOTES.md](DESIGN_NOTES.md).
+
+### Scroll motion by section
+
+The existing [Motion scroll animation API](https://motion.dev/docs/react-scroll-animations) distinguishes **scroll-linked** effects, driven continuously by scroll position, from **scroll-triggered** transitions that run when content comes into view. This website uses both, without introducing another dependency.
+
+| Area | Treatment | Implementation |
+| --- | --- | --- |
+| Global | Thin, smoothed page-reading progress line | `useScroll()` + `useSpring()`; decorative and omitted for reduced-motion users |
+| Home | Small, scroll-linked 16px drift of the Field Notes panel | Element `useScroll({ target, offset })` + `useTransform()`; intro text stays readable |
+| Work | Project rows enter from alternating horizontal offsets, once | `whileInView` and `viewport.once`, with no hidden links or opacity fades |
+| About | Story and experience columns enter from opposite sides; toolkit rises | Separate one-time `whileInView` transforms |
+| Process | Section-specific rule fills as visitors pass the workflow | `useScroll({ target })` + `useTransform()`; stage buttons remain manually controlled |
+| Contact | Intro slides from the right, contact details from left, form rises | Independent one-time `whileInView` triggers |
+
+**Accessibility and motion safety:** All meaningful content is visible from the first frame and remains focusable. For `prefers-reduced-motion: reduce`, entrance transforms and parallax are disabled, the page progress indicator is removed, and the Process rule is static. Native scrolling, hash links, focus styles, live-form interaction and light/dark themes are preserved. Direct links such as `/#work`, `/#about`, `/#process`, and `/#contact` are restored after the initial React mount because browsers can process the fragment before a client-rendered section exists. The sticky header is offset using **only `html { scroll-padding-top: 84px }`**; adding another section scroll margin would double the gap and expose content from the previous section. No scroll-jacking, decorative loops, or layout-expanding transitions.
+
+Test the effects in a real browser by scrolling the live page at desktop, 768px and 360px widths, and also test reduced-motion mode. The CI browser test uses Chrome DevTools to scroll to sections and verify their positions, direct deep links and the missing progress indicator in reduced-motion mode. Its screenshots are **still images** and do not establish that every transition is smooth or perceivable.
 
 ## Technology
 
 | Area | Portfolio implementation |
 | --- | --- |
 | UI | React 19, plain JSX, Lucide icons |
-| Motion | Existing `motion/react` dependency for limited entrance, viewport, and stage transitions; CSS for hover affordances |
+| Motion | Existing `motion/react` package: `useScroll`, `useTransform`, `useSpring`, `whileInView`, `useReducedMotion`, `MotionConfig`; CSS for small hover details |
 | Build | Vite 8, Node.js 22+ |
 | Styling | Plain CSS custom properties and responsive rules |
 | Content | `src/data/portfolioData.js` |
@@ -63,6 +80,7 @@ api/contact.js                      # Serverless endpoint for compatible hosting
     ├── portfolio-quality.yml        # PR verification and screenshots
     └── deploy.yml                   # GitHub Pages publishing
 public/                              # Static assets
+scripts/verify-scroll-preview.mjs    # Dependency-free Chrome DevTools scroll/screenshot smoke
 ```
 
 Some older views/components are retained in the repository but are **not rendered** by the current `src/App.jsx`. Do not edit those expecting live-site changes.
@@ -99,7 +117,33 @@ Copy `.env.example` into a local `.env` only if you need to test sending message
 
 ## CI, visual previews and deployment
 
-The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on the PR's modified JS/JSX files, `npm run build`, and a headless Chrome rendering smoke test. It uploads desktop/mobile screenshots as a short-lived GitHub Actions artifact for review. These are not a substitute for manual keyboard, theme, live-link, device-width or contact-delivery testing.
+The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and `scripts/verify-scroll-preview.mjs` using Node.js's built-in WebSocket and the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**.
+
+### Responsive verification matrix
+
+| Device category | Viewport dimensions tested |
+| --- | --- |
+| Large desktop | 1920 × 1080 |
+| Desktop | 1440 × 900 |
+| Compact laptop / tablet landscape | 1024 × 768 |
+| Medium tablet | 834 × 1112 |
+| Tablet portrait | 768 × 1024 |
+| Large mobile | 430 × 932 |
+| Mobile | 390 × 844 |
+| Small mobile | 360 × 800 |
+| Compact mobile | 320 × 700 |
+
+**At every listed width**, the Chrome smoke test loads the responsive layout and scrolls to **all five sections (Home, Work, About, Process, Contact)**. It checks the target's viewport position, document/body horizontal overflow, and the geometry of visible headings, layout containers, buttons, links, and form controls. It also verifies the correct desktop/mobile navigation breakpoint, the mobile menu's Escape-and-focus behavior, and theme toggling.
+
+Additional tests directly open all four section fragments at 1440px, 768px, and 390px to catch SPA deep-link regressions. Desktop and mobile reduced-motion runs verify the absence of the animated reading indicator. Screenshots of every section at representative sizes are attached to the workflow, while other widths still receive the full geometry/navigation checks.
+
+The script asks the OS for an available debugging port, launches an isolated Chrome profile and verifies **the spawned Chrome process's own DevTools WebSocket identity** before connecting. It must never attach to an unrelated debugging session.
+
+These automated checks **do not prove** smooth animation, screen-reader announcements, operating-system-specific rendering, or successful form delivery. Manually scroll on real devices, inspect both themes, try keyboard navigation, and test any live contact backend without sending unnecessary messages. To run the smoke locally while `npm run preview` is serving the built site:
+
+```bash
+CHROME_BIN="$(command -v google-chrome || command -v chromium)" node scripts/verify-scroll-preview.mjs
+```
 
 The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `main` and publishes the built `dist/` directory. The repository also has a manual `npm run deploy` command. Review pull requests before merging to avoid unintentionally publishing changes.
 
