@@ -3,6 +3,7 @@
 import { motion } from 'motion/react';
 import SectionHeading from '../components/SectionHeading.jsx';
 import SkillMarquee from '../components/SkillMarquee.jsx';
+import PortfolioWorkflow from '../components/PortfolioWorkflow.jsx';
 import TechBar from '../components/TechBar.jsx';
 
 import {
@@ -92,6 +93,8 @@ export default function AboutView() {
       >
         <SkillMarquee />
       </motion.div>
+
+      <PortfolioWorkflow />
 
       {/* ── 4-column Experience Grid at Bottom ── */}
       <div className="about-exp-grid">
