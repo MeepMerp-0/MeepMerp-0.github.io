@@ -139,7 +139,10 @@ function Hero() {
               <div><strong>{area.title}</strong><p>{area.description}</p></div>
             </div>
           ))}
-          <div className="notes-foot">CURRENT ROLE <span>{EXPERIENCE[0].role} · {EXPERIENCE[0].company} ({EXPERIENCE[0].engagement})</span></div>
+          <div className="notes-foot">
+            <span className="notes-foot-label">ROLE / {EXPERIENCE[0].engagement.toUpperCase()}</span>
+            <span>{EXPERIENCE[0].role} · {EXPERIENCE[0].company}</span>
+          </div>
         </motion.aside>
       </div>
       <div className="hero-bottomline">

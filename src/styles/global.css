@@ -302,6 +302,14 @@ section[id] { scroll-margin-top: 84px; }
 }
 
 
+.notes-foot .notes-foot-label {
+  color: var(--muted);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* Motion details / editorial interactions
    Tiny visual feedback only; no looping effects, forced scrolling or animated layouts.
    Viewport reveals are handled by motion/react in components. */
