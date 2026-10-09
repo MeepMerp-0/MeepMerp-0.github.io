@@ -300,3 +300,70 @@ section[id] { scroll-margin-top: 84px; }
   .project-site-links { flex-direction: column; }
   .experience li .experience-summary { margin-top: 9px; }
 }
+
+
+/* Motion details / editorial interactions
+   Tiny visual feedback only; no looping effects, forced scrolling or animated layouts.
+   Viewport reveals are handled by motion/react in components. */
+@media (hover: hover) and (pointer: fine) {
+  .button-solid svg,
+  .header-cta svg,
+  .project-link svg,
+  .inline-link svg,
+  .experience-company svg,
+  .section-outro a svg,
+  .project-samples a svg {
+    transition: transform 180ms ease;
+  }
+  .button-solid:hover svg,
+  .button-solid:focus-visible svg,
+  .header-cta:hover svg,
+  .header-cta:focus-visible svg {
+    transform: translateX(3px);
+  }
+  .project-link:hover svg,
+  .project-link:focus-visible svg,
+  .inline-link:hover svg,
+  .inline-link:focus-visible svg,
+  .experience-company:hover svg,
+  .experience-company:focus-visible svg,
+  .section-outro a:hover svg,
+  .section-outro a:focus-visible svg,
+  .project-samples a:hover svg,
+  .project-samples a:focus-visible svg {
+    transform: translate(2px, -2px);
+  }
+}
+@media (min-width: 831px) {
+  .site-nav a { position: relative; }
+  .site-nav a::after {
+    content: '';
+    position: absolute;
+    height: 1px;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 190ms ease;
+  }
+  .site-nav a:hover::after,
+  .site-nav a:focus-visible::after {
+    transform: scaleX(1);
+  }
+}
+@media (max-width: 830px) {
+  .site-nav--open {
+    animation: editorial-menu-enter 180ms ease-out both;
+  }
+}
+@keyframes editorial-menu-enter {
+  from { transform: translateY(-5px); }
+  to { transform: translateY(0); }
+}
+/* User motion preferences override both CSS details and the Motion components. */
+@media (prefers-reduced-motion: reduce) {
+  .site-nav--open { animation: none; }
+  .site-nav a::after { transition: none; }
+}

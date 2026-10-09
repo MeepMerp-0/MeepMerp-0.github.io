@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { MotionConfig, motion, useReducedMotion } from 'motion/react';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, Github,
   Menu, Moon, Sun, X,
@@ -77,18 +78,26 @@ function Header({ theme, setTheme }) {
 }
 
 function SectionIntro({ number, eyebrow, title, subtitle, id }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <div className="section-intro">
+    <motion.div
+      className="section-intro"
+      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="section-intro-label"><span>{number}</span> / {eyebrow}</div>
       <div className="section-intro-main">
         <h2 id={id}>{title}</h2>
         {subtitle && <p>{subtitle}</p>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function Hero() {
+  const reduceMotion = useReducedMotion();
   return (
     <section className="hero shell" id="home" aria-labelledby="hero-title">
       <div className="hero-topline">
@@ -98,14 +107,30 @@ function Hero() {
       <div className="hero-grid">
         <div className="hero-copy">
           <p className="eyebrow hero-eyebrow">HELLO, I'M JASON.</p>
-          <h1 id="hero-title">I build<br /><em>AI systems</em> and<br />full-stack apps<span className="period">.</span></h1>
-          <p className="hero-description">{PERSONAL.headline}</p>
+          <motion.h1
+            id="hero-title"
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >I build<br /><em>AI systems</em> and<br />full-stack apps<span className="period">.</span></motion.h1>
+          <motion.p
+            className="hero-description"
+            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.17, ease: [0.22, 1, 0.36, 1] }}
+          >{PERSONAL.headline}</motion.p>
           <div className="hero-actions">
             <a className="button button-solid" href="#work">Explore selected work <ArrowRight size={18} aria-hidden="true" /></a>
             <a className="button button-text" href={PERSONAL.cvDownloadUrl} target="_blank" rel="noopener noreferrer">View résumé <ArrowUpRight size={16} aria-hidden="true" /></a>
           </div>
         </div>
-        <aside className="hero-notes" aria-label="Areas of work">
+        <motion.aside
+          className="hero-notes"
+          aria-label="Areas of work"
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div className="notes-heading"><span>FIELD NOTES</span><span>001 / {String(FOCUS_AREAS.length).padStart(3, '0')}</span></div>
           <p className="notes-title">What I work on</p>
           {FOCUS_AREAS.map((area, index) => (
@@ -114,8 +139,8 @@ function Hero() {
               <div><strong>{area.title}</strong><p>{area.description}</p></div>
             </div>
           ))}
-          <div className="notes-foot">CURRENT ROLE <span>{EXPERIENCE[0].role} · {EXPERIENCE[0].company}</span></div>
-        </aside>
+          <div className="notes-foot">CURRENT ROLE <span>{EXPERIENCE[0].role} · {EXPERIENCE[0].company} ({EXPERIENCE[0].engagement})</span></div>
+        </motion.aside>
       </div>
       <div className="hero-bottomline">
         <span>SELECTED PROJECTS AND EXPERIENCE, NOT A TEMPLATE SHOWCASE</span>
@@ -126,10 +151,17 @@ function Hero() {
 }
 
 function ProjectRow({ project, index }) {
+  const reduceMotion = useReducedMotion();
   const metric = project.metrics?.[0];
   const isPrivate = !project.site && !project.links?.length;
   return (
-    <article className="project-row">
+    <motion.article
+      className="project-row"
+      initial={reduceMotion ? false : { y: 12 }}
+      whileInView={{ y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.54, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="project-count">
         <span>{String(index + 1).padStart(2, '0')}</span>
         <span className="project-year">{project.year}</span>
@@ -192,7 +224,7 @@ function ProjectRow({ project, index }) {
           </a>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -321,7 +353,7 @@ export default function App() {
   }, [theme]);
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <a className="skip-link" href="#content">Skip to content</a>
       <Header theme={theme} setTheme={setTheme} />
       <main id="content">
@@ -336,6 +368,6 @@ export default function App() {
         <span>DESIGNED WITH INTENT · BUILT WITH REACT</span>
         <a href="#home">BACK TO TOP ↑</a>
       </div></footer>
-    </>
+    </MotionConfig>
   );
 }

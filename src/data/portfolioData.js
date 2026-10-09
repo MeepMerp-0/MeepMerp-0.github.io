@@ -28,7 +28,7 @@ export const SERVICES = [
 
 export const ABOUT_PARAGRAPHS = [
   "Hello 👋, I'm Jason Selerio, an AI & Full-Stack Engineer based in Abu Dhabi, UAE. I completed my Bachelor of Science in Information Technology at STI College Muñoz-EDSA in Quezon City, Philippines in July 2026, where I was a Codafest Coding Champion and was invited to join StartupQC.",
-  "At INNERCIRCLE°, I work as a freelance Lead AI & Full-Stack Engineer, developing a Next.js, TypeScript, and Supabase real estate operations platform and designing LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval.",
+  "At INNERCIRCLE°, I work as a part-time Lead AI & Full-Stack Engineer, developing a Next.js, TypeScript, and Supabase real estate operations platform and designing LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval.",
   'As a Freelance Developer, I build full-stack and AI-assisted web experiences — including a wedding website used by 50+ guests that reduced manual coordination by 70%, and a mobile-friendly digital christening invitation that improved event clarity and accessibility. I previously interned at CliqueHA Information Services OPC, where I resolved production issues, improved frontend performance, and built Laravel and Livewire features while creating documentation that reduced client onboarding time by 25%.',
   'Earlier, at JsquarEd Co. Ltd., I developed a Windows inventory system in C# and SQL Server for a battery business, adding auto-generated battery IDs, revenue logging, and API integration for waybill generation and printing. I focus on clean, maintainable code and practical systems that solve real operational problems.',
 ];
@@ -92,7 +92,7 @@ export const EXPERIENCE = [
   {
     company: 'INNERCIRCLE°',
     role: 'Lead AI & Full-Stack Engineer',
-    engagement: 'Freelance',
+    engagement: 'Part-time',
     period: 'May 2026 – Present',
     link: 'https://www.innercirclerealtors.com/',
     summary: 'Developing real estate operations software and LangGraph.js multi-agent workflows with scoped API access, human approvals, RBAC, audit trails, and Coolify deployment.',
@@ -100,7 +100,7 @@ export const EXPERIENCE = [
   {
     company: 'FuturoHub',
     role: 'Web Development',
-    engagement: 'Part-time',
+    engagement: 'Freelance',
     period: 'Current',
     link: 'https://futurohub.ae/',
     summary: 'Contributing to the FuturoHub site and related web experiences, including El Mejor, Cup Section, and six sample websites. Separate site technologies and results are not attributed without verification.',
@@ -167,9 +167,9 @@ export const PROJECTS = [
   },
   {
     id: 'futurohub-sites',
-    tag: 'FuturoHub · Part-time web development',
+    tag: 'FuturoHub · Freelance web development',
     title: 'FuturoHub Web Experiences',
-    desc: 'Part-time work on FuturoHub’s web presence and a collection of related sites and demos. Includes the company landing page, El Mejor, Cup Section, and six sample-site variants.',
+    desc: 'Freelance work on FuturoHub’s web presence and a collection of related sites and demos. Includes the company landing page, El Mejor, Cup Section, and six sample-site variants.',
     tech: ['Astro', 'Tailwind CSS', 'React'],
     techContext: 'Technologies verified for the FuturoHub company site; other sites may use different stacks.',
     status: 'In progress',
