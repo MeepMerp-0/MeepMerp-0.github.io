@@ -185,7 +185,8 @@ async function measureSection(id) {
     + 'return {top: e.getBoundingClientRect().top, y: window.scrollY,'
     + 'scrollWidth: document.documentElement.scrollWidth,'
     + 'viewportWidth: document.documentElement.clientWidth,'
-    + 'headerHeight: document.querySelector(".site-header")?.getBoundingClientRect().height || 0};'
+    + 'headerHeight: document.querySelector(".site-header")?.getBoundingClientRect().height || 0,'
+    + 'atDocumentEnd: window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 3};'
     + '})()');
 }
 
@@ -292,10 +293,13 @@ async function capture(name, section, width, height, screenshot = true, alreadyS
     }
     // The sticky header is roughly 67-76px. Anchor padding should keep each
     // section below it without leaving 168px of stale previous-section text.
-    if (info.top < info.headerHeight - 12 || info.top > info.headerHeight + 38) {
+    if (info.top < info.headerHeight - 12
+      || (info.top > info.headerHeight + 38 && !info.atDocumentEnd)) {
       throw new Error('Sticky-header anchor spacing is incorrect at ' + name
         + ': ' + JSON.stringify(info));
     }
+    // At the bottom of a short last section, native scrolling stops at the
+    // document boundary, so exact scroll-padding alignment is impossible.
     console.log('[section]', name, JSON.stringify(info));
   }
   await verifyLayout(name, section);
