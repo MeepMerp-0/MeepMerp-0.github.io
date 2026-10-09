@@ -10,4 +10,5 @@ This is Jason Selerio's React 19 / Vite 8 portfolio, deployed to GitHub Pages wi
 - Real hash anchors and native scrolling; no invisible panels, focus traps or wheel interception. Validate navigation, theme, form, and mobile layout.
 - Don't add dependencies, tracking, secret values or outbound AI calls without prior owner approval. Never commit an .env file.
 - Run `npm ci`, `npm run build`, and ESLint on changed JS/JSX. Explicitly state which browser/form tests are not run.
+- **Keep `README.md` current when a change warrants documentation.** Update it alongside meaningful changes to public positioning, portfolio data conventions, visible sections, site architecture, dependencies, scripts, configuration, CI/CD, or deployment. Check that examples, commands, and links remain accurate. For minor internal fixes with no effect on documentation, a README edit is unnecessary; explain why in the PR.
 - PRs require human approval; docs under `.github/agents/` are prompt roles, not a deployed multi-agent backend.

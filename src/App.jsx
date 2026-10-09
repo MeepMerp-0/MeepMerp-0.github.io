@@ -4,23 +4,17 @@ import {
   Menu, Moon, Sun, X,
 } from 'lucide-react';
 import PortfolioWorkflow from './components/PortfolioWorkflow.jsx';
-import { PERSONAL, PROJECTS, EXPERIENCE } from './data/portfolioData.js';
+import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, FOCUS_AREAS, SKILL_GROUPS } from './data/portfolioData.js';
 import { useContactForm } from './hooks/useContactForm.js';
 import { submitContactForm } from './services/formService.js';
 
 const PROJECT_ORDER = [
-  'thesis', 'erp-dashboard', 'workflow', 'wedding',
+  'innercircle-operations', 'futurohub-sites', 'thesis', 'erp-dashboard', 'workflow', 'wedding',
   '360-property-tour', 'christening-invitation',
 ];
 const selectedProjects = PROJECT_ORDER
   .map((id) => PROJECTS.find((project) => project.id === id))
   .filter(Boolean);
-
-const SKILL_GROUPS = [
-  { label: '01 / INTERFACES', items: ['React', 'React Native', 'Next.js', 'Responsive UI'] },
-  { label: '02 / SYSTEMS', items: ['Node.js', 'Laravel', 'Livewire', 'SQL'] },
-  { label: '03 / AUTOMATION', items: ['n8n', 'AI workflows', 'APIs', 'Webhooks'] },
-];
 
 function getInitialTheme() {
   if (typeof window === 'undefined') return 'dark';
@@ -58,7 +52,7 @@ function Header({ theme, setTheme }) {
       <div className="header-inner shell">
         <a className="wordmark" href="#home" onClick={() => setMenuOpen(false)} aria-label="Jason Selerio, back to top">
           <span className="wordmark-symbol" aria-hidden="true">js<span>.</span></span>
-          <span className="wordmark-text">JASON SELERIO <small>SOFTWARE ENGINEER</small></span>
+          <span className="wordmark-text">JASON SELERIO <small>{PERSONAL.title.toUpperCase()}</small></span>
         </a>
         <nav ref={navigation} className={'site-nav' + (menuOpen ? ' site-nav--open' : '')} id="main-navigation" aria-label="Main navigation">
           <a href="#work" onClick={() => setMenuOpen(false)}>Work</a>
@@ -98,26 +92,29 @@ function Hero() {
   return (
     <section className="hero shell" id="home" aria-labelledby="hero-title">
       <div className="hero-topline">
-        <span><span className="status-dot" aria-hidden="true" /> SOFTWARE ENGINEER / ABU DHABI, UAE</span>
+        <span><span className="status-dot" aria-hidden="true" /> {PERSONAL.title.toUpperCase()} / ABU DHABI, UAE</span>
         <span>PORTFOLIO — 2026</span>
       </div>
       <div className="hero-grid">
         <div className="hero-copy">
           <p className="eyebrow hero-eyebrow">HELLO, I'M JASON.</p>
-          <h1 id="hero-title">I build the<br /><em>systems</em> behind<br />the interface<span className="period">.</span></h1>
-          <p className="hero-description">Full-stack engineering, automation, and practical tools for people doing real work. Less ceremony. More dependable software.</p>
+          <h1 id="hero-title">I build<br /><em>AI systems</em> and<br />full-stack apps<span className="period">.</span></h1>
+          <p className="hero-description">{PERSONAL.headline}</p>
           <div className="hero-actions">
             <a className="button button-solid" href="#work">Explore selected work <ArrowRight size={18} aria-hidden="true" /></a>
             <a className="button button-text" href={PERSONAL.cvDownloadUrl} target="_blank" rel="noopener noreferrer">View résumé <ArrowUpRight size={16} aria-hidden="true" /></a>
           </div>
         </div>
         <aside className="hero-notes" aria-label="Areas of work">
-          <div className="notes-heading"><span>FIELD NOTES</span><span>001 / 003</span></div>
+          <div className="notes-heading"><span>FIELD NOTES</span><span>001 / {String(FOCUS_AREAS.length).padStart(3, '0')}</span></div>
           <p className="notes-title">What I work on</p>
-          <div className="notes-entry"><span>01</span><div><strong>Business systems</strong><p>Attendance, payroll, and operational dashboards.</p></div></div>
-          <div className="notes-entry"><span>02</span><div><strong>Automation</strong><p>n8n workflows, API integrations, and human checkpoints.</p></div></div>
-          <div className="notes-entry"><span>03</span><div><strong>Human-facing products</strong><p>Fast interfaces with real-world workflows behind them.</p></div></div>
-          <div className="notes-foot">CURRENT ROLE <span>AI Engineer · INNERCIRCLE°</span></div>
+          {FOCUS_AREAS.map((area, index) => (
+            <div className="notes-entry" key={area.title}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <div><strong>{area.title}</strong><p>{area.description}</p></div>
+            </div>
+          ))}
+          <div className="notes-foot">CURRENT ROLE <span>{EXPERIENCE[0].role} · {EXPERIENCE[0].company}</span></div>
         </aside>
       </div>
       <div className="hero-bottomline">
@@ -130,7 +127,7 @@ function Hero() {
 
 function ProjectRow({ project, index }) {
   const metric = project.metrics?.[0];
-  const isPrivate = !project.site;
+  const isPrivate = !project.site && !project.links?.length;
   return (
     <article className="project-row">
       <div className="project-count">
@@ -138,7 +135,10 @@ function ProjectRow({ project, index }) {
         <span className="project-year">{project.year}</span>
       </div>
       <div className="project-content">
-        <span className="project-type">{project.tag.split('·')[0].trim()}</span>
+        <div className="project-label-row">
+          <span className="project-type">{project.tag.split('·')[0].trim()}</span>
+          {project.status === 'In progress' && <span className="project-ongoing">CURRENT WORK</span>}
+        </div>
         <h3>{project.title}</h3>
         <p className="project-description">{project.desc}</p>
         <ul className="project-highlights" aria-label="Key features">
@@ -147,12 +147,41 @@ function ProjectRow({ project, index }) {
         <div className="project-tech" aria-label="Technologies">
           {project.tech.slice(0, 6).map((tech) => <span key={tech}>{tech}</span>)}
         </div>
+        {project.techContext && <p className="project-tech-note">{project.techContext}</p>}
       </div>
       <div className="project-aside">
         {metric && <div className="project-evidence"><span>{metric.label}</span><strong>{metric.value}</strong></div>}
-        {isPrivate ? (
+        {project.links?.length ? (
+          <div className="project-site-collection" role="group" aria-label="Sites from this engagement">
+            <span className="project-collection-label">WEBSITES / SELECTED</span>
+            <div className="project-site-links">
+              {project.links.map((link) => (
+                <a key={link.href} className="project-link" href={link.href}
+                  target="_blank" rel="noopener noreferrer"
+                  aria-label={`${link.label} (opens in a new tab)`}>
+                  {link.label} <ArrowUpRight size={15} aria-hidden="true" />
+                </a>
+              ))}
+            </div>
+            {project.samples?.length > 0 && (
+              <details className="project-samples">
+                <summary>View {project.samples.length} additional site samples</summary>
+                <ul>
+                  {project.samples.map((sample) => (
+                    <li key={sample.href}>
+                      <a href={sample.href} target="_blank" rel="noopener noreferrer"
+                        aria-label={`${sample.label} (opens in a new tab)`}>
+                        {sample.label} <ArrowUpRight size={13} aria-hidden="true" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        ) : isPrivate ? (
           <div className="project-private">
-            <span>PRIVATE / INTERNAL PROJECT</span>
+            <span>{project.privateLabel || 'PRIVATE / INTERNAL PROJECT'}</span>
             <p>{project.clickMessage || 'Further details available on request.'}</p>
             <a href={'mailto:' + PERSONAL.email + '?subject=Portfolio%20project%20enquiry'}>Ask about this work <ArrowUpRight size={15} aria-hidden="true" /></a>
           </div>
@@ -171,7 +200,7 @@ function Work() {
   return (
     <section className="page-section work-section" id="work" aria-labelledby="work-title">
       <div className="shell">
-        <SectionIntro id="work-title" number="01" eyebrow="SELECTED WORK" title="Proof over promises." subtitle="A mix of shipped products, business systems, and useful experiments. Each project starts with a concrete problem." />
+        <SectionIntro id="work-title" number="01" eyebrow="SELECTED WORK" title="Proof over promises." subtitle="Current client engineering, completed systems, and practical experiments. Every project starts with a real workflow." />
         <div className="project-list">
           {selectedProjects.map((project, index) => <ProjectRow key={project.id} project={project} index={index} />)}
         </div>
@@ -189,14 +218,23 @@ function About() {
         <div className="about-layout">
           <div className="about-story">
             <h3>A little about how I got here.</h3>
-            <p>I'm a software engineer based in Abu Dhabi, focused on full-stack applications and AI-assisted workflow automation. I work on the parts people see—and the operational systems they rely on.</p>
-            <p>My experience spans product interfaces, internal business tools, API integrations, and web/mobile development. The throughline is simple: understand the actual workflow, then make it easier to run.</p>
+            {ABOUT_STORY.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             <a href={PERSONAL.cvDownloadUrl} target="_blank" rel="noopener noreferrer" className="inline-link">Read my résumé <ArrowUpRight size={16} aria-hidden="true" /></a>
           </div>
           <div className="experience">
             <h3>EXPERIENCE / RECENT TO EARLIER</h3>
             <ol>{EXPERIENCE.map((job) => <li key={job.company + job.period}>
-              <div><strong>{job.role}</strong><span>{job.company}</span></div>
+              <div>
+                <strong>{job.role}</strong>
+                {job.link ? (
+                  <a className="experience-company" href={job.link} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${job.company} (opens in a new tab)`}>
+                    {job.company} <ArrowUpRight size={13} aria-hidden="true" />
+                  </a>
+                ) : <span className="experience-company">{job.company}</span>}
+                {job.engagement && <span className="experience-engagement">{job.engagement} engagement</span>}
+                {job.summary && <p className="experience-summary">{job.summary}</p>}
+              </div>
               <time>{job.period}</time>
             </li>)}</ol>
           </div>
@@ -233,7 +271,7 @@ function Contact() {
         <div className="contact-grid">
           <div className="contact-sidebar">
             <h3>Let's make it useful.</h3>
-            <p>Open to conversations about software engineering roles, practical web products, and automation work.</p>
+            <p>Open to conversations about agentic AI systems, full-stack engineering, and business software. Tell me the problem you're solving.</p>
             <div className="contact-method"><span>EMAIL</span><a href={'mailto:' + PERSONAL.email}>{PERSONAL.email} <ArrowUpRight size={16} aria-hidden="true" /></a></div>
             <div className="contact-method"><span>GITHUB</span><a href={PERSONAL.github} target="_blank" rel="noopener noreferrer"><Github size={16} aria-hidden="true" /> MeepMerp-0 <ArrowUpRight size={15} aria-hidden="true" /></a></div>
             <div className="contact-method"><span>LOCATION</span><strong>Abu Dhabi, United Arab Emirates</strong></div>

@@ -12,6 +12,7 @@ Describe the actual recruiter/client/mobile task being improved and link to code
 - [ ] Keyboard, focus, light/dark themes, reduced motion checked (or NOT TESTED)
 - [ ] Links, navigation and contact flow checked (or NOT TESTED)
 - [ ] No secrets, fictional portfolio claims or unrelated dependencies
+- [ ] README updated for meaningful changes (or explain why no documentation change was needed)
 
 ## Reviewer findings / untested items
 Document outcomes and known limitations.
