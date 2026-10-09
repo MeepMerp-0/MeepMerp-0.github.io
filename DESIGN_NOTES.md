@@ -4,7 +4,7 @@
 This portfolio uses an editorial "field notes" visual language: warm paper/ink palettes, one deliberate botanical accent, serif display type with a plain sans-serif body, narrow mono metadata, honest project rows and minimal motion. No floating service bubbles, glass panels, looping marquees, invented screenshots, simulated agents, inflated claims, ornamental progress bars or generic "AI gradient" treatments.
 
 ## Real workflows
-1. A recruiter opens the home page, reads the job focus, jumps to Work, scans six projects, opens a demo and finds contact details.
+1. A recruiter opens the home page, reads the job focus, jumps to Work, scans eight projects (the current shortlist), opens a demo and finds contact details.
 2. A client finds a relevant operational project, checks the responsibilities/technology and reaches the working form or email fallback.
 3. A keyboard user can reach every visible control in document order; no invisible sections remain mounted behind opacity.
 4. A mobile visitor can open/close navigation, switch theme and fill the form without horizontal scrolling.

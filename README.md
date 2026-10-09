@@ -79,12 +79,12 @@ npm run dev
 The Vite development server is configured at [http://localhost:8888](http://localhost:8888). To verify production output:
 
 ```bash
-npx eslint src/App.jsx src/data/portfolioData.js
+npx eslint .
 npm run build
 npm run preview
 ```
 
-The preview uses Vite's default local preview port (normally 4173). A successful build checks compilation but does not prove that external site links or a live contact backend work.
+The preview uses Vite's default local preview port (normally 4173). `npx eslint .` checks JavaScript and JSX across the repository, including retained legacy code; the PR workflow checks only changed JS/JSX paths. If the full lint command reports pre-existing legacy findings, document them rather than assuming a passing PR check verifies every file. A successful build checks compilation but does not prove that external site links or a live contact backend work.
 
 ## Contact backend and secrets
 

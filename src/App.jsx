@@ -227,7 +227,8 @@ function About() {
               <div>
                 <strong>{job.role}</strong>
                 {job.link ? (
-                  <a className="experience-company" href={job.link} target="_blank" rel="noopener noreferrer">
+                  <a className="experience-company" href={job.link} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${job.company} (opens in a new tab)`}>
                     {job.company} <ArrowUpRight size={13} aria-hidden="true" />
                   </a>
                 ) : <span className="experience-company">{job.company}</span>}
