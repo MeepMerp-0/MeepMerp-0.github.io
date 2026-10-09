@@ -41,7 +41,7 @@ The existing [Motion scroll animation API](https://motion.dev/docs/react-scroll-
 | Process | Section-specific rule fills as visitors pass the workflow | `useScroll({ target })` + `useTransform()`; stage buttons remain manually controlled |
 | Contact | Intro slides from the right, contact details from left, form rises | Independent one-time `whileInView` triggers |
 
-**Accessibility and motion safety:** All meaningful content is visible from the first frame and remains focusable. For `prefers-reduced-motion: reduce`, entrance transforms and parallax are disabled, the page progress indicator is removed, and the Process rule is static. Native scrolling, hash links, focus styles, live-form interaction and light/dark themes are preserved. No scroll-jacking, decorative loops, or layout-expanding transitions.
+**Accessibility and motion safety:** All meaningful content is visible from the first frame and remains focusable. For `prefers-reduced-motion: reduce`, entrance transforms and parallax are disabled, the page progress indicator is removed, and the Process rule is static. Native scrolling, hash links, focus styles, live-form interaction and light/dark themes are preserved. Direct links such as `/#work`, `/#about`, `/#process`, and `/#contact` are restored after the initial React mount because browsers can process the fragment before a client-rendered section exists. No scroll-jacking, decorative loops, or layout-expanding transitions.
 
 Test the effects in a real browser by scrolling the live page at desktop, 768px and 360px widths, and also test reduced-motion mode. Screenshots from CI are **still images** and do not establish that every motion transition works.
 

@@ -10,7 +10,7 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 4. A mobile visitor can open/close navigation, switch theme and fill the form without horizontal scrolling.
 
 ## Design decisions
-- **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps.
+- **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps. Deep links (e.g. `/#work`) use a one-time instant scroll after React mount, because the browser can try to resolve the hash before the dynamic DOM exists.
 - **Work:** project entries, current work labels, and FuturoHub's grouped public website links are sourced from `src/data/portfolioData.js`; don't invent images or new metrics. Keep INNERCIRCLE° work labeled private and ongoing. Don't assume the same stack applies to every FuturoHub sample.
 - **Process:** keep the interactive 5-step panel inspired by the supplied screenshot, but use it to demonstrate a workflow rather than pretend to have live autonomous agents.
 - **Theme:** dark by default when the operating system prefers dark; user choice persists when storage is available. Light variant uses #1a6541 on #eeece3 (>5:1 contrast), replacing the previous lower-contrast accent.
@@ -20,7 +20,7 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 
 ## Acceptance checks before merge
 - [ ] On desktop and 360px/768px mobile, project rows and nav fit without horizontal scrolling.
-- [ ] Every anchor points to a visible section; Escape/menu closing, Tab order and focus indicators are usable.
+- [ ] Every anchor points to a visible section; directly opening `/#work`, `/#about`, `/#process`, and `/#contact` lands on that section; Escape/menu closing, Tab order and focus indicators are usable.
 - [ ] Text and accent remain legible in dark and light themes.
 - [ ] At desktop and mobile widths, verify each distinct Home/Work/About/Process/Contact scroll effect and the global reading indicator. Scroll back to confirm one-time entrances do not replay. Project links must remain visible before animation frames complete.
 - [ ] With reduced motion enabled, verify no entrance transforms or parallax, no fixed reading progress bar, and a static Process rule. Check motion does not impact keyboard focus or natural anchor scrolling.
