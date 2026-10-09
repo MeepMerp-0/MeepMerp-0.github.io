@@ -184,7 +184,8 @@ async function measureSection(id) {
     + 'if (!e) return null;'
     + 'return {top: e.getBoundingClientRect().top, y: window.scrollY,'
     + 'scrollWidth: document.documentElement.scrollWidth,'
-    + 'viewportWidth: document.documentElement.clientWidth};'
+    + 'viewportWidth: document.documentElement.clientWidth,'
+    + 'headerHeight: document.querySelector(".site-header")?.getBoundingClientRect().height || 0};'
     + '})()');
 }
 
@@ -288,6 +289,12 @@ async function capture(name, section, width, height, screenshot = true, alreadyS
     }
     if (info.scrollWidth > info.viewportWidth + 3) {
       throw new Error('Horizontal overflow at ' + section + ': ' + JSON.stringify(info));
+    }
+    // The sticky header is roughly 67-76px. Anchor padding should keep each
+    // section below it without leaving 168px of stale previous-section text.
+    if (info.top < info.headerHeight - 12 || info.top > info.headerHeight + 38) {
+      throw new Error('Sticky-header anchor spacing is incorrect at ' + name
+        + ': ' + JSON.stringify(info));
     }
     console.log('[section]', name, JSON.stringify(info));
   }

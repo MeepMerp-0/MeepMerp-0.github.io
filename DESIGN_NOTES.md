@@ -10,7 +10,7 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 4. A mobile visitor can open/close navigation, switch theme and fill the form without horizontal scrolling.
 
 ## Design decisions
-- **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps. Deep links (e.g. `/#work`) use a one-time instant scroll after React mount, because the browser can try to resolve the hash before the dynamic DOM exists.
+- **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps. Deep links (e.g. `/#work`) use a one-time instant scroll after React mount, because the browser can try to resolve the hash before the dynamic DOM exists. Anchor offset comes from 84px `scroll-padding-top` only (no duplicate `scroll-margin-top`). The browser smoke asserts section starts immediately below the sticky header, including phone and tablet widths.
 - **Work:** project entries, current work labels, and FuturoHub's grouped public website links are sourced from `src/data/portfolioData.js`; don't invent images or new metrics. Keep INNERCIRCLE° work labeled private and ongoing. Don't assume the same stack applies to every FuturoHub sample.
 - **Process:** keep the interactive 5-step panel inspired by the supplied screenshot, but use it to demonstrate a workflow rather than pretend to have live autonomous agents.
 - **Theme:** dark by default when the operating system prefers dark; user choice persists when storage is available. Light variant uses #1a6541 on #eeece3 (>5:1 contrast), replacing the previous lower-contrast accent.
