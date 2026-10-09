@@ -11,19 +11,20 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 
 ## Design decisions
 - **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps.
-- **Work:** all six projects are sourced from `src/data/portfolioData.js`; don't invent images or new metrics. Explicitly mark private/internal work. Leave actual project links intact.
+- **Work:** project entries, current work labels, and FuturoHub's grouped public website links are sourced from `src/data/portfolioData.js`; don't invent images or new metrics. Keep INNERCIRCLE° work labeled private and ongoing. Don't assume the same stack applies to every FuturoHub sample.
 - **Process:** keep the interactive 5-step panel inspired by the supplied screenshot, but use it to demonstrate a workflow rather than pretend to have live autonomous agents.
 - **Theme:** dark by default when the operating system prefers dark; user choice persists when storage is available. Light variant uses #1a6541 on #eeece3 (>5:1 contrast), replacing the previous lower-contrast accent.
 - **Contact:** reuse `useContactForm` and `submitContactForm` (configured backend), preserve honeypot and rate limiting. Leave send-success confirmation visible until explicitly dismissed. Never invent a working backend when secrets are absent.
 - **Motion:** CSS only for focus/hover and anchor scrolling; respect prefers-reduced-motion. No forced animations or custom scroll hijacking.
-- **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking.
+- **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking. The title is AI & Full-Stack Engineer; actual CV responsibilities have priority over generic AI claims. INNERCIRCLE° is freelance, FuturoHub part-time (no guessed start date), and the existing résumé PDF remains the only public CV link.
 
 ## Acceptance checks before merge
 - [ ] On desktop and 360px/768px mobile, project rows and nav fit without horizontal scrolling.
 - [ ] Every anchor points to a visible section; Escape/menu closing, Tab order and focus indicators are usable.
 - [ ] Text and accent remain legible in dark and light themes.
 - [ ] Form validation, rate-limits, failure fallback and successful submissions behave with the *actual* deployment backend.
-- [ ] All publicly linked demos open; private work is labeled; no extra portfolio claims.
+- [ ] All public website links, including FuturoHub, El Mejor, Cup Section and samples 01–06, open as expected; private work is labeled; no extra portfolio claims.
+- [ ] Current CV positioning, part-time versus freelance arrangements, and the unchanged PDF destination are verified.
 - [ ] GitHub Actions installs dependencies, lints **changed JS/JSX**, builds the production bundle.
 - [ ] Human approves the redesign and checks the published site after merge.
 

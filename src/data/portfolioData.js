@@ -2,10 +2,10 @@
 
 export const PERSONAL = {
   name: 'Jason Selerio',
-  title: 'Software Engineer',
-  tagline: 'Software Engineer',
+  title: 'AI & Full-Stack Engineer',
+  tagline: 'AI & Full-Stack Engineer',
   headline:
-    'Software Engineer specializing in full stack development, AI workflow automation, and modern web applications. Experienced in building practical business solutions using React, React Native, Laravel, Node.js, and cloud technologies, with a strong focus on AI-driven engineering and enterprise systems.',
+    'I design agentic AI workflows and full-stack business applications—from LangGraph.js orchestration and API integrations to Next.js, TypeScript, and Supabase platforms.',
   email: 'jason.selerio@gmail.com',
   phone: '+971504482694',
   github: 'https://github.com/MeepMerp-0',
@@ -27,15 +27,15 @@ export const SERVICES = [
 ];
 
 export const ABOUT_PARAGRAPHS = [
-  "Hello 👋, I'm Jason Selerio, a Software Engineer currently based in Reem Island, Abu Dhabi, United Arab Emirates. I completed my Bachelor of Science in Information Technology at STI College Muñoz-EDSA in Quezon City, Philippines in July 2026, where I was a Codafest Coding Champion and was invited to join StartupQC.",
-  "I'm currently working as an AI Engineer at INNERCIRCLE°, where I design multi-agent AI workflows using n8n, APIs, and automation tools to streamline customer communication, document generation, and internal business processes.",
+  "Hello 👋, I'm Jason Selerio, an AI & Full-Stack Engineer based in Abu Dhabi, UAE. I completed my Bachelor of Science in Information Technology at STI College Muñoz-EDSA in Quezon City, Philippines in July 2026, where I was a Codafest Coding Champion and was invited to join StartupQC.",
+  "At INNERCIRCLE°, I work as a freelance Lead AI & Full-Stack Engineer, developing a Next.js, TypeScript, and Supabase real estate operations platform and designing LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval.",
   'As a Freelance Developer, I build full-stack and AI-assisted web experiences — including a wedding website used by 50+ guests that reduced manual coordination by 70%, and a mobile-friendly digital christening invitation that improved event clarity and accessibility. I previously interned at CliqueHA Information Services OPC, where I resolved production issues, improved frontend performance, and built Laravel and Livewire features while creating documentation that reduced client onboarding time by 25%.',
   'Earlier, at JsquarEd Co. Ltd., I developed a Windows inventory system in C# and SQL Server for a battery business, adding auto-generated battery IDs, revenue logging, and API integration for waybill generation and printing. I focus on clean, maintainable code and practical systems that solve real operational problems.',
 ];
 
 export const STATS = [
   { value: 'BSIT', label: '@STI Muñoz-EDSA' },
-  { value: 'AI Engineer', label: 'Multi-agent workflows' },
+  { value: 'AI / Full Stack', label: 'Multi-agent workflows' },
   { value: 'Full Stack', label: 'Web & mobile systems' },
   { value: 'Freelance', label: 'AI-assisted delivery' },
 ];
@@ -86,32 +86,106 @@ export const PROFICIENCY = [
   { label: 'SQL / Data Management', step: 4 },
 ];
 
+// Recruiter-facing role and responsibilities, aligned with the supplied CV.
+// Role names, dates, employment arrangement and outcomes must stay factual.
 export const EXPERIENCE = [
   {
     company: 'INNERCIRCLE°',
-    role: 'AI Engineer',
+    role: 'Lead AI & Full-Stack Engineer',
+    engagement: 'Freelance',
     period: 'May 2026 – Present',
     link: 'https://www.innercirclerealtors.com/',
+    summary: 'Developing real estate operations software and LangGraph.js multi-agent workflows with scoped API access, human approvals, RBAC, audit trails, and Coolify deployment.',
+  },
+  {
+    company: 'FuturoHub',
+    role: 'Web Development',
+    engagement: 'Part-time',
+    period: 'Current',
+    link: 'https://futurohub.ae/',
+    summary: 'Contributing to the FuturoHub site and related web experiences, including El Mejor, Cup Section, and six sample websites. Separate site technologies and results are not attributed without verification.',
   },
   {
     company: 'Freelance',
-    role: 'Freelance Developer',
+    role: 'Full-Stack Developer',
     period: 'February 2026 – Present',
+    summary: 'Client web and mobile applications, operational tools, API integrations, automation workflows, responsive design, and ongoing maintenance.',
   },
   {
     company: 'CliqueHA Information Services OPC',
     role: 'Software Developer Intern',
     period: 'February 2026 – May 2026',
     link: 'https://cliqueha.com/',
+    summary: 'Laravel and Livewire features, production fixes, and documentation that reduced client onboarding time by 25% and improved team efficiency by 15%.',
   },
   {
     company: 'JsquarEd Co. Ltd.',
     role: 'Desktop Application Developer',
     period: 'July 2024 – August 2025',
+    summary: 'Windows inventory and waybill tools developed with C# and SQL Server.',
   },
 ];
 
+// Content for the homepage field notes and the editorial About toolkit.
+export const FOCUS_AREAS = [
+  { title: 'Agentic AI', description: 'LangGraph.js orchestration, scoped API access, and human approval.' },
+  { title: 'Full-stack platforms', description: 'Next.js, TypeScript, and Supabase for real business operations.' },
+  { title: 'Integration & delivery', description: 'n8n, external APIs, role-based access, audit trails, and Coolify.' },
+];
+
+export const SKILL_GROUPS = [
+  { label: '01 / AGENTIC AI', items: ['LangGraph.js', 'Multi-agent workflows', 'n8n', 'Human approvals'] },
+  { label: '02 / FULL STACK', items: ['Next.js', 'TypeScript', 'React / React Native', 'Laravel / Livewire'] },
+  { label: '03 / OPERATIONS', items: ['Supabase', 'API integrations', 'RBAC & audit trails', 'Coolify'] },
+];
+
 export const PROJECTS = [
+  {
+    id: 'innercircle-operations',
+    tag: 'INNERCIRCLE° · Lead AI & Full-Stack Engineer',
+    title: 'Real Estate Operations & Agentic AI',
+    desc: 'Developing a real estate operations platform using Next.js, TypeScript, and Supabase for CRM, finance, reporting, and property analysis, alongside AI-assisted communication and document workflows.',
+    tech: ['Next.js', 'TypeScript', 'Supabase', 'LangGraph.js', 'n8n', 'Coolify'],
+    status: 'In progress',
+    year: '2026',
+    metrics: [],
+    highlights: [
+      'Multi-agent orchestration with scoped API access, checkpoints, and human approval',
+      'Role-based access control, audit trails, and operational workflows',
+      'External API integrations, automation, and self-hosted deployment',
+    ],
+    privateLabel: 'CLIENT WORK / NO PUBLIC DEMO',
+    clickMessage: 'Current client engagement. Application access and implementation details are not public.',
+  },
+  {
+    id: 'futurohub-sites',
+    tag: 'FuturoHub · Part-time web development',
+    title: 'FuturoHub Web Experiences',
+    desc: 'Part-time work on FuturoHub’s web presence and a collection of related sites and demos. Includes the company landing page, El Mejor, Cup Section, and six sample-site variants.',
+    tech: ['Astro', 'Tailwind CSS', 'React'],
+    techContext: 'Technologies verified for the FuturoHub company site; other sites may use different stacks.',
+    status: 'In progress',
+    year: 'Current',
+    metrics: [],
+    highlights: [
+      'Company landing page and supporting web experiences',
+      'El Mejor and Cup Section sites',
+      'Six distinct sample websites',
+    ],
+    links: [
+      { label: 'FuturoHub', href: 'https://futurohub.ae/' },
+      { label: 'El Mejor', href: 'https://elmejor.futurohub.ae/' },
+      { label: 'Cup Section', href: 'https://cup-section.futurohub.ae/' },
+    ],
+    samples: [
+      { label: 'Sample 01', href: 'https://sample1.futurohub.ae/' },
+      { label: 'Sample 02', href: 'https://sample2.futurohub.ae/' },
+      { label: 'Sample 03', href: 'https://sample3.futurohub.ae/' },
+      { label: 'Sample 04', href: 'https://sample4.futurohub.ae/' },
+      { label: 'Sample 05', href: 'https://sample5.futurohub.ae/' },
+      { label: 'Sample 06', href: 'https://sample6.futurohub.ae/' },
+    ],
+  },
   {
     id: 'christening-invitation',
     tag: 'Personal Project · Full-Stack Developer',
