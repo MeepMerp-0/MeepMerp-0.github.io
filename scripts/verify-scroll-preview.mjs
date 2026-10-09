@@ -7,7 +7,7 @@
  * browser tab, waits for React, scrolls explicitly, then waits for paint.
  */
 import { spawn } from 'node:child_process';
-import { readFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -22,10 +22,17 @@ const chrome = spawn(chromeBin, [
   '--disable-gpu',
   '--no-first-run',
   '--remote-allow-origins=*',
-  '--remote-debugging-port=0',
+  '--remote-debugging-address=127.0.0.1',
+  '--remote-debugging-port=9229',
   '--user-data-dir=' + profile,
   'about:blank',
-], { stdio: 'ignore' });
+], { stdio: ['ignore', 'ignore', 'pipe'] });
+
+let startupStderr = '';
+chrome.stderr.on('data', (chunk) => {
+  startupStderr += String(chunk);
+  if (startupStderr.length > 12000) startupStderr = startupStderr.slice(-12000);
+});
 
 let socket;
 let nextId = 0;
@@ -36,18 +43,20 @@ function delay(ms) {
 }
 
 async function waitForChromePort() {
+  const port = 9229;
   for (let attempt = 0; attempt < 100; attempt += 1) {
     try {
-      const config = await readFile(join(profile, 'DevToolsActivePort'), 'utf8');
-      const port = Number(config.split(/\r?\n/)[0]);
-      if (Number.isInteger(port) && port > 0) return port;
+      const response = await fetch('http://127.0.0.1:' + port + '/json/version');
+      if (response.ok) return port;
     } catch {
-      // Chrome hasn't started its DevTools endpoint yet.
+      // Chrome's DevTools endpoint is not listening yet.
     }
-    if (chrome.exitCode !== null) throw new Error('Chrome exited before DevTools initialized');
+    if (chrome.exitCode !== null) {
+      throw new Error('Chrome exited before DevTools initialized:\n' + startupStderr.slice(-2400));
+    }
     await delay(100);
   }
-  throw new Error('Chrome did not open its DevTools endpoint in time');
+  throw new Error('Chrome did not expose DevTools on port ' + port + ':\n' + startupStderr.slice(-2400));
 }
 
 async function openPageSocket(port) {
