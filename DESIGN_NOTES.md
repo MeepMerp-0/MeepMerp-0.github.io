@@ -1,0 +1,30 @@
+# Portfolio redesign / field notes
+
+## Direction: evidence over effects
+This portfolio uses an editorial "field notes" visual language: warm paper/ink palettes, one deliberate botanical accent, serif display type with a plain sans-serif body, narrow mono metadata, honest project rows and minimal motion. No floating service bubbles, glass panels, looping marquees, invented screenshots, simulated agents, inflated claims, ornamental progress bars or generic "AI gradient" treatments.
+
+## Real workflows
+1. A recruiter opens the home page, reads the job focus, jumps to Work, scans six projects, opens a demo and finds contact details.
+2. A client finds a relevant operational project, checks the responsibilities/technology and reaches the working form or email fallback.
+3. A keyboard user can reach every visible control in document order; no invisible sections remain mounted behind opacity.
+4. A mobile visitor can open/close navigation, switch theme and fill the form without horizontal scrolling.
+
+## Design decisions
+- **Navigation:** stable sticky header with real hash anchors, skip link, visible mobile menu and native scrolling; no full-screen scroll traps.
+- **Work:** all six projects are sourced from `src/data/portfolioData.js`; don't invent images or new metrics. Explicitly mark private/internal work. Leave actual project links intact.
+- **Process:** keep the interactive 5-step panel inspired by the supplied screenshot, but use it to demonstrate a workflow rather than pretend to have live autonomous agents.
+- **Theme:** dark by default when the operating system prefers dark; user choice persists when storage is available. Light variant uses #1a6541 on #eeece3 (>5:1 contrast), replacing the previous lower-contrast accent.
+- **Contact:** reuse `useContactForm` and `submitContactForm` (configured backend), preserve honeypot and rate limiting. Leave send-success confirmation visible until explicitly dismissed. Never invent a working backend when secrets are absent.
+- **Motion:** CSS only for focus/hover and anchor scrolling; respect prefers-reduced-motion. No forced animations or custom scroll hijacking.
+- **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking.
+
+## Acceptance checks before merge
+- [ ] On desktop and 360px/768px mobile, project rows and nav fit without horizontal scrolling.
+- [ ] Every anchor points to a visible section; Escape/menu closing, Tab order and focus indicators are usable.
+- [ ] Text and accent remain legible in dark and light themes.
+- [ ] Form validation, rate-limits, failure fallback and successful submissions behave with the *actual* deployment backend.
+- [ ] All publicly linked demos open; private work is labeled; no extra portfolio claims.
+- [ ] GitHub Actions installs dependencies, lints **changed JS/JSX**, builds the production bundle.
+- [ ] Human approves the redesign and checks the published site after merge.
+
+The GitHub Actions check is not a substitute for a browser, screen reader, or live-form test.

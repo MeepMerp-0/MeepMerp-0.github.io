@@ -137,25 +137,9 @@ export function useContactForm(submitFn) {
         // Record successful submission for rate limiting
         submissionTimesRef.current = [...submissionTimesRef.current, Date.now()];
 
+        // Keep the success message visible until the visitor explicitly resets.
+        // The previous 2-second timer hid confirmation before it could be read.
         setSent(true);
-        setTimeout(() => {
-          setSent(false);
-          setValues({
-            name: '',
-            email: '',
-            purpose: '',
-            message: '',
-            website: '',
-          });
-          setShowAsterisk({
-            name: false,
-            email: false,
-            purpose: false,
-            message: false,
-          });
-          setEmailValid(false);
-          setEmailTouched(false);
-        }, 2000);
       } else {
         throw new Error(result.error || 'Submission failed');
       }

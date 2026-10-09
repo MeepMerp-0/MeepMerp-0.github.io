@@ -12,8 +12,10 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
+      - name: Check out source and base history
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -24,8 +26,24 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Lint workflow component and integration
-        run: npx eslint src/components/PortfolioWorkflow.jsx src/views/AboutView.jsx
+      - name: Lint the JavaScript/JSX changed in this pull request
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$BASE_SHA" ]; then
+            echo "Manual run: linting the redesigned entry points."
+            npx eslint src/App.jsx src/components/PortfolioWorkflow.jsx src/hooks/useContactForm.js
+            exit 0
+          fi
+
+          mapfile -d '' -t paths < <(git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD -- '*.js' '*.jsx')
+          if [ "${#paths[@]}" -gt 0 ]; then
+            printf 'Linting: %s\n' "${paths[@]}"
+            npx eslint "${paths[@]}"
+          else
+            echo "No changed JavaScript/JSX files to lint."
+          fi
 
       - name: Build production website
         run: npm run build
