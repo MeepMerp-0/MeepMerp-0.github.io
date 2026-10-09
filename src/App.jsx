@@ -36,6 +36,10 @@ function getInitialTheme() {
 function Header({ theme, setTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef(null);
+  const navigation = useRef(null);
+  useEffect(() => {
+    if (menuOpen) navigation.current?.querySelector('a')?.focus();
+  }, [menuOpen]);
   useEffect(() => {
     if (!menuOpen) return undefined;
     const handleEscape = (event) => {
@@ -56,7 +60,7 @@ function Header({ theme, setTheme }) {
           <span className="wordmark-symbol" aria-hidden="true">js<span>.</span></span>
           <span className="wordmark-text">JASON SELERIO <small>SOFTWARE ENGINEER</small></span>
         </a>
-        <nav className={'site-nav' + (menuOpen ? ' site-nav--open' : '')} id="main-navigation" aria-label="Main navigation">
+        <nav ref={navigation} className={'site-nav' + (menuOpen ? ' site-nav--open' : '')} id="main-navigation" aria-label="Main navigation">
           <a href="#work" onClick={() => setMenuOpen(false)}>Work</a>
           <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
           <a href="#process" onClick={() => setMenuOpen(false)}>Process</a>
