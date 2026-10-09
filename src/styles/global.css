@@ -367,3 +367,43 @@ section[id] { scroll-margin-top: 84px; }
   .site-nav--open { animation: none; }
   .site-nav a::after { transition: none; }
 }
+
+
+/* Motion / section-specific scroll interactions
+   React Motion handles scroll tracking/one-time transforms. All meaningful
+   content remains fully visible, including before JS and animation frames. */
+.reading-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--signal);
+  transform-origin: 0 50%;
+  pointer-events: none;
+  z-index: 120;
+}
+/* Opposing project-row transforms must not create sideways document scrolling. */
+.work-section,
+.about-section-redesign,
+.contact-section {
+  overflow-x: clip;
+}
+.process-scroll-track {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  margin: 0 0 26px;
+  background: var(--border);
+  overflow: hidden;
+  pointer-events: none;
+}
+.process-scroll-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--signal);
+  transform-origin: 0 50%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reading-progress { display: none; }
+  .process-scroll-fill { transform: scaleX(1) !important; }
+}

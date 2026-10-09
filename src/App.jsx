@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MotionConfig, motion, useReducedMotion } from 'motion/react';
+import { MotionConfig, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, Github,
   Menu, Moon, Sun, X,
@@ -26,6 +26,18 @@ function getInitialTheme() {
     // Storage may be unavailable; the website still works without it.
   }
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function ReadingProgress() {
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 150, damping: 30, mass: 0.25,
+  });
+
+  // Decorative: never require motion to understand or navigate the page.
+  if (reduceMotion) return null;
+  return <motion.div className="reading-progress" aria-hidden="true" style={{ scaleX: smoothProgress }} />;
 }
 
 function Header({ theme, setTheme }) {
@@ -77,14 +89,17 @@ function Header({ theme, setTheme }) {
   );
 }
 
-function SectionIntro({ number, eyebrow, title, subtitle, id }) {
+function SectionIntro({ number, eyebrow, title, subtitle, id, motionStyle = 'rise' }) {
   const reduceMotion = useReducedMotion();
+  const entrance = motionStyle === 'from-left' ? { x: -18 }
+    : motionStyle === 'from-right' ? { x: 18 }
+      : { y: 14 };
   return (
     <motion.div
       className="section-intro"
-      initial={reduceMotion ? false : { y: 14 }}
-      whileInView={{ y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
+      initial={reduceMotion || motionStyle === 'static' ? false : entrance}
+      whileInView={{ x: 0, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="section-intro-label"><span>{number}</span> / {eyebrow}</div>
@@ -98,8 +113,15 @@ function SectionIntro({ number, eyebrow, title, subtitle, id }) {
 
 function Hero() {
   const reduceMotion = useReducedMotion();
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const noteParallaxY = useTransform(scrollYProgress, [0, 1], [0, -16]);
+
   return (
-    <section className="hero shell" id="home" aria-labelledby="hero-title">
+    <section ref={heroRef} className="hero shell" id="home" aria-labelledby="hero-title">
       <div className="hero-topline">
         <span><span className="status-dot" aria-hidden="true" /> {PERSONAL.title.toUpperCase()} / ABU DHABI, UAE</span>
         <span>PORTFOLIO — 2026</span>
@@ -127,9 +149,7 @@ function Hero() {
         <motion.aside
           className="hero-notes"
           aria-label="Areas of work"
-          initial={reduceMotion ? false : { y: 12 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          style={{ y: reduceMotion ? 0 : noteParallaxY }}
         >
           <div className="notes-heading"><span>FIELD NOTES</span><span>001 / {String(FOCUS_AREAS.length).padStart(3, '0')}</span></div>
           <p className="notes-title">What I work on</p>
@@ -157,10 +177,10 @@ function ProjectRow({ project, index }) {
   return (
     <motion.article
       className="project-row"
-      initial={reduceMotion ? false : { y: 12 }}
-      whileInView={{ y: 0 }}
-      viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.54, ease: [0.22, 1, 0.36, 1] }}
+      initial={reduceMotion ? false : { x: index % 2 === 0 ? -16 : 16 }}
+      whileInView={{ x: 0 }}
+      viewport={{ once: true, amount: 0.16 }}
+      transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="project-count">
         <span>{String(index + 1).padStart(2, '0')}</span>
@@ -232,7 +252,7 @@ function Work() {
   return (
     <section className="page-section work-section" id="work" aria-labelledby="work-title">
       <div className="shell">
-        <SectionIntro id="work-title" number="01" eyebrow="SELECTED WORK" title="Proof over promises." subtitle="Current client engineering, completed systems, and practical experiments. Every project starts with a real workflow." />
+        <SectionIntro id="work-title" motionStyle="from-left" number="01" eyebrow="SELECTED WORK" title="Proof over promises." subtitle="Current client engineering, completed systems, and practical experiments. Every project starts with a real workflow." />
         <div className="project-list">
           {selectedProjects.map((project, index) => <ProjectRow key={project.id} project={project} index={index} />)}
         </div>
@@ -243,17 +263,30 @@ function Work() {
 }
 
 function About() {
+  const reduceMotion = useReducedMotion();
   return (
     <section className="page-section about-section-redesign" id="about" aria-labelledby="about-title">
       <div className="shell">
-        <SectionIntro id="about-title" number="02" eyebrow="BACKGROUND" title="Engineer first. Tools second." subtitle="I work across the stack because most useful problems don't stop neatly at the frontend." />
+        <SectionIntro id="about-title" motionStyle="rise" number="02" eyebrow="BACKGROUND" title="Engineer first. Tools second." subtitle="I work across the stack because most useful problems don't stop neatly at the frontend." />
         <div className="about-layout">
-          <div className="about-story">
+          <motion.div
+            className="about-story"
+            initial={reduceMotion ? false : { x: -18 }}
+            whileInView={{ x: 0 }}
+            viewport={{ once: true, amount: 0.17 }}
+            transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
+          >
             <h3>A little about how I got here.</h3>
             {ABOUT_STORY.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             <a href={PERSONAL.cvDownloadUrl} target="_blank" rel="noopener noreferrer" className="inline-link">Read my résumé <ArrowUpRight size={16} aria-hidden="true" /></a>
-          </div>
-          <div className="experience">
+          </motion.div>
+          <motion.div
+            className="experience"
+            initial={reduceMotion ? false : { x: 18 }}
+            whileInView={{ x: 0 }}
+            viewport={{ once: true, amount: 0.14 }}
+            transition={{ duration: 0.62, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+          >
             <h3>EXPERIENCE / RECENT TO EARLIER</h3>
             <ol>{EXPERIENCE.map((job) => <li key={job.company + job.period}>
               <div>
@@ -269,24 +302,41 @@ function About() {
               </div>
               <time>{job.period}</time>
             </li>)}</ol>
-          </div>
+          </motion.div>
         </div>
-        <div className="capabilities">
+        <motion.div
+          className="capabilities"
+          initial={reduceMotion ? false : { y: 12 }}
+          whileInView={{ y: 0 }}
+          viewport={{ once: true, amount: 0.16 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div className="capabilities-lead">CURRENT TOOLKIT <span>SELECTED, NOT EXHAUSTIVE</span></div>
           <div className="capabilities-grid">{SKILL_GROUPS.map((group) => <div className="capabilities-group" key={group.label}>
             <h4>{group.label}</h4><p>{group.items.join(' / ')}</p>
           </div>)}</div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
 }
 
 function Process() {
+  const reduceMotion = useReducedMotion();
+  const processRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: processRef,
+    offset: ['start end', 'end start'],
+  });
+  const sectionProgress = useTransform(scrollYProgress, [0.15, 0.75], [0, 1]);
+
   return (
-    <section className="page-section process-section" id="process" aria-labelledby="process-title">
+    <section ref={processRef} className="page-section process-section" id="process" aria-labelledby="process-title">
       <div className="shell">
-        <SectionIntro id="process-title" number="03" eyebrow="THE PROCESS" title="Small loops. Real evidence." subtitle="A repeatable approach to shipping improvements without introducing layers of unnecessary complexity." />
+        <SectionIntro id="process-title" motionStyle="static" number="03" eyebrow="THE PROCESS" title="Small loops. Real evidence." subtitle="A repeatable approach to shipping improvements without introducing layers of unnecessary complexity." />
+        <div className="process-scroll-track" aria-hidden="true">
+          <motion.div className="process-scroll-fill" style={{ scaleX: reduceMotion ? 1 : sectionProgress }} />
+        </div>
         <PortfolioWorkflow />
         <p className="process-note">These are documented roles and checkpoints, not a claim that autonomous agents run in the background. The final decision stays with a person.</p>
       </div>
@@ -295,20 +345,33 @@ function Process() {
 }
 
 function Contact() {
+  const reduceMotion = useReducedMotion();
   const { values, sent, loading, error, showAsterisk, handleChange, handleSubmit, reset, MAX_MESSAGE_LENGTH } = useContactForm(submitContactForm);
   return (
     <section className="page-section contact-section" id="contact" aria-labelledby="contact-title">
       <div className="shell">
-        <SectionIntro id="contact-title" number="04" eyebrow="GET IN TOUCH" title="Have something worth building?" subtitle="Tell me the problem, not just the tech stack. I'll take it from there." />
+        <SectionIntro id="contact-title" motionStyle="from-right" number="04" eyebrow="GET IN TOUCH" title="Have something worth building?" subtitle="Tell me the problem, not just the tech stack. I'll take it from there." />
         <div className="contact-grid">
-          <div className="contact-sidebar">
+          <motion.div
+            className="contact-sidebar"
+            initial={reduceMotion ? false : { x: -16 }}
+            whileInView={{ x: 0 }}
+            viewport={{ once: true, amount: 0.18 }}
+            transition={{ duration: 0.54, ease: [0.22, 1, 0.36, 1] }}
+          >
             <h3>Let's make it useful.</h3>
             <p>Open to conversations about agentic AI systems, full-stack engineering, and business software. Tell me the problem you're solving.</p>
             <div className="contact-method"><span>EMAIL</span><a href={'mailto:' + PERSONAL.email}>{PERSONAL.email} <ArrowUpRight size={16} aria-hidden="true" /></a></div>
             <div className="contact-method"><span>GITHUB</span><a href={PERSONAL.github} target="_blank" rel="noopener noreferrer"><Github size={16} aria-hidden="true" /> MeepMerp-0 <ArrowUpRight size={15} aria-hidden="true" /></a></div>
             <div className="contact-method"><span>LOCATION</span><strong>Abu Dhabi, United Arab Emirates</strong></div>
-          </div>
-          <div className="contact-form-wrap">
+          </motion.div>
+          <motion.div
+            className="contact-form-wrap"
+            initial={reduceMotion ? false : { y: 22 }}
+            whileInView={{ y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
             {sent ? (
               <div className="form-feedback" role="status">
                 <Check size={25} aria-hidden="true" />
@@ -338,7 +401,7 @@ function Contact() {
                 </button>
               </form>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -354,6 +417,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
+      <ReadingProgress />
       <a className="skip-link" href="#content">Skip to content</a>
       <Header theme={theme} setTheme={setTheme} />
       <main id="content">

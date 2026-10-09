@@ -23,17 +23,34 @@ These roles and descriptions reflect the experience details shared for this port
 - **About:** real roles, dates where provided, contributions, and a concise technical toolkit.
 - **Process:** a five-stage AUDIT → DESIGN → BUILD → TEST → SHIP panel inspired by an editor-style reference. The role instructions in `.github/agents/` are documentation, **not** autonomous services running on this site.
 - **Contact:** email and GitHub links plus a form using the existing configurable backend.
-- **Motion:** quiet, transform-only Motion-powered entrance and scroll reveals for typography and project rows, gentle transitions when changing process stages, and restrained CSS hover affordances. Important text and links remain fully opaque from the first frame, including headless browser captures. There are no looping decorative animations or scroll-hijacking effects; reduced-motion preferences are respected.
+- **Scroll interactions:** a thin page reading-progress line follows scroll; Hero field notes move with gentle parallax; Work rows enter from alternating sides; About columns counter-slide into view; Process includes its own scroll-linked progress rule; and Contact combines an offset text entrance with a rising form. Stage selection and hover affordances remain subtle. Important text and links stay fully opaque throughout.
 - **Accessibility:** semantic content, natural scrolling, skip link, keyboard-accessible controls, responsive layout, high-contrast light/dark themes, and reduced-motion support.
 
 The design intentionally avoids stock screenshots, floating blobs, template-style animations, unverifiable performance claims, and elaborate decorations. More detail: [DESIGN_NOTES.md](DESIGN_NOTES.md).
+
+### Scroll motion by section
+
+The existing [Motion scroll animation API](https://motion.dev/docs/react-scroll-animations) distinguishes **scroll-linked** effects, driven continuously by scroll position, from **scroll-triggered** transitions that run when content comes into view. This website uses both, without introducing another dependency.
+
+| Area | Treatment | Implementation |
+| --- | --- | --- |
+| Global | Thin, smoothed page-reading progress line | `useScroll()` + `useSpring()`; decorative and omitted for reduced-motion users |
+| Home | Small, scroll-linked 16px drift of the Field Notes panel | Element `useScroll({ target, offset })` + `useTransform()`; intro text stays readable |
+| Work | Project rows enter from alternating horizontal offsets, once | `whileInView` and `viewport.once`, with no hidden links or opacity fades |
+| About | Story and experience columns enter from opposite sides; toolkit rises | Separate one-time `whileInView` transforms |
+| Process | Section-specific rule fills as visitors pass the workflow | `useScroll({ target })` + `useTransform()`; stage buttons remain manually controlled |
+| Contact | Intro slides from the right, contact details from left, form rises | Independent one-time `whileInView` triggers |
+
+**Accessibility and motion safety:** All meaningful content is visible from the first frame and remains focusable. For `prefers-reduced-motion: reduce`, entrance transforms and parallax are disabled, the page progress indicator is removed, and the Process rule is static. Native scrolling, hash links, focus styles, live-form interaction and light/dark themes are preserved. No scroll-jacking, decorative loops, or layout-expanding transitions.
+
+Test the effects in a real browser by scrolling the live page at desktop, 768px and 360px widths, and also test reduced-motion mode. Screenshots from CI are **still images** and do not establish that every motion transition works.
 
 ## Technology
 
 | Area | Portfolio implementation |
 | --- | --- |
 | UI | React 19, plain JSX, Lucide icons |
-| Motion | Existing `motion/react` dependency for limited entrance, viewport, and stage transitions; CSS for hover affordances |
+| Motion | Existing `motion/react` package: `useScroll`, `useTransform`, `useSpring`, `whileInView`, `useReducedMotion`, `MotionConfig`; CSS for small hover details |
 | Build | Vite 8, Node.js 22+ |
 | Styling | Plain CSS custom properties and responsive rules |
 | Content | `src/data/portfolioData.js` |
@@ -99,7 +116,7 @@ Copy `.env.example` into a local `.env` only if you need to test sending message
 
 ## CI, visual previews and deployment
 
-The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on the PR's modified JS/JSX files, `npm run build`, and a headless Chrome rendering smoke test. It uploads desktop/mobile screenshots as a short-lived GitHub Actions artifact for review. These are not a substitute for manual keyboard, theme, live-link, device-width or contact-delivery testing.
+The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and a headless Chrome rendering smoke test. It uploads desktop/mobile plus section-anchor screenshots as a short-lived GitHub Actions artifact. These capture the initial state at navigable anchors, **not the continuous animation**. Manually verify scroll behavior, reduced motion, keyboard use, both themes, live links, and actual contact delivery.
 
 The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `main` and publishes the built `dist/` directory. The repository also has a manual `npm run deploy` command. Review pull requests before merging to avoid unintentionally publishing changes.
 
