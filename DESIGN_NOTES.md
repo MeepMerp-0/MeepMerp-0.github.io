@@ -24,7 +24,7 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 - [ ] Text and accent remain legible in dark and light themes.
 - [ ] At desktop and mobile widths, verify each distinct Home/Work/About/Process/Contact scroll effect and the global reading indicator. Scroll back to confirm one-time entrances do not replay. Project links must remain visible before animation frames complete.
 - [ ] With reduced motion enabled, verify no entrance transforms or parallax, no fixed reading progress bar, and a static Process rule. Check motion does not impact keyboard focus or natural anchor scrolling.
-- [ ] CI anchor screenshots show all sections with readable content; a screenshot cannot verify continuous scroll motion.
+- [ ] Chrome DevTools CI checks actually scroll each section into the viewport (not just pass a hash to headless Chrome), verifies initial deep links and reduced-motion reading-indicator behavior, and captures readable screenshots. Still images cannot verify continuous scroll smoothness.
 - [ ] Form validation, rate-limits, failure fallback and successful submissions behave with the *actual* deployment backend.
 - [ ] All public website links, including FuturoHub, El Mejor, Cup Section and samples 01–06, open as expected; private work is labeled; no extra portfolio claims.
 - [ ] Current CV positioning, part-time versus freelance arrangements, and the unchanged PDF destination are verified.

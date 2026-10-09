@@ -43,7 +43,7 @@ The existing [Motion scroll animation API](https://motion.dev/docs/react-scroll-
 
 **Accessibility and motion safety:** All meaningful content is visible from the first frame and remains focusable. For `prefers-reduced-motion: reduce`, entrance transforms and parallax are disabled, the page progress indicator is removed, and the Process rule is static. Native scrolling, hash links, focus styles, live-form interaction and light/dark themes are preserved. Direct links such as `/#work`, `/#about`, `/#process`, and `/#contact` are restored after the initial React mount because browsers can process the fragment before a client-rendered section exists. No scroll-jacking, decorative loops, or layout-expanding transitions.
 
-Test the effects in a real browser by scrolling the live page at desktop, 768px and 360px widths, and also test reduced-motion mode. Screenshots from CI are **still images** and do not establish that every motion transition works.
+Test the effects in a real browser by scrolling the live page at desktop, 768px and 360px widths, and also test reduced-motion mode. The CI browser test uses Chrome DevTools to scroll to sections and verify their positions, direct deep links and the missing progress indicator in reduced-motion mode. Its screenshots are **still images** and do not establish that every transition is smooth or perceivable.
 
 ## Technology
 
@@ -80,6 +80,7 @@ api/contact.js                      # Serverless endpoint for compatible hosting
     ├── portfolio-quality.yml        # PR verification and screenshots
     └── deploy.yml                   # GitHub Pages publishing
 public/                              # Static assets
+scripts/verify-scroll-preview.mjs    # Dependency-free Chrome DevTools scroll/screenshot smoke
 ```
 
 Some older views/components are retained in the repository but are **not rendered** by the current `src/App.jsx`. Do not edit those expecting live-site changes.
@@ -116,7 +117,18 @@ Copy `.env.example` into a local `.env` only if you need to test sending message
 
 ## CI, visual previews and deployment
 
-The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and a headless Chrome rendering smoke test. It uploads desktop/mobile plus section-anchor screenshots as a short-lived GitHub Actions artifact. These capture the initial state at navigable anchors, **not the continuous animation**. Manually verify scroll behavior, reduced motion, keyboard use, both themes, live links, and actual contact delivery.
+The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and `scripts/verify-scroll-preview.mjs` using built-in Node.js WebSocket plus the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**. The browser check:
+- scrolls to Home, Work, About, Process, and Contact at 1440px and 390px widths;
+- checks that target sections are within the viewport without horizontal overflow;
+- loads a fresh `/#about` URL to verify navigation after React mounts;
+- checks that reduced-motion mode omits the animated global reading indicator;
+- saves screenshots for human inspection as a short-lived workflow artifact.
+
+Screenshots are still frames, **not a measurement of motion smoothness**. Manually verify continuous scroll behavior, keyboard controls, both themes, 360px/768px layouts, live links, and actual contact delivery. Local smoke usage, with `npm run preview` already serving the built site, is:
+
+```bash
+CHROME_BIN="$(command -v google-chrome || command -v chromium)" node scripts/verify-scroll-preview.mjs
+```
 
 The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `main` and publishes the built `dist/` directory. The repository also has a manual `npm run deploy` command. Review pull requests before merging to avoid unintentionally publishing changes.
 
