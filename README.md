@@ -103,13 +103,13 @@ The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `ma
 
 ## Maintaining content
 
-All recruiter-facing facts live in `src/data/portfolioData.js`. When updating them:
+`src/data/portfolioData.js` is the source of truth for **on-page recruiter content**: `PERSONAL`, `EXPERIENCE`, `ABOUT_STORY`, projects, and skills. The active `src/App.jsx` renders those values instead of duplicating professional facts. However, `index.html` has separately maintained **static SEO, Open Graph, Twitter, and structured-data metadata**; changes to public positioning must be reflected there too.
 
-1. Match the current CV and verify dates, responsibilities, role wording, project links, and outcomes.
+1. Match the current CV and update the relevant data fields (`PERSONAL`, `EXPERIENCE`, `ABOUT_STORY`, project links, and results), verifying dates, responsibilities, and outcomes.
 2. Keep INNERCIRCLE° labeled **freelance** and FuturoHub labeled **part-time**, unless the engagement changes. Do not invent FuturoHub's start date.
 3. Keep private/internal projects private; do not fabricate demos, analytics, screenshots or metrics.
 4. For grouped website samples, maintain `links` and `samples` on the FuturoHub project. Attribute Astro/Tailwind/React only to the documented company site, not automatically to every sample.
-5. Update portfolio metadata in `index.html` when public positioning changes. Review both themes and mobile before shipping.
+5. Update `index.html` separately for the page title, description, Open Graph, Twitter, and structured-data metadata whenever recruiter-facing facts or positioning change. Review both themes and mobile before shipping.
 6. The résumé button uses the existing `PERSONAL.cvDownloadUrl` PDF location. Reference-only CV design links are **not** intended to become public portfolio links.
 
 ## Contact

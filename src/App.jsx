@@ -4,7 +4,7 @@ import {
   Menu, Moon, Sun, X,
 } from 'lucide-react';
 import PortfolioWorkflow from './components/PortfolioWorkflow.jsx';
-import { PERSONAL, PROJECTS, EXPERIENCE, FOCUS_AREAS, SKILL_GROUPS } from './data/portfolioData.js';
+import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, FOCUS_AREAS, SKILL_GROUPS } from './data/portfolioData.js';
 import { useContactForm } from './hooks/useContactForm.js';
 import { submitContactForm } from './services/formService.js';
 
@@ -152,12 +152,13 @@ function ProjectRow({ project, index }) {
       <div className="project-aside">
         {metric && <div className="project-evidence"><span>{metric.label}</span><strong>{metric.value}</strong></div>}
         {project.links?.length ? (
-          <div className="project-site-collection" aria-label="Sites from this engagement">
+          <div className="project-site-collection" role="group" aria-label="Sites from this engagement">
             <span className="project-collection-label">WEBSITES / SELECTED</span>
             <div className="project-site-links">
               {project.links.map((link) => (
                 <a key={link.href} className="project-link" href={link.href}
-                  target="_blank" rel="noopener noreferrer">
+                  target="_blank" rel="noopener noreferrer"
+                  aria-label={`${link.label} (opens in a new tab)`}>
                   {link.label} <ArrowUpRight size={15} aria-hidden="true" />
                 </a>
               ))}
@@ -168,7 +169,8 @@ function ProjectRow({ project, index }) {
                 <ul>
                   {project.samples.map((sample) => (
                     <li key={sample.href}>
-                      <a href={sample.href} target="_blank" rel="noopener noreferrer">
+                      <a href={sample.href} target="_blank" rel="noopener noreferrer"
+                        aria-label={`${sample.label} (opens in a new tab)`}>
                         {sample.label} <ArrowUpRight size={13} aria-hidden="true" />
                       </a>
                     </li>
@@ -216,8 +218,7 @@ function About() {
         <div className="about-layout">
           <div className="about-story">
             <h3>A little about how I got here.</h3>
-            <p>I'm an AI &amp; Full-Stack Engineer based in Abu Dhabi. I build operational software and applied AI workflows—from the interface and APIs to data access, infrastructure, and the human decisions that matter.</p>
-            <p>At INNERCIRCLE°, I develop a real estate operations platform with Next.js, TypeScript, and Supabase, and design LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval. My broader work includes client web and mobile applications, n8n automation, and production support.</p>
+            {ABOUT_STORY.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             <a href={PERSONAL.cvDownloadUrl} target="_blank" rel="noopener noreferrer" className="inline-link">Read my résumé <ArrowUpRight size={16} aria-hidden="true" /></a>
           </div>
           <div className="experience">

@@ -126,6 +126,14 @@ export const EXPERIENCE = [
   },
 ];
 
+// On-page About content is built from canonical role and experience records above.
+// Changing the current engagement or professional title updates this copy as well.
+// index.html maintains its own static SEO metadata and must be reviewed separately.
+export const ABOUT_STORY = [
+  `I'm an ${PERSONAL.title} based in Abu Dhabi. I build operational software and applied AI workflows—from the interface and APIs to data access, infrastructure, and the human decisions that matter.`,
+  `At ${EXPERIENCE[0].company}, my work includes ${EXPERIENCE[0].summary.replace(/^Developing /, 'developing ')} My broader work includes client web and mobile applications, n8n automation, and production support.`,
+];
+
 // Content for the homepage field notes and the editorial About toolkit.
 export const FOCUS_AREAS = [
   { title: 'Agentic AI', description: 'LangGraph.js orchestration, scoped API access, and human approval.' },
