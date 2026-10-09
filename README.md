@@ -23,7 +23,7 @@ These roles and descriptions reflect the experience details shared for this port
 - **About:** real roles, dates where provided, contributions, and a concise technical toolkit.
 - **Process:** a five-stage AUDIT → DESIGN → BUILD → TEST → SHIP panel inspired by an editor-style reference. The role instructions in `.github/agents/` are documentation, **not** autonomous services running on this site.
 - **Contact:** email and GitHub links plus a form using the existing configurable backend.
-- **Motion:** quiet Motion-powered entrance and scroll reveals for typography and project rows, gentle transitions when changing process stages, and restrained CSS hover affordances. There are no looping decorative animations or scroll-hijacking effects; reduced-motion preferences are respected.
+- **Motion:** quiet, transform-only Motion-powered entrance and scroll reveals for typography and project rows, gentle transitions when changing process stages, and restrained CSS hover affordances. Important text and links remain fully opaque from the first frame, including headless browser captures. There are no looping decorative animations or scroll-hijacking effects; reduced-motion preferences are respected.
 - **Accessibility:** semantic content, natural scrolling, skip link, keyboard-accessible controls, responsive layout, high-contrast light/dark themes, and reduced-motion support.
 
 The design intentionally avoids stock screenshots, floating blobs, template-style animations, unverifiable performance claims, and elaborate decorations. More detail: [DESIGN_NOTES.md](DESIGN_NOTES.md).

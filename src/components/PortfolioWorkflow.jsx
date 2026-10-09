@@ -41,8 +41,8 @@ export default function PortfolioWorkflow() {
           <motion.div
             className="portfolio-workflow__primary"
             key={active.id}
-            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduceMotion ? false : { y: 6 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
           >
             <span className="portfolio-workflow__tag">{'<'}{active.id}{'>'}</span>

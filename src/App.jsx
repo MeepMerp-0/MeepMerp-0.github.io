@@ -82,8 +82,8 @@ function SectionIntro({ number, eyebrow, title, subtitle, id }) {
   return (
     <motion.div
       className="section-intro"
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={reduceMotion ? false : { y: 14 }}
+      whileInView={{ y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -109,14 +109,14 @@ function Hero() {
           <p className="eyebrow hero-eyebrow">HELLO, I'M JASON.</p>
           <motion.h1
             id="hero-title"
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduceMotion ? false : { y: 16 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >I build<br /><em>AI systems</em> and<br />full-stack apps<span className="period">.</span></motion.h1>
           <motion.p
             className="hero-description"
-            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduceMotion ? false : { y: 10 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.55, delay: 0.17, ease: [0.22, 1, 0.36, 1] }}
           >{PERSONAL.headline}</motion.p>
           <div className="hero-actions">
@@ -127,8 +127,8 @@ function Hero() {
         <motion.aside
           className="hero-notes"
           aria-label="Areas of work"
-          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={reduceMotion ? false : { y: 12 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="notes-heading"><span>FIELD NOTES</span><span>001 / {String(FOCUS_AREAS.length).padStart(3, '0')}</span></div>
