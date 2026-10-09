@@ -150,7 +150,7 @@ export const SKILL_GROUPS = [
 export const PROJECTS = [
   {
     id: 'innercircle-operations',
-    tag: 'INNERCIRCLE° · Lead AI & Full-Stack Engineer',
+    tag: 'INNERCIRCLE° · Part-time Lead AI & Full-Stack Engineer',
     title: 'Real Estate Operations & Agentic AI',
     desc: 'Developing a real estate operations platform using Next.js, TypeScript, and Supabase for CRM, finance, reporting, and property analysis, alongside AI-assisted communication and document workflows.',
     tech: ['Next.js', 'TypeScript', 'Supabase', 'LangGraph.js', 'n8n', 'Coolify'],
@@ -162,8 +162,8 @@ export const PROJECTS = [
       'Role-based access control, audit trails, and operational workflows',
       'External API integrations, automation, and self-hosted deployment',
     ],
-    privateLabel: 'CLIENT WORK / NO PUBLIC DEMO',
-    clickMessage: 'Current client engagement. Application access and implementation details are not public.',
+    privateLabel: 'INTERNAL WORK / NO PUBLIC DEMO',
+    clickMessage: 'Current company work. Application access and implementation details are not public.',
   },
   {
     id: 'futurohub-sites',
