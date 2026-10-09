@@ -19,12 +19,12 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 - **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking. The title is AI & Full-Stack Engineer; actual CV responsibilities have priority over generic AI claims. INNERCIRCLE° is part-time, FuturoHub freelance (no guessed start date), and the existing résumé PDF remains the only public CV link.
 
 ## Acceptance checks before merge
-- [ ] On desktop and 360px/768px mobile, project rows and nav fit without horizontal scrolling.
+- [ ] The responsive smoke checks Home, Work, About, Process and Contact at 1920, 1440, 1024, 834, 768, 430, 390, 360 and 320px (with representative desktop/tablet/phone screenshots). Inspect overflow, project rows, navigation, form controls and readable headings at each breakpoint.
 - [ ] Every anchor points to a visible section; directly opening `/#work`, `/#about`, `/#process`, and `/#contact` lands on that section; Escape/menu closing, Tab order and focus indicators are usable.
 - [ ] Text and accent remain legible in dark and light themes.
 - [ ] At desktop and mobile widths, verify each distinct Home/Work/About/Process/Contact scroll effect and the global reading indicator. Scroll back to confirm one-time entrances do not replay. Project links must remain visible before animation frames complete.
 - [ ] With reduced motion enabled, verify no entrance transforms or parallax, no fixed reading progress bar, and a static Process rule. Check motion does not impact keyboard focus or natural anchor scrolling.
-- [ ] Chrome DevTools CI checks actually scroll each section into the viewport (not just pass a hash to headless Chrome), verifies initial deep links and reduced-motion reading-indicator behavior, and captures readable screenshots. Still images cannot verify continuous scroll smoothness.
+- [ ] Chrome DevTools CI checks all five sections at every viewport in the matrix, mobile-menu Escape/focus and theme toggle, 1440/768/390px deep links, and reduced-motion behavior. DevTools connects only to the spawned Chrome instance via a dynamic port and matched WebSocket ID. Static images cannot verify animation smoothness.
 - [ ] Form validation, rate-limits, failure fallback and successful submissions behave with the *actual* deployment backend.
 - [ ] All public website links, including FuturoHub, El Mejor, Cup Section and samples 01–06, open as expected; private work is labeled; no extra portfolio claims.
 - [ ] Current CV positioning, part-time versus freelance arrangements, and the unchanged PDF destination are verified.

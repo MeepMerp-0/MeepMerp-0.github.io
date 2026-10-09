@@ -117,14 +117,29 @@ Copy `.env.example` into a local `.env` only if you need to test sending message
 
 ## CI, visual previews and deployment
 
-The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and `scripts/verify-scroll-preview.mjs` using built-in Node.js WebSocket plus the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**. The browser check:
-- scrolls to Home, Work, About, Process, and Contact at 1440px and 390px widths;
-- checks that target sections are within the viewport without horizontal overflow;
-- loads a fresh `/#about` URL to verify navigation after React mounts;
-- checks that reduced-motion mode omits the animated global reading indicator;
-- saves screenshots for human inspection as a short-lived workflow artifact.
+The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and `scripts/verify-scroll-preview.mjs` using Node.js's built-in WebSocket and the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**.
 
-Screenshots are still frames, **not a measurement of motion smoothness**. Manually verify continuous scroll behavior, keyboard controls, both themes, 360px/768px layouts, live links, and actual contact delivery. Local smoke usage, with `npm run preview` already serving the built site, is:
+### Responsive verification matrix
+
+| Device category | Viewport dimensions tested |
+| --- | --- |
+| Large desktop | 1920 × 1080 |
+| Desktop | 1440 × 900 |
+| Compact laptop / tablet landscape | 1024 × 768 |
+| Medium tablet | 834 × 1112 |
+| Tablet portrait | 768 × 1024 |
+| Large mobile | 430 × 932 |
+| Mobile | 390 × 844 |
+| Small mobile | 360 × 800 |
+| Compact mobile | 320 × 700 |
+
+**At every listed width**, the Chrome smoke test loads the responsive layout and scrolls to **all five sections (Home, Work, About, Process, Contact)**. It checks the target's viewport position, document/body horizontal overflow, and the geometry of visible headings, layout containers, buttons, links, and form controls. It also verifies the correct desktop/mobile navigation breakpoint, the mobile menu's Escape-and-focus behavior, and theme toggling.
+
+Additional tests directly open all four section fragments at 1440px, 768px, and 390px to catch SPA deep-link regressions. Desktop and mobile reduced-motion runs verify the absence of the animated reading indicator. Screenshots of every section at representative sizes are attached to the workflow, while other widths still receive the full geometry/navigation checks.
+
+The script asks the OS for an available debugging port, launches an isolated Chrome profile and verifies **the spawned Chrome process's own DevTools WebSocket identity** before connecting. It must never attach to an unrelated debugging session.
+
+These automated checks **do not prove** smooth animation, screen-reader announcements, operating-system-specific rendering, or successful form delivery. Manually scroll on real devices, inspect both themes, try keyboard navigation, and test any live contact backend without sending unnecessary messages. To run the smoke locally while `npm run preview` is serving the built site:
 
 ```bash
 CHROME_BIN="$(command -v google-chrome || command -v chromium)" node scripts/verify-scroll-preview.mjs
