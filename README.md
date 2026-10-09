@@ -8,8 +8,8 @@ A personal portfolio for Jason Selerio, an **AI & Full-Stack Engineer** based in
 
 ## Selected experience
 
-- **INNERCIRCLE° — Lead AI & Full-Stack Engineer (freelance, May 2026–present).** Developing a real estate operations platform with Next.js, TypeScript, and Supabase across CRM, finance, reporting, and property analysis. Designing LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval; integrating AI services, external APIs, n8n, role-based access control, audit trails, and self-hosted deployment.
-- **FuturoHub — part-time web development (current; start date not specified).** Contributing to [FuturoHub](https://futurohub.ae/), [El Mejor](https://elmejor.futurohub.ae/), [Cup Section](https://cup-section.futurohub.ae/), and six additional website samples: [01](https://sample1.futurohub.ae/), [02](https://sample2.futurohub.ae/), [03](https://sample3.futurohub.ae/), [04](https://sample4.futurohub.ae/), [05](https://sample5.futurohub.ae/), [06](https://sample6.futurohub.ae/). The FuturoHub company site's repository documents an Astro/Tailwind/React implementation; the other websites may use different stacks.
+- **INNERCIRCLE° — Lead AI & Full-Stack Engineer (part-time, May 2026–present).** Developing a real estate operations platform with Next.js, TypeScript, and Supabase across CRM, finance, reporting, and property analysis. Designing LangGraph.js multi-agent workflows with scoped API access, checkpoints, and human approval; integrating AI services, external APIs, n8n, role-based access control, audit trails, and self-hosted deployment.
+- **FuturoHub — freelance web development (current; start date not specified).** Contributing to [FuturoHub](https://futurohub.ae/), [El Mejor](https://elmejor.futurohub.ae/), [Cup Section](https://cup-section.futurohub.ae/), and six additional website samples: [01](https://sample1.futurohub.ae/), [02](https://sample2.futurohub.ae/), [03](https://sample3.futurohub.ae/), [04](https://sample4.futurohub.ae/), [05](https://sample5.futurohub.ae/), [06](https://sample6.futurohub.ae/). The FuturoHub company site's repository documents an Astro/Tailwind/React implementation; the other websites may use different stacks.
 - **Freelance — Full-Stack Developer (February 2026–present).** Client websites, business systems, web/mobile development, integrations, and ongoing maintenance.
 - **CliqueHA Information Services OPC — Software Developer Intern (February–May 2026).** Laravel/Livewire work, production troubleshooting, and technical documentation.
 - **JsquarEd Co. Ltd. — Desktop Application Developer (July 2024–August 2025).** Inventory software and business integrations with C# and SQL Server.
@@ -23,6 +23,7 @@ These roles and descriptions reflect the experience details shared for this port
 - **About:** real roles, dates where provided, contributions, and a concise technical toolkit.
 - **Process:** a five-stage AUDIT → DESIGN → BUILD → TEST → SHIP panel inspired by an editor-style reference. The role instructions in `.github/agents/` are documentation, **not** autonomous services running on this site.
 - **Contact:** email and GitHub links plus a form using the existing configurable backend.
+- **Motion:** quiet, transform-only Motion-powered entrance and scroll reveals for typography and project rows, gentle transitions when changing process stages, and restrained CSS hover affordances. Important text and links remain fully opaque from the first frame, including headless browser captures. There are no looping decorative animations or scroll-hijacking effects; reduced-motion preferences are respected.
 - **Accessibility:** semantic content, natural scrolling, skip link, keyboard-accessible controls, responsive layout, high-contrast light/dark themes, and reduced-motion support.
 
 The design intentionally avoids stock screenshots, floating blobs, template-style animations, unverifiable performance claims, and elaborate decorations. More detail: [DESIGN_NOTES.md](DESIGN_NOTES.md).
@@ -32,13 +33,14 @@ The design intentionally avoids stock screenshots, floating blobs, template-styl
 | Area | Portfolio implementation |
 | --- | --- |
 | UI | React 19, plain JSX, Lucide icons |
+| Motion | Existing `motion/react` dependency for limited entrance, viewport, and stage transitions; CSS for hover affordances |
 | Build | Vite 8, Node.js 22+ |
 | Styling | Plain CSS custom properties and responsive rules |
 | Content | `src/data/portfolioData.js` |
 | Contact | `useContactForm` + configurable form service |
 | Automation | GitHub Actions for PR checks, screenshot smoke tests, and Pages deployment |
 
-The lockfile also contains dependencies that remain from earlier iterations of the website. Their presence does not mean they are all used by the redesigned UI.
+The lockfile also contains dependencies that remain from earlier iterations of the website. Their presence does not mean they are all used by the redesigned UI. Motion was already installed and does not add a new dependency.
 
 ## Project layout
 
@@ -52,7 +54,7 @@ src/
 ├── hooks/useContactForm.js         # Form state, validation and rate limiting
 ├── services/formService.js         # Backend adapter
 ├── config/formBackend.js           # Form backend selection
-└── styles/global.css               # Active editorial design and responsive styling
+└── styles/global.css               # Active editorial design, motion affordances and responsive styling
 api/contact.js                      # Serverless endpoint for compatible hosting (not Pages)
 .github/
 ├── agents/                          # Optional AI role instructions
@@ -106,7 +108,7 @@ The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `ma
 `src/data/portfolioData.js` is the source of truth for **on-page recruiter content**: `PERSONAL`, `EXPERIENCE`, `ABOUT_STORY`, projects, and skills. The active `src/App.jsx` renders those values instead of duplicating professional facts. However, `index.html` has separately maintained **static SEO, Open Graph, Twitter, and structured-data metadata**; changes to public positioning must be reflected there too.
 
 1. Match the current CV and update the relevant data fields (`PERSONAL`, `EXPERIENCE`, `ABOUT_STORY`, project links, and results), verifying dates, responsibilities, and outcomes.
-2. Keep INNERCIRCLE° labeled **freelance** and FuturoHub labeled **part-time**, unless the engagement changes. Do not invent FuturoHub's start date.
+2. Keep INNERCIRCLE° labeled **part-time** and FuturoHub labeled **freelance**, unless the engagement changes. Do not invent FuturoHub's start date.
 3. Keep private/internal projects private; do not fabricate demos, analytics, screenshots or metrics.
 4. For grouped website samples, maintain `links` and `samples` on the FuturoHub project. Attribute Astro/Tailwind/React only to the documented company site, not automatically to every sample.
 5. Update `index.html` separately for the page title, description, Open Graph, Twitter, and structured-data metadata whenever recruiter-facing facts or positioning change. Review both themes and mobile before shipping.

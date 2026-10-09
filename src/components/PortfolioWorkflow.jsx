@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { ArrowUpRight, Check, ChevronRight, GitBranch } from 'lucide-react';
 import './PortfolioWorkflow.css';
 
@@ -11,6 +12,7 @@ const STAGES = [
 ];
 
 export default function PortfolioWorkflow() {
+  const reduceMotion = useReducedMotion();
   const [selected, setSelected] = useState(0);
   const active = STAGES[selected];
   return (
@@ -36,13 +38,19 @@ export default function PortfolioWorkflow() {
           ))}
         </div>
         <div className="portfolio-workflow__detail" aria-live="polite" aria-atomic="true">
-          <div className="portfolio-workflow__primary">
+          <motion.div
+            className="portfolio-workflow__primary"
+            key={active.id}
+            initial={reduceMotion ? false : { y: 6 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
             <span className="portfolio-workflow__tag">{'<'}{active.id}{'>'}</span>
             <h4>{active.heading}</h4>
             <p>{active.description}</p>
             <ul>{active.checks.map(check => <li key={check}><ChevronRight size={14} aria-hidden="true" />{check}</li>)}</ul>
             <span className="portfolio-workflow__tag">{'</'}{active.id}{'>'}</span>
-          </div>
+          </motion.div>
           <div className="portfolio-workflow__sidebar">
             <div><span className="portfolio-workflow__meta">ROLE</span><strong>{active.role}</strong></div>
             <div><span className="portfolio-workflow__meta">DELIVERABLE</span><strong>{active.output}</strong></div>

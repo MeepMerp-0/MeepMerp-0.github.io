@@ -15,13 +15,14 @@ This portfolio uses an editorial "field notes" visual language: warm paper/ink p
 - **Process:** keep the interactive 5-step panel inspired by the supplied screenshot, but use it to demonstrate a workflow rather than pretend to have live autonomous agents.
 - **Theme:** dark by default when the operating system prefers dark; user choice persists when storage is available. Light variant uses #1a6541 on #eeece3 (>5:1 contrast), replacing the previous lower-contrast accent.
 - **Contact:** reuse `useContactForm` and `submitContactForm` (configured backend), preserve honeypot and rate limiting. Leave send-success confirmation visible until explicitly dismissed. Never invent a working backend when secrets are absent.
-- **Motion:** CSS only for focus/hover and anchor scrolling; respect prefers-reduced-motion. No forced animations or custom scroll hijacking.
-- **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking. The title is AI & Full-Stack Engineer; actual CV responsibilities have priority over generic AI claims. INNERCIRCLE° is freelance, FuturoHub part-time (no guessed start date), and the existing résumé PDF remains the only public CV link.
+- **Motion:** use the existing `motion/react` dependency only for brief transform-only first-load hero text, one-time section-heading scroll reveals, small translate-only project-row entrances (never hide focusable project links), and fast process-stage content changes. All meaningful content must remain opaque from the first frame; Chrome screenshot smoke tests may capture before requestAnimationFrame finishes. CSS handles link/nav/button hover feedback. Honor `prefers-reduced-motion` through `useReducedMotion()` and global CSS; no decorative loops, scroll hijacking or layout-jarring effects.
+- **Maintainability:** React 19, Vite 8, Lucide icons already installed. No new packages or external fonts, images or tracking. The title is AI & Full-Stack Engineer; actual CV responsibilities have priority over generic AI claims. INNERCIRCLE° is part-time, FuturoHub freelance (no guessed start date), and the existing résumé PDF remains the only public CV link.
 
 ## Acceptance checks before merge
 - [ ] On desktop and 360px/768px mobile, project rows and nav fit without horizontal scrolling.
 - [ ] Every anchor points to a visible section; Escape/menu closing, Tab order and focus indicators are usable.
 - [ ] Text and accent remain legible in dark and light themes.
+- [ ] Hero and section reveals run once without obstructing links, process transitions stay readable, reduced-motion users see static content with no entrance transforms, and CI screenshots show readable text even when animations have not advanced.
 - [ ] Form validation, rate-limits, failure fallback and successful submissions behave with the *actual* deployment backend.
 - [ ] All public website links, including FuturoHub, El Mejor, Cup Section and samples 01–06, open as expected; private work is labeled; no extra portfolio claims.
 - [ ] Current CV positioning, part-time versus freelance arrangements, and the unchanged PDF destination are verified.
