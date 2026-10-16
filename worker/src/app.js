@@ -420,8 +420,8 @@ async function chat(req) {
   const backupOr = async (refusal, closed = false) => {
     if (!(config.backup.on || useGemma) || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
     // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first.
-    if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve(limiter.end(key)).catch(() => {});
-    const step = (req) => Promise.resolve(limiter.backup({ ...key, cfg: config.limits, ...req })).catch(() => null);
+    if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve().then(() => limiter.end(key)).catch(() => {});
+    const step = (req) => Promise.resolve().then(() => limiter.backup({ ...key, cfg: config.limits, ...req })).catch(() => null);
     if (config.backup.on && (await step({ provider: 'workers_ai' }))?.type === 'go') {
       const w = await callWorkersAI(config, deps, messages);
       if (w.ok) return reply('workers_ai', w.content);
@@ -429,11 +429,21 @@ async function chat(req) {
     }
     if (!useGemma || deps.signal?.aborted) return out(refusal);
     if ((await step({ provider: 'gemma', gemini: true }))?.type !== 'go') return out(refusal);
-    const g = await callGemini(config, deps, filterHistory(ctx.history), message, config.gemini.gemmaModel);
-    const ended = Promise.resolve(limiter.end({ ...key, googleStatus: g.ok || g.blocked ? 200 : g.status, retryAfter: g.retryAfter }))
-      .catch(() => {});
-    waitUntil(ended);
-    await ended;
+    const endOnce = (status) => Promise.resolve().then(() => limiter.end({ ...key, ...status }));
+    const endTurn = (status) => endOnce(status).catch(() => endOnce(status)).catch(() => {});
+    // Disconnected while the step was reserved: close it and send nothing to Google (§1.6).
+    if (deps.signal?.aborted) {
+      waitUntil(endTurn({}));
+      return new Response(null, { status: 499 });
+    }
+    // One waitUntil unit, like the Gemini path, so the 429 pause or key latch survives a disconnect.
+    const work = (async () => {
+      const g = await callGemini(config, deps, filterHistory(ctx.history), message, config.gemini.gemmaModel);
+      await endTurn({ googleStatus: g.ok || g.blocked ? 200 : g.status, retryAfter: g.retryAfter });
+      return g;
+    })();
+    waitUntil(work.catch(() => {}));
+    const g = await work;
     if (g.ok) return reply('gemma', g.content);
     if (g.blocked) return out({ type: 'provider_unavailable', reason: 'content_blocked' });
     console.log(JSON.stringify({ gemma_failed: g.status }));
@@ -453,10 +463,13 @@ async function chat(req) {
   }
   // There is never a Groq → Gemini hop (§1.2). A Groq 429 pauses Groq in end(), which also closes the turn
   // before the Workers AI backup may take it.
-  const ended = Promise.resolve(limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter })).catch(() => {});
+  let closed = false;
+  const ended = Promise.resolve().then(() => limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter }))
+    .then(() => { closed = true; }, () => {});
   waitUntil(ended);
   await ended;
-  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' }, true);
+  // A failed close is retried inside backupOr, so the backups are not refused for an open turn.
+  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' }, closed);
 }
 
 // --- session ---

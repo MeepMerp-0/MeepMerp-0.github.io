@@ -680,3 +680,31 @@ test('Gemma is skipped when Workers AI answers, and never used without Gemini co
   assert.equal((await noAck.chat()).json.reason, 'groq_failed');
   noGoogle(noAck, 'Gemma called without Gemini consent');
 });
+
+test('a disconnect while the Gemma step is reserved sends nothing to Google and closes the turn', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV, GEMINI_DAILY_CAP: '1' };
+  const app = withAi(makeApp({ env }), () => { throw new Error('4006'); });
+  await app.chat();
+  app.tick();
+  app.reset();
+  app.groq = status(500);
+  const ctrl = new AbortController();
+  const backup = app.limiter.backup;
+  app.limiter.backup = (r) => { const out = backup(r); if (r.provider === 'gemma') ctrl.abort(); return out; };
+  const turnId = UUID();
+  const r = await app.chat({ turnId }, { signal: ctrl.signal });
+  assert.equal(r.status, 499);
+  noGoogle(app, 'Google called after the disconnect');
+  await Promise.all(app.waited);
+  const turnKey = [...app.store.list()].map(([k]) => k).find((k) => k.startsWith('t:') && k.endsWith(`:${turnId}`));
+  assert.equal(app.store.get(turnKey).state, 'DONE');
+});
+
+test('a failed close after a Groq failure is retried, so Workers AI still answers', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  const end = app.limiter.end;
+  let failed = false;
+  app.limiter.end = (r) => { if (!failed) { failed = true; throw new Error('rpc'); } return end(r); };
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+});

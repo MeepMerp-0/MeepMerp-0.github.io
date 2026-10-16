@@ -5,6 +5,8 @@ const API = (import.meta.env.VITE_AKI_API_URL || '').replace(/\/+$/, '');
 const SITEKEY = import.meta.env.VITE_AKI_TURNSTILE_SITEKEY || '';
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 const TIMEOUT_MS = 45000;
+// A chat turn may run Gemini, Groq, Workers AI and Gemma in turn (12 + 10 + 10 + 12 s at most).
+const CHAT_TIMEOUT_MS = 60000;
 const REGION_TIMEOUT_MS = 5000;
 const DAY = 24 * 3600 * 1000;
 const KEEP_MS = 7 * DAY;
@@ -349,7 +351,7 @@ export async function sendTurn({ message, mid, stored, container, signal }) {
     if (!session.ok) return { kind: session.kind, rule: getRule() };
     applyRule();
     const ctx = { sessionToken: session.token, turnId: newId(), mid, prevSig: win.prevSig, message, history: win.history };
-    const result = interpret(await post('/v1/chat', ctx, signal));
+    const result = interpret(await post('/v1/chat', ctx, signal, CHAT_TIMEOUT_MS));
     if (result.kind === 'session_required') {
       // The notice changed since the visitor confirmed: show the welcome again.
       if (result.reason === 'consent') { clearGate(); return { kind: 'consent', rule: getRule() }; }
