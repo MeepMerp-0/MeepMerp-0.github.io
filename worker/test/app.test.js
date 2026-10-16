@@ -611,7 +611,7 @@ test('bad numeric vars give misconfigured on session, chat and region', async ()
   for (const k of ['SITE_DAILY_CAP', 'GROQ_SITE_PER_MIN', 'GROQ_MAX_COMPLETION_TOKENS', 'MAX_QUEUE_WAIT', 'MAX_QUEUE_DEPTH']) {
     for (const v of [undefined, 'NaN', '2.5', '', ' 2', '-1']) await misconfigured({ [k]: v }, `${k}=${JSON.stringify(v)}`);
   }
-  await misconfigured({ SITE_DAILY_CAP: '1001' }, 'cap 1001');
+  await misconfigured({ SITE_DAILY_CAP: '20001' }, 'cap 20001');
   await misconfigured({ GROQ_DAILY_CAP: 'x' }, 'groq cap x');
   await misconfigured({ MAX_QUEUE_WAIT: '31' }, 'wait 31');
   await misconfigured({ MAX_QUEUE_DEPTH: '0' }, 'depth 0');
@@ -621,7 +621,7 @@ test('bad numeric vars give misconfigured on session, chat and region', async ()
 });
 
 test('boundary values are valid; SITE_DAILY_CAP=0 gives disabled with no fetch', async () => {
-  for (const patch of [{ SITE_DAILY_CAP: '1000' }, { MAX_QUEUE_WAIT: '0' }, { MAX_QUEUE_WAIT: '30' }, { MAX_QUEUE_DEPTH: '10' }]) {
+  for (const patch of [{ SITE_DAILY_CAP: '20000' }, { MAX_QUEUE_WAIT: '0' }, { MAX_QUEUE_WAIT: '30' }, { MAX_QUEUE_DEPTH: '10' }]) {
     assert.equal(readConfig({ ...BASE_ENV, ...patch }).ok, true, JSON.stringify(patch));
   }
   const app = makeApp();

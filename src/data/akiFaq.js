@@ -25,7 +25,7 @@ export const AKI_FAQ = [
 ];
 
 // Sent to /v1/session and compared with the legal page and the Worker; never copied from a Worker response.
-export const AKI_CONSENT_VERSION = '2026-10-16.4';
+export const AKI_CONSENT_VERSION = '2026-10-16.5';
 
 export const AKI_MESSAGES = {
   greetingHead: 'Hey there!',

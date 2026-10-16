@@ -75,6 +75,7 @@ function makeApp(opts = {}) {
       country: 'country' in o ? o.country : country,
       ip: 'ip' in o ? o.ip : ip,
       now,
+      ai: app.ai,
     });
     const text = await res.text();
     return { status: res.status, json: text ? JSON.parse(text) : null };
@@ -563,4 +564,93 @@ test('an expired history pair is dropped before the Google fetch', async () => {
 test('the Gemini pack matches no CONTACT_PATTERNS entry (V10, R4-14)', () => {
   assert.ok(!matchesContactPattern(GEMINI_PACK));
   assert.ok(!matchesContactPattern(GEMINI_SYSTEM_PROMPT));
+});
+
+// --- Gemma tier and Workers AI backup ---
+
+const GEMMA_ENV = { GEMMA_MODEL: 'gemma-4-31b-it', GEMMA_DAILY_CAP: '5', SITE_DAILY_CAP: '100' };
+const AI_ENV = { WORKERS_AI_MODEL: '@cf/test/llama', WORKERS_AI_DAILY_CAP: '2' };
+function withAi(app, reply = () => ({ response: 'From Workers AI' })) {
+  app.aiCalls = [];
+  app.ai = { run: async (model, input) => { app.aiCalls.push({ model, input }); return reply(); } };
+  return app;
+}
+
+test('once Gemini is capped, Gemma answers through the same API with Aki instructions in the first turn', async () => {
+  const app = makeApp({ env: { ...GEMMA_ENV, GEMINI_DAILY_CAP: '1' } });
+  assert.equal((await app.chat()).json.provider, 'gemini');
+  app.tick();
+  app.google = () => gem200('From Gemma');
+  const r = await app.chat({ message: 'who is Jason?' });
+  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'gemma', 'From Gemma']);
+  const call = app.googleCalls().at(-1);
+  assert.ok(call.url.endsWith('/gemma-4-31b-it:generateContent'), call.url);
+  const body = app.googleBody();
+  assert.equal(body.systemInstruction, undefined);
+  assert.ok(body.contents[0].parts[0].text.startsWith(GEMINI_SYSTEM_PROMPT));
+  assert.ok(body.contents.at(-1).parts[0].text.endsWith('who is Jason?'));
+  assert.ok(await signatureOk(SECRET, r.json.sig, app.mid, '', r.json.ts, 'who is Jason?', 'From Gemma'));
+});
+
+test('a Gemma 429 pauses only Gemma; a Gemini 429 sends the next turn to Gemma; GEMMA unset keeps it off', async () => {
+  const app = makeApp({ env: GEMMA_ENV });
+  app.google = status(429, { 'retry-after': '60' });
+  assert.equal((await app.chat()).json.provider, 'groq');
+  app.tick();
+  app.google = () => gem200('From Gemma');
+  assert.equal((await app.chat()).json.provider, 'gemma');
+  app.tick();
+  app.google = status(429, { 'retry-after': '60' });
+  assert.equal((await app.chat()).json.provider, 'groq');
+  const g = app.store.get('g');
+  assert.ok(g.gemmaBlockedUntil > app.clock.t && g.geminiBlockedUntil > app.clock.t);
+  app.tick(61_000);
+  app.google = () => gem200();
+  assert.equal((await app.chat()).json.provider, 'gemini');
+
+  const off = makeApp({ env: { GEMINI_DAILY_CAP: '1' } });
+  await off.chat();
+  off.tick();
+  off.reset();
+  assert.equal((await off.chat()).json.provider, 'groq');
+  noGoogle(off, 'no Gemma call without GEMMA_MODEL');
+});
+
+test('Workers AI answers when Groq fails or has no capacity, once per turn and within its daily cap', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: { ...AI_ENV, GROQ_SITE_PER_MIN: '1' } }));
+  app.groq = status(500);
+  const r = await app.chat({ message: 'projects?' });
+  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'workers_ai', 'From Workers AI']);
+  assert.equal(app.aiCalls[0].model, '@cf/test/llama');
+  assert.equal(app.aiCalls[0].input.messages[0].role, 'system');
+  assert.equal(app.aiCalls[0].input.messages.at(-1).content, 'projects?');
+  assert.ok(await signatureOk(SECRET, r.json.sig, app.mid, '', r.json.ts, 'projects?', 'From Workers AI'));
+  // The Groq slot from the failed turn fills the 1-a-minute site rate: the next turn has no Groq capacity.
+  app.tick();
+  app.groq = () => ok200();
+  const second = await app.chat();
+  assert.equal(second.json.provider, 'workers_ai');
+  // Cap of 2 reached: the refusal goes back to the visitor unchanged.
+  app.tick();
+  const third = await app.chat();
+  assert.equal(third.json.type, 'rate_limited');
+  assert.equal(third.json.scope, 'site_minute');
+  assert.equal(app.aiCalls.length, 2);
+});
+
+test('Workers AI is not used for visitor limits, without the binding, or when it fails', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  await app.chat();
+  const cool = await app.chat();
+  assert.equal(cool.json.scope, 'cooldown');
+  assert.equal(app.aiCalls.length, 0);
+
+  const bare = makeApp({ geminiAck: false, env: AI_ENV });
+  bare.groq = status(500);
+  assert.equal((await bare.chat()).json.reason, 'groq_failed');
+
+  const broken = withAi(makeApp({ geminiAck: false, env: AI_ENV }), () => { throw new Error('4006'); });
+  broken.groq = status(500);
+  assert.equal((await broken.chat()).json.reason, 'groq_failed');
+  assert.equal(broken.aiCalls.length, 1);
 });

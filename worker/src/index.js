@@ -20,6 +20,7 @@ export class Limiter extends DurableObject {
   cancel(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'cancel', req); }
   end(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'end', req); }
   fallback(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'fallback', req); }
+  backup(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'backup', req); }
   consent(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'consent', req); }
 
   // Hourly cleanup (R5-17). Rescheduled first so a failed sweep still leaves the next alarm set.
@@ -42,6 +43,7 @@ export default {
       waitUntil: (promise) => ctx.waitUntil(promise),
       country: request.cf?.country,
       ip: request.headers.get('cf-connecting-ip'),
+      ai: env.AI,
       now: () => Date.now(),
     });
   },
