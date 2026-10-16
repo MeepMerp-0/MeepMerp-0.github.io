@@ -1103,3 +1103,15 @@ test('the Pacific rollover resets Gemma; the Workers AI count resets at 00:00 UT
   u.at(2 * 60 * S);
   assert.equal(u.lim.backup(u.req('B')).type, 'go');
 });
+
+test('the Gemma step holds the visitor lease until end()', () => {
+  const e = setup({ groqSitePerMin: 10, gemmaDailyCap: 5 });
+  const a = gemmaReq(e, 'A');
+  e.lim.backup(a);
+  assert.equal(e.v('A').lease.turnId, `${a.sid}:${a.turnId}`);
+  e.at(6 * S);
+  assert.equal(e.lim.reserve(e.req('A')).scope, 'concurrent');
+  e.lim.end({ ...a, googleStatus: 200 });
+  assert.equal(e.v('A').lease, null);
+  assert.equal(e.lim.reserve(e.req('A')).type, 'go');
+});

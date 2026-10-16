@@ -411,7 +411,9 @@ export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', 
     v.lastAt = now;
     releaseLease(v, key);
     if (gemma) {
-      // In flight until end() reports Google's status (a 429 pauses Gemma, a 401/403 latches the key).
+      // In flight until end() reports Google's status (a 429 pauses Gemma, a 401/403 latches the key); the visitor
+      // lease holds their next turn until then, as on the primary Gemini and Groq calls.
+      v.lease = { turnId: key, exp: now + GEMINI_LEASE_MS };
       s.t = { state: 'GEMINI_IN_FLIGHT', model: 'gemma', exp: now + GEMINI_LEASE_MS, day: pacificDay(now) };
       return { ...go(0, 'gemini'), model: 'gemma' };
     }
