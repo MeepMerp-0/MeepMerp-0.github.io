@@ -86,6 +86,21 @@ test('pause path (V20): groq_busy with no offer, stamps the cooldown, counts no 
   assert.deepEqual(e.lim.reserve(e.req('A')), rl('cooldown', 2));
 });
 
+test('a groq_busy refusal does not carry turn times older than a day into the refreshed record', () => {
+  const e = setup();
+  const a0 = e.req('A');
+  e.lim.reserve(a0);
+  e.lim.end({ ...a0, groqStatus: 200 });
+  assert.equal(e.v('A').w.length, 1);
+  e.at(DAY + H);
+  const x = e.req('X');
+  e.lim.reserve(x);
+  e.lim.end({ ...x, groqStatus: 429, retryAfter: '600' });
+  e.at(DAY + H + S);
+  assert.equal(e.lim.reserve(e.req('A')).reason, 'groq_busy');
+  assert.deepEqual(e.v('A').w, []);
+});
+
 test('visitor minute cap, and the site minute cap from a third ipKey (R4-33)', () => {
   const e = setup();
   for (const ms of [0, 4 * S]) {

@@ -642,7 +642,7 @@ async function runAkiSmoke() {
       await akiPage({ memory: 'opt_in' }, { local: { 'aki:v1:history': seeded } });
       await openChat();
       const before = await snap();
-      check(before.local['aki:v1:history'] === seeded, '8: seeded history was modified before the rule was known');
+      check(!before.local['aki:v1:history'] && before.session['aki:v1:history'] === seeded, '8: an opt_in region should move seeded history to the tab at once');
       check((await texts('.aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing)) p')).includes('seed answer 1'), '8: seeded history not shown');
       await sendAndWait('remember me');
       s = await snap();
@@ -1090,11 +1090,23 @@ async function runAkiSmoke() {
       await sendAndWait('hello');
       check(await evaluate('localStorage.getItem("aki:v1:history") !== null'), 'default_on reply not in localStorage');
       stub.memory = 'opt_in';
-      await navigate(akiUrl + '?aki=moved' + akiCase);
+      await click('[aria-label="Close Aki"]');
       await openPanel();
-      await regionSettled();
-      await until('localStorage.getItem("aki:v1:history") === null && sessionStorage.getItem("aki:v1:history") !== null', 'history moved to the tab');
+      await until('localStorage.getItem("aki:v1:history") === null && sessionStorage.getItem("aki:v1:history") !== null', 'reopen did not recheck the region');
       check(JSON.parse(await evaluate('sessionStorage.getItem("aki:v1:session")')).memory === 'opt_in', 'session rule not tightened');
+
+      // A new tab in a stricter region moves remembered history before any gate exists.
+      const kept = await evaluate('sessionStorage.getItem("aki:v1:history")');
+      await akiPage({ memory: 'opt_in' }, { local: { 'aki:v1:history': kept } });
+      await openPanel();
+      await until('localStorage.getItem("aki:v1:history") === null && sessionStorage.getItem("aki:v1:history") !== null', 'history not moved before the gate');
+
+      // Storage that refuses writes: the gate lives in memory and chat still works.
+      await akiPage();
+      await evaluate('Storage.prototype.setItem = function () { throw new Error("blocked"); }');
+      await openChat();
+      await sendAndWait('hello');
+      check((await texts('.aki-msg-assistant p')).length >= 2, 'no reply with storage blocked');
 
       await akiPage();
       await openChat();

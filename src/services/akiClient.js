@@ -20,13 +20,24 @@ export const newId = () => crypto.randomUUID();
 export const codePoints = (s) => [...s].length;
 const clip = (s, n) => [...s].slice(0, n).join('');
 
-// Storage: every access is guarded so the widget keeps working in memory.
+// Storage: every access is guarded; a write the browser refuses is kept in memory for this page instead.
 const area = (kind) => {
   try { return kind === 'local' ? window.localStorage : window.sessionStorage; } catch { return null; }
 };
-const read = (kind, key) => { try { return area(kind)?.getItem(key) ?? null; } catch { return null; } };
-const write = (kind, key, value) => { try { area(kind)?.setItem(key, value); } catch { /* memory only */ } };
-const drop = (kind, key) => { try { area(kind)?.removeItem(key); } catch { /* memory only */ } };
+const mem = { local: new Map(), session: new Map() };
+const read = (kind, key) => {
+  if (mem[kind].has(key)) return mem[kind].get(key);
+  try { return area(kind)?.getItem(key) ?? null; } catch { return null; }
+};
+const write = (kind, key, value) => {
+  try {
+    const a = area(kind);
+    if (!a) throw new Error('no storage');
+    a.setItem(key, value);
+    mem[kind].delete(key);
+  } catch { mem[kind].set(key, value); }
+};
+const drop = (kind, key) => { mem[kind].delete(key); try { area(kind)?.removeItem(key); } catch { /* memory only */ } };
 
 function parseHistory(raw) {
   try {
@@ -63,9 +74,13 @@ export function readGate() {
   drop('session', KEY.gate);
   return null;
 }
-export const writeGate = ({ gemini, memory }) => write('session', KEY.gate, JSON.stringify({
-  consentVersion: AKI_CONSENT_VERSION, gemini, memory: memory ? 'on' : 'off', confirmedAt: Date.now(),
-}));
+export const writeGate = ({ gemini, memory }) => {
+  write('session', KEY.gate, JSON.stringify({
+    consentVersion: AKI_CONSENT_VERSION, gemini, memory: memory ? 'on' : 'off', confirmedAt: Date.now(),
+  }));
+  // The rule the visitor just accepted applies now, not at the first send.
+  applyRule();
+};
 export const clearGate = () => { drop('session', KEY.gate); drop('session', KEY.session); };
 
 // Session rule when a session exists, else what the welcome screen showed; null until the gate is passed.
@@ -93,12 +108,12 @@ function tightenRule() {
   } catch { /* no session */ }
   const g = readGate();
   if (g?.memory === 'on') write('session', KEY.gate, JSON.stringify({ ...g, memory: 'off' }));
-  applyRule();
+  applyRule('opt_in');
 }
 
 // opt_in: history written under an earlier default_on visit moves to sessionStorage.
-export function applyRule() {
-  if (getRule() !== 'opt_in') return;
+export function applyRule(rule = getRule()) {
+  if (rule !== 'opt_in') return;
   const old = read('local', KEY.history);
   if (old === null) return;
   if (read('session', KEY.history) === null) write('session', KEY.history, old);
@@ -196,7 +211,15 @@ function loadTurnstile() {
 // Without a sitekey the client sends an empty token; the real Worker rejects it.
 async function turnstileToken(container, signal) {
   if (!SITEKEY) return '';
-  const ts = await loadTurnstile();
+  // The script load counts against the same timeout and Cancel as the widget.
+  const ts = await new Promise((resolve, reject) => {
+    const stop = (e) => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); reject(e); };
+    const onAbort = () => stop(new Error('aborted'));
+    const timer = setTimeout(() => { turnstileLoad = null; stop(new Error('turnstile')); }, TIMEOUT_MS);
+    if (signal?.aborted) return onAbort();
+    signal?.addEventListener('abort', onAbort);
+    loadTurnstile().then((v) => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); resolve(v); }, stop);
+  });
   return new Promise((resolve, reject) => {
     let id;
     const finish = (fn, v) => {
@@ -248,12 +271,12 @@ async function post(path, body, signal, ms = TIMEOUT_MS) {
 }
 
 const REGION_FAILSAFE = { memory: 'opt_in', gemini: 'ineligible', consentVersion: null };
+// Shared only while in flight: each panel open asks again, so a move to a stricter region is seen.
 let regionLoad = null;
 
-// Memoised per page; a failure is not remembered, so the next panel open retries.
 export function fetchRegion() {
   regionLoad ??= post('/v1/region', {}, undefined, REGION_TIMEOUT_MS).then(({ status, body }) => {
-    if (status !== 200 || body?.type !== 'region') { regionLoad = null; return REGION_FAILSAFE; }
+    if (status !== 200 || body?.type !== 'region') return REGION_FAILSAFE;
     const consentVersion = typeof body.consentVersion === 'string' ? body.consentVersion : null;
     const gate = readGate();
     if (consentVersion && gate && gate.consentVersion !== consentVersion) clearGate();
@@ -263,7 +286,7 @@ export function fetchRegion() {
       gemini: body.gemini === 'eligible' ? 'eligible' : 'ineligible',
       consentVersion,
     };
-  });
+  }).finally(() => { regionLoad = null; });
   return regionLoad;
 }
 

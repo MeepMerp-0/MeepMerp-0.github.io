@@ -208,6 +208,8 @@ function step(slice, now, fn) {
   for (const k of ['g', 'v', 't']) {
     if (s[k] && JSON.stringify(s[k]) !== JSON.stringify(before[k])) out[k] = k === 'g' ? s[k] : { ...s[k], at: now };
   }
+  // A rewrite refreshes the cleanup age, so it must not carry turn times older than the rolling day.
+  if (out.v) out.v.w = out.v.w.filter((x) => x > now - DAY);
   if (s.c) out.c = s.c;
   return out;
 }
