@@ -611,7 +611,8 @@ test('bad numeric vars give misconfigured on session, chat and region', async ()
   for (const k of ['SITE_DAILY_CAP', 'GROQ_SITE_PER_MIN', 'GROQ_MAX_COMPLETION_TOKENS', 'MAX_QUEUE_WAIT', 'MAX_QUEUE_DEPTH']) {
     for (const v of [undefined, 'NaN', '2.5', '', ' 2', '-1']) await misconfigured({ [k]: v }, `${k}=${JSON.stringify(v)}`);
   }
-  await misconfigured({ SITE_DAILY_CAP: '101' }, 'cap 101');
+  await misconfigured({ SITE_DAILY_CAP: '1001' }, 'cap 1001');
+  await misconfigured({ GROQ_DAILY_CAP: 'x' }, 'groq cap x');
   await misconfigured({ MAX_QUEUE_WAIT: '31' }, 'wait 31');
   await misconfigured({ MAX_QUEUE_DEPTH: '0' }, 'depth 0');
   await misconfigured({ MAX_QUEUE_DEPTH: '11' }, 'depth 11');
@@ -620,7 +621,7 @@ test('bad numeric vars give misconfigured on session, chat and region', async ()
 });
 
 test('boundary values are valid; SITE_DAILY_CAP=0 gives disabled with no fetch', async () => {
-  for (const patch of [{ SITE_DAILY_CAP: '100' }, { MAX_QUEUE_WAIT: '0' }, { MAX_QUEUE_WAIT: '30' }, { MAX_QUEUE_DEPTH: '10' }]) {
+  for (const patch of [{ SITE_DAILY_CAP: '1000' }, { MAX_QUEUE_WAIT: '0' }, { MAX_QUEUE_WAIT: '30' }, { MAX_QUEUE_DEPTH: '10' }]) {
     assert.equal(readConfig({ ...BASE_ENV, ...patch }).ok, true, JSON.stringify(patch));
   }
   const app = makeApp();
@@ -639,7 +640,7 @@ test('Gemini config is off unless GEMINI_ENABLED is exactly "true" and every Gem
   const gem = { GEMINI_ENABLED: 'true', GEMINI_DAILY_CAP: '20', GEMINI_ALLOWED_COUNTRIES: 'US,CA', GEMINI_MODEL: 'g', GEMINI_API_KEY: 'k' };
   const on = (patch = {}) => readConfig({ ...BASE_ENV, ...gem, ...patch }).gemini.on;
   assert.equal(on(), true);
-  for (const patch of [{ GEMINI_ENABLED: 'True' }, { GEMINI_ENABLED: undefined }, { GEMINI_DAILY_CAP: '0' }, { GEMINI_DAILY_CAP: '21' },
+  for (const patch of [{ GEMINI_ENABLED: 'True' }, { GEMINI_ENABLED: undefined }, { GEMINI_DAILY_CAP: '0' }, { GEMINI_DAILY_CAP: '501' },
     { GEMINI_DAILY_CAP: '2.5' }, { GEMINI_MODEL: '' }, { GEMINI_API_KEY: undefined },
     { GEMINI_ALLOWED_COUNTRIES: '' }, { GEMINI_ALLOWED_COUNTRIES: 'US,' }, { GEMINI_ALLOWED_COUNTRIES: 'us' },
     { GEMINI_ALLOWED_COUNTRIES: 'FR' }, { GEMINI_ALLOWED_COUNTRIES: 'GF' }, { GEMINI_ALLOWED_COUNTRIES: 'XX' }, { GEMINI_ALLOWED_COUNTRIES: 'CU' }]) {

@@ -110,7 +110,7 @@ function list(v) {
 }
 
 function readGemini(env) {
-  const dailyCap = intIn(env.GEMINI_DAILY_CAP, 1, 20);
+  const dailyCap = intIn(env.GEMINI_DAILY_CAP, 1, 500);
   const countries = list(env.GEMINI_ALLOWED_COUNTRIES);
   const countriesOk = countries && countries.every((c) => COUNTRY_RE.test(c) && c !== 'XX' && !EEA_UK_CH.includes(c) && !AI_BLOCKED.includes(c));
   const on = env.GEMINI_ENABLED === 'true' && dailyCap !== null && countriesOk
@@ -125,14 +125,16 @@ export function readConfig(env) {
   const origins = list(e.ALLOWED_ORIGINS);
   const hostnames = list(e.TURNSTILE_HOSTNAMES);
   const actions = list(e.TURNSTILE_ACTIONS);
-  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 100);
+  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 1000);
+  // Groq's own daily budget inside the site cap (its free tier has a daily token limit); unset means the site cap.
+  const groqDailyCap = e.GROQ_DAILY_CAP === undefined ? siteDailyCap : intIn(e.GROQ_DAILY_CAP, 0, 1000);
   const groqSitePerMin = intIn(e.GROQ_SITE_PER_MIN, 1, Number.MAX_SAFE_INTEGER);
   const maxTokens = intIn(e.GROQ_MAX_COMPLETION_TOKENS, 1, Number.MAX_SAFE_INTEGER);
   const maxQueueWait = intIn(e.MAX_QUEUE_WAIT, 0, 30);
   const maxQueueDepth = intIn(e.MAX_QUEUE_DEPTH, 1, 10);
   const ok = ['GROQ_API_KEY', 'SESSION_HMAC_SECRET', 'IP_HASH_SECRET', 'TURNSTILE_SECRET', 'GROQ_MODEL', 'CONSENT_VERSION'].every((k) => nonEmpty(e[k]))
     && origins && hostnames && actions
-    && [siteDailyCap, groqSitePerMin, maxTokens, maxQueueWait, maxQueueDepth].every((n) => n !== null);
+    && [siteDailyCap, groqDailyCap, groqSitePerMin, maxTokens, maxQueueWait, maxQueueDepth].every((n) => n !== null);
   if (!ok) return { ok: false };
   const gemini = readGemini(e);
   return {
@@ -151,7 +153,7 @@ export function readConfig(env) {
     actions,
     siteDailyCap,
     maxTokens,
-    limits: { siteDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap },
+    limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap },
     gemini,
   };
 }

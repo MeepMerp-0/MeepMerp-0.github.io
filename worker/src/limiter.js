@@ -20,7 +20,8 @@
  *   end       {ipKey, sid, turnId, googleStatus?, groqStatus?, retryAfter?}   retryAfter = seconds or raw header
  *   consent   {sid, consentVersion, gemini, country}
  *   cleanup   () → number of records deleted (hourly alarm, R5-17)
- * cfg = {siteDailyCap, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
+ * cfg = {siteDailyCap, groqDailyCap?, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
+ * groqDailyCap is Groq's own share of the day (missing = no extra limit).
  * The Gemini latch, pause and caps are checked here; a turn that may not use Gemini silently takes the Groq route.
  *
  * Results:
@@ -61,7 +62,8 @@ export const CONSENT_TTL_MS = DAY;
 export const RECORD_TTL_MS = 47 * HOUR;
 export const CLEANUP_INTERVAL_MS = HOUR;
 
-const VISITOR_LIMITS = [['hour', HOUR, 15], ['day', DAY, 30]];
+// Per visitor, whichever provider answers; the Groq site rate is limited separately (site_minute).
+const VISITOR_LIMITS = [['minute', MINUTE, 4], ['hour', HOUR, 15], ['day', DAY, 30]];
 
 const PT = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Los_Angeles', hourCycle: 'h23',
@@ -164,8 +166,8 @@ function leaseCheck(v, now) {
   return v.lease && v.lease.exp > now ? limited('concurrent', v.lease.exp - now) : null;
 }
 
-function windowsCheck(v, now, cfg) {
-  for (const [scope, span, max] of [['minute', MINUTE, Math.min(4, cfg.groqSitePerMin)], ...VISITOR_LIMITS]) {
+function windowsCheck(v, now) {
+  for (const [scope, span, max] of VISITOR_LIMITS) {
     const recent = v.w.filter((x) => x > now - span);
     if (!(recent.length < max)) return limited(scope, recent[recent.length - max] + span - now);
   }
@@ -224,7 +226,7 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
     if (t && !(t.state === 'DONE' && t.exp <= now)) {
       return t.state === 'IN_FLIGHT' && t.exp > now ? limited('concurrent', t.exp - now) : invalid('turn_reused');
     }
-    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v, now, cfg);
+    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v, now);
     if (refused) return refused;
     const today = pacificDay(now);
     const c = dayCounts(g, today);
@@ -245,6 +247,9 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
       return unavailable('groq_busy', { retryAfter: secs(g.groqBlockedUntil - now) });
     }
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return exhausted('site_daily', now);
+    // Only Groq's share is spent: a visitor who can use Gemini may get it on the next turn, so this is not
+    // "quota exhausted" for them (the client would switch to quick answers until the reset).
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return gemini === true ? unavailable('groq_daily') : exhausted('groq_daily', now);
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);
@@ -280,6 +285,7 @@ export function fallback(slice, now, cfg, { sid, turnId, googleStatus, retryAfte
     const today = pacificDay(now);
     const c = dayCounts(g, today);
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return finish(exhausted('site_daily', now));
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return finish(unavailable('groq_daily'));
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);

@@ -137,7 +137,7 @@ test('production vars are consistent, on or off (R5-8, R5-9)', async () => {
     for (const c of cfg.gemini.countries) {
       assert.ok(!EEA_UK_CH.includes(c) && c !== 'XX' && !AI_BLOCKED.includes(c), `${c} must not be allowed`);
     }
-    assert.ok(cfg.gemini.dailyCap >= 1 && cfg.gemini.dailyCap <= 20);
+    assert.ok(cfg.gemini.dailyCap >= 1 && cfg.gemini.dailyCap <= 500);
     const app = makeApp({ env, country: cfg.gemini.countries[0] });
     const r = await app.chat();
     assert.equal(r.json.provider, 'gemini');
@@ -337,7 +337,7 @@ test('off and kill switch: zero Google fetches and /v1/region reports ineligible
 
 test('Gemini on but one var invalid: Groq route, zero Google fetches; with Groq failing, groq_failed', async () => {
   const cases = [
-    ...[undefined, 'NaN', '2.5', '0', '21'].map((v) => ({ GEMINI_DAILY_CAP: v })),
+    ...[undefined, 'NaN', '2.5', '0', '501'].map((v) => ({ GEMINI_DAILY_CAP: v })),
     { GEMINI_MODEL: '' }, { GEMINI_API_KEY: undefined },
     ...['', 'US,', 'us', 'FR', 'GF', 'XX', 'CU'].map((v) => ({ GEMINI_ALLOWED_COUNTRIES: v })),
   ];
