@@ -65,16 +65,19 @@ function Markdown({ text }) {
 }
 
 // A reply about one part of the site always ends with a link there, even when the model forgot one.
+// Most specific first: "work process" is Process, "contact for work" is Contact.
 const TOPICS = [
   ['contact', 'Contact', /\b(contact|e-?mail|phone|call|reach|hire|whatsapp|get in touch)\b/i],
-  ['work', 'Work', /\b(projects?|built|demos?|apps?|portfolio)\b/i],
-  ['about', 'About', /\b(experience|background|skills?|stack|tech\w*|resume|cv|career|about)\b/i],
   ['process', 'Process', /\b(process|workflow|approach)\b/i],
+  ['about', 'About', /\b(experience|background|skills?|stack|tech\w*|resume|cv|career|about)\b/i],
+  ['work', 'Work', /\b(work|projects?|built|demos?|apps?|portfolio)\b/i],
 ];
 const sectionLinks = (question, reply) => {
-  if (SECTION_LINK.test(reply)) return undefined;
   const t = TOPICS.find(([, , re]) => re.test(question));
-  return t && [{ label: `Go to ${t[1]}`, href: `#${t[0]}` }];
+  if (!t) return undefined;
+  // Only a link to the asked-about section counts; a link elsewhere still gets this one.
+  const linked = [...reply.matchAll(new RegExp(SECTION_LINK.source, 'g'))].some((m) => m[1] === t[0]);
+  return linked ? undefined : [{ label: `Go to ${t[1]}`, href: `#${t[0]}` }];
 };
 
 function Message({ item, first }) {

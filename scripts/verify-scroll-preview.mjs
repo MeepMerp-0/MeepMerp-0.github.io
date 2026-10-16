@@ -1170,6 +1170,16 @@ async function runAkiSmoke() {
       check(JSON.stringify(r.chip) === JSON.stringify([['Go to Contact', '#contact']]), 'contact chip ' + JSON.stringify(r.chip));
       await click('.aki-msg-assistant .aki-links a');
       await until('location.hash === "#contact"', 'chip goes to Contact', 4000);
+
+      // A link to another section does not cancel the asked-about one; "work" itself picks Work.
+      const chipFor = async (question, reply) => {
+        stub.chat = (b) => ({ body: aiReply(b, reply) });
+        await sendAndWait(question);
+        return evaluate('[...[...document.querySelectorAll(".aki-msg-assistant")].pop().querySelectorAll(".aki-links a")].map((a) => a.getAttribute("href")).join()');
+      };
+      check(await chipFor('how do I contact him?', 'See his [Work](#work).') === '#contact', 'wrong-section link suppressed the Contact chip');
+      check(await chipFor("show me Jason's work", 'Plenty to see.') === '#work', 'no Work chip for "work"');
+      check(await chipFor('how do I contact him?', 'Use the [Contact](#contact) form.') === '', 'chip added although Contact was linked');
     });
 
     await step('send clears and disables the box; the visitor gets typing dots too', async () => {
