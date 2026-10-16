@@ -166,7 +166,7 @@ export function readConfig(env, ai) {
     siteDailyCap,
     maxTokens,
     limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap,
-      gemmaDailyCap: gemini.gemmaDailyCap, backupDailyCap: backup.dailyCap },
+      gemmaDailyCap: gemini.gemmaDailyCap, gemmaFirst: gemini.gemmaDailyCap > 0 && e.GEMMA_FIRST === 'true', backupDailyCap: backup.dailyCap },
     gemini,
     backup,
   };

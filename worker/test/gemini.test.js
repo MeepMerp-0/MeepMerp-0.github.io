@@ -141,7 +141,7 @@ test('production vars are consistent, on or off (R5-8, R5-9)', async () => {
     assert.ok(cfg.gemini.dailyCap >= 1 && cfg.gemini.dailyCap <= 500);
     const app = makeApp({ env, country: cfg.gemini.countries[0] });
     const r = await app.chat();
-    assert.equal(r.json.provider, 'gemini');
+    assert.equal(r.json.provider, env.GEMMA_FIRST === 'true' ? 'gemma' : 'gemini');
     assert.equal(app.groqCalls().length, 0);
     for (const country of ['GB', 'XX', undefined]) {
       const a = makeApp({ env, country });
@@ -682,4 +682,13 @@ test('a queued Groq turn that lapsed before its claim still gets the Workers AI 
   const r = await app.chat();
   assert.deepEqual([r.json.type, r.json.provider], ['ai', 'workers_ai']);
   assert.equal(app.groqCalls().filter((c) => c).length, 1, 'the lapsed turn must not call Groq');
+});
+
+test('GEMMA_FIRST sends the first Google turn to Gemma; unset keeps Gemini first', async () => {
+  const app = makeApp({ env: { ...GEMMA_ENV, GEMMA_FIRST: 'true' } });
+  app.google = () => gem200('From Gemma');
+  assert.equal((await app.chat()).json.provider, 'gemma');
+  assert.ok(app.googleCalls().at(-1).url.includes('gemma-4-31b-it'));
+  const plain = makeApp({ env: GEMMA_ENV });
+  assert.equal((await plain.chat()).json.provider, 'gemini');
 });

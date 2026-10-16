@@ -27,7 +27,8 @@
  *   cleanup   () → number of records deleted (hourly alarm, R5-17)
  * cfg = {siteDailyCap, groqDailyCap?, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
  * groqDailyCap is Groq's own share of the day (missing = no extra limit). gemmaDailyCap and backupDailyCap
- * (missing or 0 = off) are the Gemma tier, used when Gemini is capped or paused, and the Workers AI backup.
+ * (missing or 0 = off) are the Gemma tier and the Workers AI backup. gemmaFirst: true puts Gemma before Gemini;
+ * otherwise Gemma is used when Gemini is capped or paused.
  * The Gemini latch, pause and caps are checked here; a turn that may not use Gemini silently takes the Groq route.
  *
  * Results:
@@ -251,9 +252,11 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini, gemma }) {
     // Google first (§1.1): Gemini, then Gemma once Gemini is capped or paused. A missing cap compares false.
     const gemmaUsed = todays(g, today, 'gemma');
     const under = c.groq + c.gemini + gemmaUsed < cfg.siteDailyCap;
+    const geminiOk = g.geminiBlockedUntil <= now && c.gemini < cfg.geminiDailyCap;
+    const gemmaOk = gemma !== false && (g.gemmaBlockedUntil ?? 0) <= now && gemmaUsed < cfg.gemmaDailyCap;
+    // gemmaFirst: Gemma (more calls a day) leads and Gemini covers its cap or pause; otherwise the reverse.
     const model = gemini !== true || !under ? null
-      : g.geminiBlockedUntil <= now && c.gemini < cfg.geminiDailyCap ? 'gemini'
-        : gemma !== false && (g.gemmaBlockedUntil ?? 0) <= now && gemmaUsed < cfg.gemmaDailyCap ? 'gemma' : null;
+      : cfg.gemmaFirst === true && gemmaOk ? 'gemma' : geminiOk ? 'gemini' : gemmaOk ? 'gemma' : null;
     if (model) {
       rollDay(g, today);
       if (model === 'gemma') g.gemma = gemmaUsed + 1;
