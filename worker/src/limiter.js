@@ -20,7 +20,8 @@
  *   end       {ipKey, sid, turnId, googleStatus?, groqStatus?, retryAfter?}   retryAfter = seconds or raw header
  *   consent   {sid, consentVersion, gemini, country}
  *   cleanup   () → number of records deleted (hourly alarm, R5-17)
- * cfg = {siteDailyCap, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
+ * cfg = {siteDailyCap, groqDailyCap?, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
+ * groqDailyCap is Groq's own share of the day (missing = no extra limit).
  * The Gemini latch, pause and caps are checked here; a turn that may not use Gemini silently takes the Groq route.
  *
  * Results:
@@ -246,6 +247,7 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
       return unavailable('groq_busy', { retryAfter: secs(g.groqBlockedUntil - now) });
     }
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return exhausted('site_daily', now);
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return exhausted('groq_daily', now);
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);
@@ -281,6 +283,7 @@ export function fallback(slice, now, cfg, { sid, turnId, googleStatus, retryAfte
     const today = pacificDay(now);
     const c = dayCounts(g, today);
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return finish(exhausted('site_daily', now));
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return finish(exhausted('groq_daily', now));
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);

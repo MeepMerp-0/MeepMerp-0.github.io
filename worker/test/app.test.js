@@ -612,6 +612,7 @@ test('bad numeric vars give misconfigured on session, chat and region', async ()
     for (const v of [undefined, 'NaN', '2.5', '', ' 2', '-1']) await misconfigured({ [k]: v }, `${k}=${JSON.stringify(v)}`);
   }
   await misconfigured({ SITE_DAILY_CAP: '1001' }, 'cap 1001');
+  await misconfigured({ GROQ_DAILY_CAP: 'x' }, 'groq cap x');
   await misconfigured({ MAX_QUEUE_WAIT: '31' }, 'wait 31');
   await misconfigured({ MAX_QUEUE_DEPTH: '0' }, 'depth 0');
   await misconfigured({ MAX_QUEUE_DEPTH: '11' }, 'depth 11');

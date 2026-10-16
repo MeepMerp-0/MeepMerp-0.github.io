@@ -127,6 +127,20 @@ test('a Gemini visitor gets 4 a minute even when GROQ_SITE_PER_MIN is 2; the sit
   assert.deepEqual(f.lim.reserve(f.req('C')), rl('site_minute', 38));
 });
 
+test('GROQ_DAILY_CAP stops the Groq route and the hop while Gemini still answers', () => {
+  const e = setup({ groqSitePerMin: 10, groqDailyCap: 1 });
+  const a = e.req('A');
+  assert.equal(e.lim.reserve(a).type, 'go');
+  e.lim.end(a);
+  e.at(5 * S);
+  assert.equal(e.lim.reserve(e.req('B')).scope, 'groq_daily');
+  assert.deepEqual(e.lim.reserve(e.req('C', { gemini: true })), GEMINI_GO);
+  e.at(10 * S);
+  const d = e.req('D', { gemini: true });
+  e.lim.reserve(d);
+  assert.equal(e.lim.fallback({ ...d, googleStatus: 500 }).scope, 'groq_daily');
+});
+
 test('the visitor minute cap is 4 with a higher GROQ_SITE_PER_MIN too', () => {
   const e = setup({ groqSitePerMin: 10 });
   for (let i = 0; i < 4; i++) {
