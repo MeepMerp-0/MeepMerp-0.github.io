@@ -85,6 +85,17 @@ export function memoryTarget() {
   return rule === 'default_on' ? 'local' : 'session';
 }
 
+// A stricter region (EEA/UK/CH or unknown) applies at once, also to a session made under default_on.
+function tightenRule() {
+  try {
+    const s = JSON.parse(read('session', KEY.session));
+    if (s?.memory === 'default_on') write('session', KEY.session, JSON.stringify({ ...s, memory: 'opt_in' }));
+  } catch { /* no session */ }
+  const g = readGate();
+  if (g?.memory === 'on') write('session', KEY.gate, JSON.stringify({ ...g, memory: 'off' }));
+  applyRule();
+}
+
 // opt_in: history written under an earlier default_on visit moves to sessionStorage.
 export function applyRule() {
   if (getRule() !== 'opt_in') return;
@@ -246,6 +257,7 @@ export function fetchRegion() {
     const consentVersion = typeof body.consentVersion === 'string' ? body.consentVersion : null;
     const gate = readGate();
     if (consentVersion && gate && gate.consentVersion !== consentVersion) clearGate();
+    if (body.memory !== 'default_on') tightenRule();
     return {
       memory: body.memory === 'default_on' ? 'default_on' : 'opt_in',
       gemini: body.gemini === 'eligible' ? 'eligible' : 'ineligible',

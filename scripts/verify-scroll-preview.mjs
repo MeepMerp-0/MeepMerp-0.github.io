@@ -1084,6 +1084,29 @@ async function runAkiSmoke() {
       check(!(await exists('#aki-input')), 'free-text composer still shown after faq');
     });
 
+    await step('a stricter region applies to an existing session; IME Enter does not send', async () => {
+      await akiPage({ memory: 'default_on' });
+      await openChat();
+      await sendAndWait('hello');
+      check(await evaluate('localStorage.getItem("aki:v1:history") !== null'), 'default_on reply not in localStorage');
+      stub.memory = 'opt_in';
+      await navigate(akiUrl + '?aki=moved' + akiCase);
+      await openPanel();
+      await regionSettled();
+      await until('localStorage.getItem("aki:v1:history") === null && sessionStorage.getItem("aki:v1:history") !== null', 'history moved to the tab');
+      check(JSON.parse(await evaluate('sessionStorage.getItem("aki:v1:session")')).memory === 'opt_in', 'session rule not tightened');
+
+      await akiPage();
+      await openChat();
+      const chats = stub.log.length;
+      await evaluate('(() => { const el = document.querySelector("#aki-input"); el.focus();'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "にほ");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true }));'
+        + 'el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", isComposing: true, bubbles: true, cancelable: true })); })()');
+      await delay(400);
+      check(stub.log.length === chats && (await evaluate('document.querySelector("#aki-input").value')) === 'にほ', 'Enter during IME composition sent the message');
+    });
+
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {
       await akiPage({ chat: (b, n) => ({ body: n === 1 ? { type: 'provider_unavailable', reason: 'groq_busy', retryAfter: 3 } : aiReply(b, 'ok') }) });
       await openChat();
@@ -1185,9 +1208,9 @@ async function runAkiSmoke() {
     await step('header dot: busy, down, then green again', async () => {
       const head = () => evaluate('(() => { const p = document.querySelector("#aki-panel"); return { level: p.querySelector(".aki-dot")?.dataset.level,'
         + 'text: p.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)")?.textContent }; })()');
-      const seq = [{ type: 'rate_limited', scope: 'ip', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' }, null,
-        { type: 'quota_exhausted', scope: 'ip', resetsAt: new Date(Date.now() + 3600000).toISOString() }];
-      await akiPage({ chat: (b, n) => ({ body: seq[n - 1] || aiReply(b, 'back') }) });
+      const seq = [{ type: 'rate_limited', scope: 'ip', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' }, null];
+      const quota = () => ({ type: 'quota_exhausted', scope: 'ip', resetsAt: new Date(Date.now() + 4000).toISOString() });
+      await akiPage({ chat: (b, n) => ({ body: n === 4 ? quota() : seq[n - 1] || aiReply(b, 'back') }) });
       await openChat();
       await sendMessage('one');
       await until('document.querySelector(".aki-dot")?.dataset.level === "busy"', 'busy dot');
@@ -1203,6 +1226,8 @@ async function runAkiSmoke() {
       check((await texts('.aki-msg-assistant p')).some((t) => t.startsWith("Aki has used up today's free answers") && t.includes('after ')),
         'quota line with the reset time missing');
       check(await exists('.aki-chip'), 'quick answers hidden after quota_exhausted');
+      await until('document.querySelector("#aki-input")', 'composer back after the quota reset', 9000);
+      check((await head()).level === 'ok', 'not green after the quota reset ' + JSON.stringify(await head()));
     });
 
     await step('rounded panel and chips; welcome fits at 320px in both themes', async () => {

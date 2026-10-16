@@ -111,6 +111,7 @@ function AkiWidget() {
   const [region, setRegion] = useState(REGION_DEFAULT);
   const [welcomeInit, setWelcomeInit] = useState(null);
   const [quickOnly, setQuickOnly] = useState(!AKI_CAN_CHAT);
+  const [quotaUntil, setQuotaUntil] = useState(null);
   const [typing, setTyping] = useState(false);
   const [mood, setMood] = useState(null);
   const [link, setLink] = useState('ok');
@@ -188,6 +189,13 @@ function AkiWidget() {
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
   }, [input, step, open]);
 
+  // The daily quota resets at resetsAt: bring free-text chat back without a reload.
+  useEffect(() => {
+    if (!quotaUntil) return undefined;
+    const t = setTimeout(() => { setQuotaUntil(null); setQuickOnly(!AKI_CAN_CHAT); setLink('ok'); }, Math.max(0, quotaUntil - now()));
+    return () => clearTimeout(t);
+  }, [quotaUntil]);
+
   useEffect(() => {
     if (!wait || wait.n <= 0) return undefined;
     const t = setTimeout(() => setWait((w) => (w && w.n > 1 ? { ...w, n: w.n - 1 } : null)), 1000);
@@ -263,6 +271,7 @@ function AkiWidget() {
       case 'quota': {
         const at = res.resetsAt && new Date(res.resetsAt).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
         setQuickOnly(true);
+        if (res.resetsAt) setQuotaUntil(res.resetsAt);
         note('assistant', MSG.quota(at && `after ${at}`));
         break;
       }
@@ -439,7 +448,7 @@ function AkiWidget() {
                       onChange={(e) => setInput(e.target.value)}
                       onFocus={() => setTyping(true)}
                       onBlur={() => setTyping(false)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); send(); } }}
                     />
                     <button
                       type="submit"
