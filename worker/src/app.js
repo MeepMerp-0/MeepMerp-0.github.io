@@ -115,17 +115,28 @@ function readGemini(env) {
   const countriesOk = countries && countries.every((c) => COUNTRY_RE.test(c) && c !== 'XX' && !EEA_UK_CH.includes(c) && !AI_BLOCKED.includes(c));
   const on = env.GEMINI_ENABLED === 'true' && dailyCap !== null && countriesOk
     && nonEmpty(env.GEMINI_MODEL) && nonEmpty(env.GEMINI_API_KEY);
+  // Gemma on the same key and terms: an extra Google tier after Gemini is capped or paused. Unset = off.
+  const gemmaCap = nonEmpty(env.GEMMA_MODEL) ? intIn(env.GEMMA_DAILY_CAP, 1, 14400) : null;
   return on
-    ? { on, dailyCap, countries, model: env.GEMINI_MODEL.trim(), apiKey: env.GEMINI_API_KEY.trim() }
-    : { on: false, dailyCap: 0, countries: [], model: '', apiKey: '' };
+    ? { on, dailyCap, countries, model: env.GEMINI_MODEL.trim(), apiKey: env.GEMINI_API_KEY.trim(),
+      gemmaModel: gemmaCap ? env.GEMMA_MODEL.trim() : '', gemmaDailyCap: gemmaCap ?? 0 }
+    : { on: false, dailyCap: 0, countries: [], model: '', apiKey: '', gemmaModel: '', gemmaDailyCap: 0 };
 }
 
-export function readConfig(env) {
+/** Workers AI backup (env.AI binding): on only with a model and a daily cap; the cap keeps it in the free allocation. */
+function readBackup(env, ai) {
+  const dailyCap = intIn(env.WORKERS_AI_DAILY_CAP, 1, 1000);
+  return ai && typeof ai.run === 'function' && nonEmpty(env.WORKERS_AI_MODEL) && dailyCap !== null
+    ? { on: true, model: env.WORKERS_AI_MODEL.trim(), dailyCap }
+    : { on: false, model: '', dailyCap: 0 };
+}
+
+export function readConfig(env, ai) {
   const e = env ?? {};
   const origins = list(e.ALLOWED_ORIGINS);
   const hostnames = list(e.TURNSTILE_HOSTNAMES);
   const actions = list(e.TURNSTILE_ACTIONS);
-  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 1000);
+  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 20000);
   // Groq's own daily budget inside the site cap (its free tier has a daily token limit); unset means the site cap.
   const groqDailyCap = e.GROQ_DAILY_CAP === undefined ? siteDailyCap : intIn(e.GROQ_DAILY_CAP, 0, 1000);
   const groqSitePerMin = intIn(e.GROQ_SITE_PER_MIN, 1, Number.MAX_SAFE_INTEGER);
@@ -137,6 +148,7 @@ export function readConfig(env) {
     && [siteDailyCap, groqDailyCap, groqSitePerMin, maxTokens, maxQueueWait, maxQueueDepth].every((n) => n !== null);
   if (!ok) return { ok: false };
   const gemini = readGemini(e);
+  const backup = readBackup(e, ai);
   return {
     ok: true,
     groqApiKey: e.GROQ_API_KEY.trim(),
@@ -153,8 +165,10 @@ export function readConfig(env) {
     actions,
     siteDailyCap,
     maxTokens,
-    limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap },
+    limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap,
+      gemmaDailyCap: gemini.gemmaDailyCap, backupDailyCap: backup.dailyCap },
     gemini,
+    backup,
   };
 }
 
@@ -272,6 +286,8 @@ export async function prepareChat(req) {
       ipKey: await hmac(config.ipSecret, ipPrefix(deps.ip)),
       country: deps.country,
       gemini: session.g && geminiSwitch(config, deps.country) === 'eligible',
+      // Gemma and Workers AI were added in the current notice: a session agreed under an older one never reaches them.
+      currentNotice: session.cv === config.consentVersion,
     },
   };
 }
@@ -307,6 +323,31 @@ async function callGroq(config, deps, messages) {
   }
 }
 
+// --- Workers AI backup ---
+
+const WORKERS_AI_TIMEOUT_MS = 10_000;
+
+async function callWorkersAI(config, deps, messages) {
+  let timer;
+  try {
+    const out = await Promise.race([
+      deps.ai.run(config.backup.model, { messages, max_tokens: config.maxTokens }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), WORKERS_AI_TIMEOUT_MS); }),
+    ]);
+    const content = out?.response;
+    return typeof content === 'string' && content.trim() ? { ok: true, content } : { ok: false };
+  } catch {
+    return { ok: false };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Groq route results that mean "no Groq capacity right now" rather than a visitor limit or a closed day.
+const noGroqCapacity = (r) => (r.type === 'provider_unavailable' && ['groq_busy', 'groq_failed', 'groq_daily'].includes(r.reason))
+  || (r.type === 'rate_limited' && (r.scope === 'site_minute' || r.scope === 'queue_full'))
+  || (r.type === 'quota_exhausted' && r.scope === 'groq_daily');
+
 async function chat(req) {
   const { config, deps, respond } = req;
   const { limiter, sleep, waitUntil } = deps;
@@ -325,7 +366,7 @@ async function chat(req) {
   };
   // A Cancel or disconnect before any step that can reach a provider makes no call (§1.6).
   if (deps.signal?.aborted) return new Response(null, { status: 499 });
-  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini });
+  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini, gemma: ctx.currentNotice });
 
   if (r.type === 'go' && r.provider === 'gemini') {
     // One waitUntil unit, so the lease release, the R5-24 latch and the 429 pause survive a visitor disconnect.
@@ -334,7 +375,7 @@ async function chat(req) {
       // Aborted during reserve: no Google call; the Gemini day count stays spent (never under-counts).
       const g = deps.signal?.aborted
         ? { ok: false, status: 0, retryAfter: null }
-        : await callGemini(config, deps, filterHistory(ctx.history), message);
+        : await callGemini(config, deps, filterHistory(ctx.history), message, r.model === 'gemma' ? config.gemini.gemmaModel : undefined);
       const status = { googleStatus: g.ok || g.blocked ? 200 : g.status, retryAfter: g.retryAfter };
       // §1.6: a Cancel or disconnect before or during the Gemini call ends the turn with no fallback and no Groq call.
       if (g.ok || g.blocked || deps.signal?.aborted) {
@@ -346,7 +387,7 @@ async function chat(req) {
     })();
     waitUntil(work.catch(() => {}));
     const { g, hop } = await work;
-    if (g.ok) return reply('gemini', g.content);
+    if (g.ok) return reply(r.model === 'gemma' ? 'gemma' : 'gemini', g.content);
     // Blocked content is never sent on to Groq (§1.2: that would be policy evasion).
     if (g.blocked) return out({ type: 'provider_unavailable', reason: 'content_blocked' });
     if (!hop) return new Response(null, { status: 499 });
@@ -367,26 +408,41 @@ async function chat(req) {
     }
     r = await limiter.claim({ ...key, cfg: config.limits });
   }
-  if (r.type !== 'go') return out(r);
+  const messages = [
+    { role: 'system', content: GROQ_SYSTEM_PROMPT },
+    ...ctx.history.map(({ role, content }) => ({ role, content })),
+    { role: 'user', content: message },
+  ];
+  // Last AI resort before the client's quick answers: Workers AI, once per turn, when Groq has no capacity.
+  const backupOr = async (refusal) => {
+    if (!config.backup.on || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
+    // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first (a no-op for a closed turn).
+    if (refusal.reason === 'groq_failed') await Promise.resolve(limiter.end(key)).catch(() => {});
+    const b = await Promise.resolve(limiter.backup({ ...key, cfg: config.limits })).catch(() => null);
+    if (b?.type !== 'go') return out(refusal);
+    const w = await callWorkersAI(config, deps, messages);
+    if (w.ok) return reply('workers_ai', w.content);
+    console.log(JSON.stringify({ workers_ai_failed: true }));
+    return out(refusal);
+  };
+  if (r.type !== 'go') return backupOr(r);
   // Aborted during reserve, fallback or claim with no wait left: cancel refunds the unused Groq slot.
   if (deps.signal?.aborted) {
     waitUntil(Promise.resolve(limiter.cancel(key)).catch(() => {}));
     return new Response(null, { status: 499 });
   }
 
-  const messages = [
-    { role: 'system', content: GROQ_SYSTEM_PROMPT },
-    ...ctx.history.map(({ role, content }) => ({ role, content })),
-    { role: 'user', content: message },
-  ];
   const groq = await callGroq(config, deps, messages);
   if (groq.ok) {
     waitUntil(Promise.resolve(limiter.end(key)).catch(() => {}));
     return reply('groq', groq.content);
   }
-  // There is never a Groq → Gemini hop (§1.2). A Groq 429 pauses Groq in end().
-  waitUntil(Promise.resolve(limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter })).catch(() => {}));
-  return out({ type: 'provider_unavailable', reason: 'groq_failed' });
+  // There is never a Groq → Gemini hop (§1.2). A Groq 429 pauses Groq in end(), which also closes the turn
+  // before the Workers AI backup may take it.
+  const ended = Promise.resolve(limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter })).catch(() => {});
+  waitUntil(ended);
+  await ended;
+  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' });
 }
 
 // --- session ---
@@ -481,7 +537,7 @@ export async function handle(request, env, deps) {
       text = await readBody(request);
       if (text === null) return makeResponse(bad('body_too_large'), null);
     }
-    const config = readConfig(env);
+    const config = readConfig(env, deps?.ai);
     if (!config.ok) return makeResponse({ type: 'provider_unavailable', reason: 'misconfigured' }, null);
     const origin = request.headers.get('origin');
     if (!origin || !config.origins.includes(origin)) return new Response(null, { status: 403 });

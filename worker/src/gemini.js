@@ -48,18 +48,21 @@ function retryAfterOf(res, details, now) {
   return delay ? Number(delay.slice(0, -1)) : null;
 }
 
-export async function callGemini(config, deps, history, message) {
+// model: a Gemma model id for the Gemma tier, else config.gemini.model. Gemma takes no system instruction, so
+// Aki's instructions go in front of the first user turn instead.
+export async function callGemini(config, deps, history, message, model = config.gemini.model) {
+  const gemma = model.startsWith('gemma');
+  const turns = [...history.map(({ role, content }) => ({ role: role === 'assistant' ? 'model' : 'user', parts: [{ text: content }] })),
+    { role: 'user', parts: [{ text: message }] }];
+  if (gemma) turns[0] = { ...turns[0], parts: [{ text: `${GEMINI_SYSTEM_PROMPT}\n\n${turns[0].parts[0].text}` }] };
   const fail = (status, retryAfter = null) => ({ ok: false, status, retryAfter });
   try {
-    const res = await deps.fetch(`${GEMINI_BASE}${encodeURIComponent(config.gemini.model)}:generateContent`, {
+    const res = await deps.fetch(`${GEMINI_BASE}${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
       headers: new Headers({ 'x-goog-api-key': config.gemini.apiKey, 'content-type': 'application/json' }),
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
-        contents: [
-          ...history.map(({ role, content }) => ({ role: role === 'assistant' ? 'model' : 'user', parts: [{ text: content }] })),
-          { role: 'user', parts: [{ text: message }] },
-        ],
+        ...(!gemma && { systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] } }),
+        contents: turns,
         generationConfig: { maxOutputTokens: config.maxTokens },
       }),
       signal: AbortSignal.timeout(12_000),

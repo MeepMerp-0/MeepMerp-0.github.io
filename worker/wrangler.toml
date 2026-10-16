@@ -3,6 +3,9 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["enable_request_signal"]
 
+[ai]
+binding = "AI"
+
 [[durable_objects.bindings]]
 name = "LIMITER"
 class_name = "Limiter"
@@ -15,7 +18,7 @@ new_sqlite_classes = ["Limiter"]
 GROQ_MODEL = "openai/gpt-oss-20b"
 GROQ_MAX_COMPLETION_TOKENS = "600"
 GROQ_SITE_PER_MIN = "2"
-SITE_DAILY_CAP = "460"
+SITE_DAILY_CAP = "2520"
 # Groq's share: its free tier allows about 200K tokens a day, roughly 60-80 Aki requests
 GROQ_DAILY_CAP = "60"
 MAX_QUEUE_WAIT = "0"
@@ -27,17 +30,26 @@ GEMINI_ENABLED = "true"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 # Below the AI Studio free-tier RPD for this model (500 for gemini-3.5-flash-lite), with headroom: limits are per Google project
 GEMINI_DAILY_CAP = "400"
+# Gemma tier on the same key, after Gemini is capped or paused (AI Studio free tier: 14.4K RPD, 30 RPM, 16K TPM)
+GEMMA_MODEL = "gemma-4-31b-it"
+GEMMA_DAILY_CAP = "2000"
+# Workers AI backup after Groq; the cap keeps it inside the 10,000 free neurons a day (~130 neurons per Aki reply)
+WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+WORKERS_AI_DAILY_CAP = "60"
 # Launch checklist (A2): replace with Google's available regions minus EEA_UK_CH, XX and AI_BLOCKED
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 # First entry must equal the version of public/aki-legal.html. When bumping it, keep the old one
 # after a comma ("new,old") until the site has deployed, then remove it.
-CONSENT_VERSION = "2026-10-16.4"
+CONSENT_VERSION = "2026-10-16.5,2026-10-16.4"
 
 # wrangler does not inherit vars or bindings into environments: restate all of them
 [env.dev]
 name = "aki-api-dev"
 workers_dev = false
 preview_urls = false
+
+[env.dev.ai]
+binding = "AI"
 
 [[env.dev.durable_objects.bindings]]
 name = "LIMITER"
@@ -51,7 +63,7 @@ new_sqlite_classes = ["Limiter"]
 GROQ_MODEL = "openai/gpt-oss-20b"
 GROQ_MAX_COMPLETION_TOKENS = "600"
 GROQ_SITE_PER_MIN = "2"
-SITE_DAILY_CAP = "460"
+SITE_DAILY_CAP = "2520"
 # Groq's share: its free tier allows about 200K tokens a day, roughly 60-80 Aki requests
 GROQ_DAILY_CAP = "60"
 MAX_QUEUE_WAIT = "25"
@@ -65,5 +77,9 @@ TURNSTILE_ACTIONS = "aki_session"
 GEMINI_ENABLED = "true"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 GEMINI_DAILY_CAP = "400"
+GEMMA_MODEL = "gemma-4-31b-it"
+GEMMA_DAILY_CAP = "2000"
+WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+WORKERS_AI_DAILY_CAP = "60"
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
-CONSENT_VERSION = "2026-10-16.4"
+CONSENT_VERSION = "2026-10-16.5,2026-10-16.4"

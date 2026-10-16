@@ -25,7 +25,7 @@ export const AKI_FAQ = [
 ];
 
 // Sent to /v1/session and compared with the legal page and the Worker; never copied from a Worker response.
-export const AKI_CONSENT_VERSION = '2026-10-16.4';
+export const AKI_CONSENT_VERSION = '2026-10-16.5';
 
 export const AKI_MESSAGES = {
   greetingHead: 'Hey there!',
@@ -54,7 +54,7 @@ export const AKI_WELCOME_COPY = {
   age: { title: 'I confirm I am 18 or older.', body: "Required to chat. It's a self-declaration; we don't check ID." },
   gemini: {
     title: 'Use Google Gemini for my answers (optional).',
-    body: 'I understand that my conversation may be processed by Google Gemini and, under its free-tier terms, may be used for service improvement, including human review. Ticked by default. Untick it and Groq answers instead.',
+    body: 'I understand that my conversation may be processed by Google Gemini and, under its free-tier terms, may be used for service improvement, including human review. Ticked by default. Untick it and Groq answers instead, with Cloudflare Workers AI as a backup.',
   },
   // Owner decision D23: pre-ticked wherever the card is shown (eligible regions only).
   geminiDefault: true,
@@ -63,8 +63,8 @@ export const AKI_WELCOME_COPY = {
     default_on: '\u{1F4BE} Chats stay in this browser for 7 days. Clear anytime.',
     opt_in: '\u{1F4BE} Chats stay in this browser until you close the tab. Clear anytime.',
   },
-  noteGemini: "Your messages are answered by an AI provider: Groq, or Google Gemini if this box stays ticked. Please don't share personal or sensitive information.",
-  noteGroq: "Your messages are answered by Groq, an AI provider. Please don't share personal or sensitive information.",
+  noteGemini: "Your messages are answered by an AI provider: Google Gemini (or Gemma) if this box stays ticked, otherwise Groq, with Cloudflare Workers AI as a backup. Please don't share personal or sensitive information.",
+  noteGroq: "Your messages are answered by Groq, an AI provider, with Cloudflare Workers AI as a backup. Please don't share personal or sensitive information.",
   continueLabel: 'Continue to Aki \u2192',
   notNow: 'Not now',
   hint: 'Tick the 18+ box to continue.',
