@@ -138,7 +138,12 @@ test('GROQ_DAILY_CAP stops the Groq route and the hop while Gemini still answers
   e.at(10 * S);
   const d = e.req('D', { gemini: true });
   e.lim.reserve(d);
-  assert.equal(e.lim.fallback({ ...d, googleStatus: 500 }).scope, 'groq_daily');
+  // A transient Gemini failure is not a closed day for this visitor: no quota_exhausted.
+  assert.deepEqual(e.lim.fallback({ ...d, googleStatus: 500 }), { type: 'provider_unavailable', reason: 'groq_daily' });
+  e.at(15 * S);
+  const p = e.req('P', { gemini: true });
+  e.lim.end({ ...gem(e, 'Q'), googleStatus: 429, retryAfter: '60' });
+  assert.deepEqual(e.lim.reserve(p), { type: 'provider_unavailable', reason: 'groq_daily' });
 });
 
 test('the visitor minute cap is 4 with a higher GROQ_SITE_PER_MIN too', () => {

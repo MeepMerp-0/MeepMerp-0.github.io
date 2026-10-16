@@ -247,7 +247,9 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
       return unavailable('groq_busy', { retryAfter: secs(g.groqBlockedUntil - now) });
     }
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return exhausted('site_daily', now);
-    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return exhausted('groq_daily', now);
+    // Only Groq's share is spent: a visitor who can use Gemini may get it on the next turn, so this is not
+    // "quota exhausted" for them (the client would switch to quick answers until the reset).
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return gemini === true ? unavailable('groq_daily') : exhausted('groq_daily', now);
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);
@@ -283,7 +285,7 @@ export function fallback(slice, now, cfg, { sid, turnId, googleStatus, retryAfte
     const today = pacificDay(now);
     const c = dayCounts(g, today);
     if (!(c.groq + c.gemini < cfg.siteDailyCap)) return finish(exhausted('site_daily', now));
-    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return finish(exhausted('groq_daily', now));
+    if (!(c.groq < (cfg.groqDailyCap ?? Infinity))) return finish(unavailable('groq_daily'));
     const S = prune(g.S, now);
     const slotAt = nextSlot(S, now, g.groqBlockedUntil, cfg.groqSitePerMin);
     const waiting = S.filter(([at]) => at > now);
