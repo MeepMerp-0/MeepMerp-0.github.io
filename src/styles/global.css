@@ -488,14 +488,18 @@ section[id] { scroll-margin-top: 0; }
 .aki-row-user { align-items: flex-end; }
 .aki-msg { position: relative; max-width: 80%; padding: 6px 10px; background: var(--item-bg); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; font-size: 14px; }
 .aki-msg-user { background: var(--signal-wash); border-color: var(--accent-border); border-radius: 14px 14px 4px 14px; }
-.aki-msg p { margin: 0; line-height: 1.4; white-space: pre-wrap; }
+.aki-msg p { margin: 0; line-height: 1.4; }
+.aki-msg-user p { white-space: pre-wrap; }
+.aki-msg-user .aki-typing i { background: var(--signal); }
+.aki-msg p + p, .aki-msg p + ul, .aki-msg p + ol, .aki-msg ul + p, .aki-msg ol + p { margin-top: 6px; }
+.aki-msg ul, .aki-msg ol { margin: 4px 0 0; padding-left: 18px; line-height: 1.4; }
+.aki-msg li + li { margin-top: 2px; }
+.aki-msg code { padding: 0 3px; border-radius: 4px; background: var(--bg); font-size: 12.5px; }
 .aki-msg .aki-links { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 4px; white-space: normal; font-weight: 700; font-size: 13px; }
 .aki-who { margin-bottom: 2px; padding: 0 4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
 .aki-status { margin: 0; font-size: 13px; color: var(--muted); }
 .aki-status p { margin: 0 0 6px; }
-.aki-cancel-row { display: flex; padding-left: 2px; }
 .aki-msg p a { color: var(--signal); text-underline-offset: 3px; }
-.aki-cancel { min-height: 32px; border-color: var(--border); border-radius: 10px; background: transparent; color: var(--text); }
 .aki-try { margin: 0 0 -4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .aki-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .aki-chip { min-height: 32px; padding: 6px 12px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600; text-align: left; }

@@ -948,26 +948,16 @@ async function runAkiSmoke() {
       await viewport(1440, 900);
     });
 
-    await step('queue status and Cancel', async () => {
-      await akiPage({ chat: (b) => ({ body: aiReply(b, 'slow'), holdMs: 5000 }) });
+    await step('a slow reply shows typing only, no Cancel', async () => {
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'slow'), holdMs: 4500 }) });
       await openChat();
-      const started = Date.now();
       await sendMessage('queued');
+      await delay(3600);
       check(await evaluate('document.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)").textContent') === AKI_MESSAGES.head.typing,
         'header does not say typing while a reply is pending');
-      await until('document.querySelector(".aki-cancel")', 'Cancel button', 6000);
-      check(Date.now() - started >= 2000, 'Cancel appeared too early');
+      check(!(await exists('.aki-cancel')) && await exists('.aki-row-assistant .aki-typing'), 'Cancel shown or typing dots missing on a slow reply');
       check(await evaluate('document.querySelector(".aki-dot").dataset.level') === 'ok', 'a slow reply turned the dot busy');
-      await click('.aki-cancel');
-      await delay(300);
-      check(stub.closed.includes('/v1/chat'), 'Cancel did not close the request');
-      check(!(await exists('.aki-cancel-row')) && await evaluate('document.getElementById("aki-input").value') === 'queued',
-        'Cancel left the status line or lost the message');
-      check(!hist(await snap(), 'local') && !hist(await snap(), 'session'), 'Cancel changed history');
-      stub.chat = (b) => ({ body: aiReply(b, 'fast') });
-      await sendAndWait('queued');
-      const calls = chatCalls();
-      check(calls[0].body.turnId !== calls[1].body.turnId, 'turnId reused after Cancel');
+      await until('document.querySelectorAll(".aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing))").length > 0', 'slow reply', 6000);
     });
 
     // ---- Welcome step, gate and footer status (addendum 6, 9) ----
@@ -1155,6 +1145,70 @@ async function runAkiSmoke() {
       await click('.aki-msg-assistant p a');
       await until('!document.querySelector("#aki-panel") && location.hash === "#work" && document.activeElement?.id === "work"', 'phone panel closed, moved and focused Work', 4000);
       await viewport(1440, 900);
+    });
+
+    await step('replies render Markdown; a topic question always gets its section link', async () => {
+      const md = "Jason's contact details:\n\n- **Email:** jason@example.com\n- **Phone:** `+000`\n\n*Feel free* to reach out.";
+      await akiPage({ chat: (b) => ({ body: aiReply(b, md) }) });
+      await openChat();
+      await sendAndWait("what is jason's contact info?");
+      const r = await evaluate('(() => { const m = [...document.querySelectorAll(".aki-msg-assistant")].pop();'
+        + 'return { li: m.querySelectorAll("ul > li").length, strong: [...m.querySelectorAll("strong")].map((e) => e.textContent),'
+        + 'em: m.querySelector("em")?.textContent, code: m.querySelector("code")?.textContent, raw: /\\*\\*|`/.test(m.textContent),'
+        + 'chip: [...m.querySelectorAll(".aki-links a")].map((a) => [a.textContent, a.getAttribute("href")]) }; })()');
+      check(r.li === 2 && r.strong.join() === 'Email:,Phone:' && r.em === 'Feel free' && r.code === '+000' && !r.raw, 'markdown render ' + JSON.stringify(r));
+      check(JSON.stringify(r.chip) === JSON.stringify([['\u2192 Contact', '#contact']]), 'contact chip ' + JSON.stringify(r.chip));
+      await click('.aki-msg-assistant .aki-links a');
+      await until('location.hash === "#contact"', 'chip goes to Contact', 4000);
+
+      // A link to another section does not cancel the asked-about one; "work" itself picks Work.
+      const chipFor = async (question, reply) => {
+        stub.chat = (b) => ({ body: aiReply(b, reply) });
+        await sendAndWait(question);
+        return evaluate('[...[...document.querySelectorAll(".aki-msg-assistant")].pop().querySelectorAll(".aki-links a")].map((a) => a.getAttribute("href")).join()');
+      };
+      check(await chipFor('how do I contact him?', 'See his [Work](#work).') === '#contact', 'wrong-section link suppressed the Contact chip');
+      check(await chipFor("show me Jason's work", 'Plenty to see.') === '#work', 'no Work chip for "work"');
+      check(await chipFor('how do I contact him?', 'Use the [Contact](#contact) form.') === '', 'chip added although Contact was linked');
+      check(await chipFor('how do I contact him?', 'Use `[Contact](#contact)`.') === '#contact', 'a code-wrapped link suppressed the chip');
+      check(await chipFor('how do I contact him?', 'Use **[Contact](#contact)**.') === '', 'chip added although a bold link renders');
+      check(await evaluate('[...document.querySelectorAll(".aki-msg-assistant strong > a")].pop()?.getAttribute("href")') === '#contact', 'link inside bold not rendered');
+      check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
+      check(await chipFor('Has Jason built any phone apps?', 'See [Work](#work).') === '', 'phone apps got a Contact chip');
+      check(await chipFor('Who is Jason?', 'An engineer.') === '#about', 'no About chip for "Who is Jason?"');
+      check(await chipFor('Where is Jason based?', 'In the UAE.') === '#contact', 'no Contact chip for location');
+      check(await chipFor("Tell me about Jason's projects", 'See [Work](#work).') === '', '"about" as a preposition added an About chip');
+      check(await chipFor("Tell me about Jason's projects", 'Several.') === '#work', 'no Work chip for projects');
+      check(await chipFor("what's his phone number?", 'Here it is.') === '#contact', 'no Contact chip for a phone number');
+      check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
+      // In a full log, the visitor's typing row scrolls into view.
+      await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "h");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await until('(() => { const log = document.querySelector(".aki-log"), row = document.querySelector(".aki-row-user .aki-typing");'
+        + 'return row && log.scrollHeight > log.clientHeight && row.getBoundingClientRect().bottom <= log.getBoundingClientRect().bottom + 1; })()', 'visitor typing row visible');
+      check(await chipFor('ジェイソンのプロジェクトは？', 'いくつかあります。') === '#work', 'no Work chip for Japanese');
+      check(await chipFor('كيف أتواصل مع جيسون؟', 'يمكنك مراسلته.') === '#contact', 'no Contact chip for Arabic');
+    });
+
+    await step('send clears and disables the box; the visitor gets typing dots too', async () => {
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'ok'), holdMs: 1500 }) });
+      await openChat();
+      await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "hel");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await until('document.querySelector(".aki-row-user .aki-typing")', 'visitor typing dots');
+      await evaluate('(() => { const el = document.getElementById("aki-input");'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "hello");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      // A pointer click focuses Send before submitting; element.click() does not, so focus it first.
+      await evaluate('document.querySelector(".aki-form button[type=submit]").focus()');
+      await click('.aki-form button[type=submit]');
+      await until('document.querySelector(".aki-row-assistant .aki-typing")', 'Aki typing dots');
+      const s = await evaluate('(() => { const el = document.getElementById("aki-input"); return { value: el.value, disabled: el.disabled,'
+        + 'you: Boolean(document.querySelector(".aki-row-user .aki-typing")) }; })()');
+      check(s.value === '' && s.disabled && !s.you, 'box while Aki answers ' + JSON.stringify(s));
+      await until('!document.getElementById("aki-input").disabled && document.activeElement?.id === "aki-input"', 'box enabled and focused after the reply', 6000);
     });
 
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {
