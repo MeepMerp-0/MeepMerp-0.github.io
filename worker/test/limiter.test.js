@@ -1092,3 +1092,16 @@ test('the Pacific rollover resets Gemma; the backup count resets at 00:00 UTC', 
   u.at(2 * 60 * S);
   assert.equal(u.lim.backup(u.req('B')).type, 'go');
 });
+
+test('gemmaFirst: Gemma leads, Gemini covers its cap and pause; old-notice sessions stay on Gemini', () => {
+  const e = setup({ groqSitePerMin: 10, gemmaDailyCap: 1, gemmaFirst: true });
+  const a = e.req('A', { gemini: true });
+  assert.equal(e.lim.reserve(a).model, 'gemma');
+  assert.deepEqual(e.lim.reserve(e.req('B', { gemini: true })), GEMINI_GO);
+  const f = setup({ groqSitePerMin: 10, gemmaDailyCap: 5, gemmaFirst: true });
+  const x = f.req('X', { gemini: true });
+  f.lim.reserve(x);
+  f.lim.end({ ...x, googleStatus: 429, retryAfter: '60' });
+  assert.deepEqual(f.lim.reserve(f.req('Y', { gemini: true })), GEMINI_GO);
+  assert.deepEqual(f.lim.reserve(f.req('Z', { gemini: true, gemma: false })), GEMINI_GO);
+});
