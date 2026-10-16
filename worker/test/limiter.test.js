@@ -86,6 +86,15 @@ test('pause path (V20): groq_busy with no offer, stamps the cooldown, counts no 
   assert.deepEqual(e.lim.reserve(e.req('A')), rl('cooldown', 2));
 });
 
+test('cleanup drops expired queued turn ids from the global record without new traffic', () => {
+  const e = setup();
+  e.lim.reserve(e.req('A'));
+  assert.equal(e.g().S.length, 1);
+  e.at(10 * 60 * S);
+  e.lim.cleanup();
+  assert.deepEqual(e.g().S, []);
+});
+
 test('a groq_busy refusal does not carry turn times older than a day into the refreshed record', () => {
   const e = setup();
   const a0 = e.req('A');

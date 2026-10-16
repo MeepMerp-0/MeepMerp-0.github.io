@@ -1101,6 +1101,13 @@ async function runAkiSmoke() {
       await openPanel();
       await until('localStorage.getItem("aki:v1:history") === null && sessionStorage.getItem("aki:v1:history") !== null', 'history not moved before the gate');
 
+      // A gate from an older consent version is rejected together with its session.
+      await akiPage({}, { session: {
+        'aki:v1:gate': JSON.stringify({ consentVersion: 'old', gemini: true, memory: 'on', confirmedAt: Date.now() }),
+        'aki:v1:session': JSON.stringify({ sessionToken: 'old-token', expiresAt: new Date(Date.now() + 3600000).toISOString(), memory: 'default_on', gemini: true }) } });
+      await openPanel();
+      await until('sessionStorage.getItem("aki:v1:gate") === null && sessionStorage.getItem("aki:v1:session") === null', 'stale gate and its session cleared');
+
       // Storage that refuses writes: the gate lives in memory and chat still works.
       await akiPage();
       await evaluate('Storage.prototype.setItem = function () { throw new Error("blocked"); }');
@@ -1126,6 +1133,7 @@ async function runAkiSmoke() {
       await until('document.querySelector(".aki-dot")?.dataset.level === "busy" && document.querySelector(".aki-status")', 'busy wait');
       check((await texts('.aki-status')).some((t) => t.includes('very busy')), 'groq_busy wait text missing');
       check(await evaluate('document.querySelector(".aki-send").disabled'), 'send enabled during groq_busy wait');
+      await until('!document.querySelector(".aki-status") && document.querySelector(".aki-dot")?.dataset.level === "ok"', 'busy cleared after the countdown', 6000);
       await viewport(320, 700);
       await akiPage({ chat: (b) => ({ body: aiReply(b, 'ok') }) });
       await openChat();

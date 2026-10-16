@@ -33,7 +33,7 @@ jobs:
       - name: Test Worker
         run: npm run aki:test
 
-      # CLOUDFLARE_API_TOKEN is account-scoped to Workers Scripts:Edit only.
+      # CLOUDFLARE_API_TOKEN: Workers Admin for the first deploy (it creates the Worker); Workers Scripts:Edit is enough afterwards.
       - name: Deploy Worker
         working-directory: worker
         env:

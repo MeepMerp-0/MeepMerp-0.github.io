@@ -127,7 +127,7 @@ Aki's browser code only talks to the Worker in `worker/`; no provider key is eve
 
 | Where | Name | Notes |
 | --- | --- | --- |
-| GitHub repository secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Token with Account · Workers Scripts · Edit only |
+| GitHub repository secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | A Workers Scripts · Edit token can only update an existing Worker; creating it needs product-level Workers Admin. Simplest: create the Worker once from your machine (`worker/node_modules/.bin/wrangler login`, then `npm run aki:deploy`), after which the Edit-only token is enough |
 | GitHub repository secrets | `VITE_AKI_API_URL`, `VITE_AKI_TURNSTILE_SITEKEY` | Worker URL with `https://` (for example `https://aki-api.<subdomain>.workers.dev`) and the public Turnstile site key. Unset `VITE_AKI_API_URL` hides Aki |
 | Cloudflare Worker secrets (`aki-api` → Settings → Variables and Secrets, type Secret) | `GROQ_API_KEY`, `GEMINI_API_KEY`, `TURNSTILE_SECRET`, `SESSION_HMAC_SECRET`, `IP_HASH_SECRET` | The last two are long random strings (`openssl rand -base64 32`). Without them the Worker fails closed |
 | `worker/wrangler.toml` `[vars]` | models, caps, `ALLOWED_ORIGINS`, `GEMINI_ALLOWED_COUNTRIES`, `CONSENT_VERSION` | `CONSENT_VERSION`'s first entry must equal `public/aki-legal.html`; when bumping it, keep the old one after a comma until the site has deployed |
@@ -139,7 +139,7 @@ Keep every account on its free tier: no payment method on Cloudflare, Groq or th
 ```bash
 npm ci --prefix worker
 npm run aki:test                     # Worker unit tests; no real provider calls
-cp worker/.dev.vars.example worker/.dev.vars   # fill in keys; leave TURNSTILE_SECRET empty (dev uses Cloudflare's test secret)
+cp worker/.dev.vars.example worker/.dev.vars   # fill in keys (git-ignored); dev uses Cloudflare's always-pass Turnstile test secret from wrangler.toml
 npm run aki:dev                      # Worker on http://127.0.0.1:8787
 ```
 
@@ -147,9 +147,9 @@ Then run the site with `VITE_AKI_API_URL=http://127.0.0.1:8787` and `VITE_AKI_TU
 
 **First rollout**
 
-1. Add the four GitHub repository secrets above, then merge to `main`. The deploy workflow creates the `aki-api` Worker, then publishes the site.
-2. In Cloudflare add the five Worker secrets. Aki starts answering once they are saved.
-3. Alternatively deploy the Worker from a machine with `worker/node_modules/.bin/wrangler login` and `npm run aki:deploy`.
+1. Create the `aki-api` Worker once from your machine (`npm ci --prefix worker`, `worker/node_modules/.bin/wrangler login`, `npm run aki:deploy`), because the Edit-only CI token cannot create it.
+2. Add the four GitHub repository secrets above, then merge to `main`. The deploy workflow updates the Worker, then publishes the site.
+3. In Cloudflare add the five Worker secrets. Aki starts answering once they are saved.
 
 ## CI, visual previews and deployment
 

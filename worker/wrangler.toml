@@ -55,8 +55,8 @@ MAX_QUEUE_DEPTH = "4"
 ALLOWED_ORIGINS = "https://meepmerp-0.github.io,http://localhost:8888,http://127.0.0.1:4173"
 # Cloudflare always-pass test secret
 TURNSTILE_SECRET = "1x0000000000000000000000000000000AA"
-# Record the test secret's real siteverify hostname and action at rollout step 2 (C5)
-TURNSTILE_HOSTNAMES = "example.com"
+# Cloudflare's test keys report the page's real hostname
+TURNSTILE_HOSTNAMES = "localhost,127.0.0.1"
 TURNSTILE_ACTIONS = "aki_session"
 GEMINI_ENABLED = "true"
 GEMINI_MODEL = "gemini-3.5-flash-lite"

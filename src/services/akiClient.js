@@ -66,12 +66,14 @@ function prune(h) {
 
 // What the visitor confirmed on the welcome screen; per tab, it authorises nothing (the server session does).
 export function readGate() {
+  const raw = read('session', KEY.gate);
   try {
-    const g = JSON.parse(read('session', KEY.gate));
+    const g = JSON.parse(raw);
     if (g && g.consentVersion === AKI_CONSENT_VERSION && typeof g.gemini === 'boolean'
       && (g.memory === 'on' || g.memory === 'off') && Number.isFinite(g.confirmedAt)) return g;
   } catch { /* treated as no gate */ }
-  drop('session', KEY.gate);
+  // A rejected gate (old consent version) takes its session with it: the next session must carry the new choice.
+  if (raw !== null) clearGate();
   return null;
 }
 export const writeGate = ({ gemini, memory }) => {

@@ -198,7 +198,10 @@ function AkiWidget() {
 
   useEffect(() => {
     if (!wait || wait.n <= 0) return undefined;
-    const t = setTimeout(() => setWait((w) => (w && w.n > 1 ? { ...w, n: w.n - 1 } : null)), 1000);
+    const t = setTimeout(() => {
+      if (wait.n > 1) setWait({ ...wait, n: wait.n - 1 });
+      else { setWait(null); setLink((l) => (l === 'busy' ? 'ok' : l)); }
+    }, 1000);
     return () => clearTimeout(t);
   }, [wait]);
 

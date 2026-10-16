@@ -385,6 +385,12 @@ export function isStale(key, rec, now) {
 export function cleanup(store, now) {
   const stale = [...store.list()].filter(([key, rec]) => isStale(key, rec, now)).map(([key]) => key);
   for (const key of stale) store.delete(key);
+  // Queued turn ids in the global record expire too, even when no later reservation prunes them.
+  const g = store.get('g');
+  if (g?.S?.length) {
+    const S = prune(g.S, now);
+    if (S.length !== g.S.length) store.put('g', { ...g, S });
+  }
   return stale.length;
 }
 
