@@ -499,9 +499,7 @@ section[id] { scroll-margin-top: 0; }
 .aki-who { margin-bottom: 2px; padding: 0 4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
 .aki-status { margin: 0; font-size: 13px; color: var(--muted); }
 .aki-status p { margin: 0 0 6px; }
-.aki-cancel-row { display: flex; padding-left: 2px; }
 .aki-msg p a { color: var(--signal); text-underline-offset: 3px; }
-.aki-cancel { min-height: 32px; border-color: var(--border); border-radius: 10px; background: transparent; color: var(--text); }
 .aki-try { margin: 0 0 -4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .aki-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .aki-chip { min-height: 32px; padding: 6px 12px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600; text-align: left; }

@@ -948,26 +948,16 @@ async function runAkiSmoke() {
       await viewport(1440, 900);
     });
 
-    await step('queue status and Cancel', async () => {
-      await akiPage({ chat: (b) => ({ body: aiReply(b, 'slow'), holdMs: 5000 }) });
+    await step('a slow reply shows typing only, no Cancel', async () => {
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'slow'), holdMs: 4500 }) });
       await openChat();
-      const started = Date.now();
       await sendMessage('queued');
+      await delay(3600);
       check(await evaluate('document.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)").textContent') === AKI_MESSAGES.head.typing,
         'header does not say typing while a reply is pending');
-      await until('document.querySelector(".aki-cancel")', 'Cancel button', 6000);
-      check(Date.now() - started >= 2000, 'Cancel appeared too early');
+      check(!(await exists('.aki-cancel')) && await exists('.aki-row-assistant .aki-typing'), 'Cancel shown or typing dots missing on a slow reply');
       check(await evaluate('document.querySelector(".aki-dot").dataset.level') === 'ok', 'a slow reply turned the dot busy');
-      await click('.aki-cancel');
-      await delay(300);
-      check(stub.closed.includes('/v1/chat'), 'Cancel did not close the request');
-      check(!(await exists('.aki-cancel-row')) && await evaluate('document.getElementById("aki-input").value') === 'queued',
-        'Cancel left the status line or lost the message');
-      check(!hist(await snap(), 'local') && !hist(await snap(), 'session'), 'Cancel changed history');
-      stub.chat = (b) => ({ body: aiReply(b, 'fast') });
-      await sendAndWait('queued');
-      const calls = chatCalls();
-      check(calls[0].body.turnId !== calls[1].body.turnId, 'turnId reused after Cancel');
+      await until('document.querySelectorAll(".aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing))").length > 0', 'slow reply', 6000);
     });
 
     // ---- Welcome step, gate and footer status (addendum 6, 9) ----
@@ -1180,6 +1170,9 @@ async function runAkiSmoke() {
       check(await chipFor('how do I contact him?', 'See his [Work](#work).') === '#contact', 'wrong-section link suppressed the Contact chip');
       check(await chipFor("show me Jason's work", 'Plenty to see.') === '#work', 'no Work chip for "work"');
       check(await chipFor('how do I contact him?', 'Use the [Contact](#contact) form.') === '', 'chip added although Contact was linked');
+      check(await chipFor('how do I contact him?', 'Use `[Contact](#contact)`.') === '#contact', 'a code-wrapped link suppressed the chip');
+      check(await chipFor('how do I contact him?', 'Use **[Contact](#contact)**.') === '', 'chip added although a bold link renders');
+      check(await evaluate('[...document.querySelectorAll(".aki-msg-assistant strong > a")].pop()?.getAttribute("href")') === '#contact', 'link inside bold not rendered');
       check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
       check(await chipFor('ジェイソンのプロジェクトは？', 'いくつかあります。') === '#work', 'no Work chip for Japanese');
       check(await chipFor('كيف أتواصل مع جيسون؟', 'يمكنك مراسلته.') === '#contact', 'no Contact chip for Arabic');

@@ -29,8 +29,9 @@ function inline(text) {
   for (const m of text.matchAll(INLINE)) {
     if (m.index > at) out.push(text.slice(at, m.index));
     const k = out.length;
-    if (m[1]) out.push(<strong key={k}>{m[1]}</strong>);
-    else if (m[2]) out.push(<em key={k}>{m[2]}</em>);
+    // Bold and italic may wrap a link; code stays literal, as in Markdown.
+    if (m[1]) out.push(<strong key={k}>{inline(m[1])}</strong>);
+    else if (m[2]) out.push(<em key={k}>{inline(m[2])}</em>);
     else if (m[3]) out.push(<code key={k}>{m[3]}</code>);
     else {
       const id = m[5].match(SECTION)?.[1];
@@ -83,7 +84,8 @@ const sectionLinks = (question, reply) => {
   const t = TOPICS.find(([, , re]) => re.test(question));
   if (!t) return undefined;
   // Only a link to the asked-about section counts; a link elsewhere still gets this one.
-  const linked = [...reply.matchAll(new RegExp(SECTION_LINK.source, 'g'))].some((m) => m[1] === t[0]);
+  // Links inside `code` are not rendered, so they do not count.
+  const linked = [...reply.replace(/`[^`\n]+`/g, '').matchAll(new RegExp(SECTION_LINK.source, 'g'))].some((m) => m[1] === t[0]);
   return linked ? undefined : [{ label: `Go to ${t[1]}`, href: `#${t[0]}` }];
 };
 
@@ -313,12 +315,6 @@ function AkiWidget() {
 
   const flushFaq = () => { const done = faqDone.current; stopFaq(); done?.(); };
 
-  const cancelSend = () => {
-    const message = pending;
-    cancel();
-    if (message) setInput(message);
-  };
-
   const cancel = () => {
     clearTimeout(holdTimer.current);
     abortRef.current?.abort();
@@ -517,11 +513,6 @@ function AkiWidget() {
               <div ref={logRef} className="aki-log" onClick={onLogClick}>
                 <div role="log" aria-live="polite" aria-label="Conversation with Aki">
                 {feed.map((item, i) => <Message key={item.id} item={item} first={feed[i - 1]?.role !== item.role} />)}
-                {slow && pending && (
-                  <div className="aki-cancel-row">
-                    <button type="button" className="button aki-cancel" onClick={cancelSend}>Cancel</button>
-                  </div>
-                )}
                 </div>
                 {showTry && (
                   <>
