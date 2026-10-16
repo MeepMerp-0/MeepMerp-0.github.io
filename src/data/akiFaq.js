@@ -33,17 +33,16 @@ export const AKI_MESSAGES = {
   tryAsking: 'Try asking',
   typing: 'Aki is typing\u2026',
   failure: "Hmm, I can't reach my AI service right now \u{1F615} Here are some quick answers, or try again shortly.",
-  busy: 'Aki is busy right now \u23F3 This can take up to about 40 seconds.',
   quota: (at) => `Aki has used up today's free answers \u{1F64F} ${at ? `Free-text chat is back ${at}. ` : 'Try again tomorrow. '}The quick answers below still work.`,
   veryBusy: (n) => `Aki is very busy right now. Try again in ${n} seconds.`,
-  retry: (n) => `Please wait ${n} seconds before sending another message.`,
+  retry: (n) => `Quick pause to keep things spam-free \u270B You can send another message in ${n} seconds.`,
   region: "Free-text chat isn't available in your region, but these quick answers are \u{1F30D}",
   blocked: "I can't help with that one. Try a question about Jason's work \u{1F642}",
   updated: 'Aki was just updated. Please reload the page to continue.',
   noCrypto: 'Free-text chat needs a newer browser. Quick answers are still available.',
   tooLong: 'That message is too long. Please shorten it.',
   empty: 'Type a message first.',
-  head: { ok: 'Aki \u00B7 Here to help', busy: 'Aki \u00B7 Busy', down: 'Aki \u00B7 Not connected' }
+  head: { ok: 'Aki \u00B7 Here to help', typing: 'Aki \u00B7 Typing\u2026', busy: 'Aki \u00B7 Busy', down: 'Aki \u00B7 Not connected' }
 };
 
 // Single source for the welcome screen and its smoke test.
