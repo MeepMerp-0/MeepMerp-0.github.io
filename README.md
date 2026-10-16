@@ -23,6 +23,7 @@ These roles and descriptions reflect the experience details shared for this port
 - **About:** real roles, dates where provided, contributions, and a concise technical toolkit.
 - **Process:** a five-stage AUDIT → DESIGN → BUILD → TEST → SHIP panel inspired by an editor-style reference. The role instructions in `.github/agents/` are documentation, **not** autonomous services running on this site.
 - **Contact:** email and GitHub links plus a form using the existing configurable backend.
+- **Aki:** an 18+ portfolio chat assistant (bottom right). Answers come from Google Gemini first, Groq as backup and built-in quick answers last, through a Cloudflare Worker that holds the API keys and enforces free-tier limits. See [Aki chatbot](#aki-chatbot).
 - **Scroll interactions:** a thin page reading-progress line follows scroll; Hero field notes move with gentle parallax; Work rows enter from alternating sides; About columns counter-slide into view; Process includes its own scroll-linked progress rule; and Contact combines an offset text entrance with a rising form. Stage selection and hover affordances remain subtle. Important text and links stay fully opaque throughout.
 - **Accessibility:** semantic content, natural scrolling, skip link, keyboard-accessible controls, responsive layout, high-contrast light/dark themes, and reduced-motion support.
 
@@ -66,20 +67,23 @@ src/
 ├── App.jsx                         # Active single-page site: all visitor sections
 ├── data/portfolioData.js           # Personal info, experience, projects, work samples
 ├── components/
+│   ├── Aki.jsx                     # Aki chat panel and launcher
 │   ├── PortfolioWorkflow.jsx       # Interactive process panel
 │   └── PortfolioWorkflow.css
 ├── hooks/useContactForm.js         # Form state, validation and rate limiting
 ├── services/formService.js         # Backend adapter
+├── services/akiClient.js          # Aki API client, Turnstile, history storage rules
 ├── config/formBackend.js           # Form backend selection
 └── styles/global.css               # Active editorial design, motion affordances and responsive styling
 api/contact.js                      # Serverless endpoint for compatible hosting (not Pages)
+worker/                             # Aki Cloudflare Worker (API, rate limiter, tests, wrangler.toml)
 .github/
 ├── agents/                          # Optional AI role instructions
 ├── prompts/                         # Reusable portfolio improvement prompt
 └── workflows/
     ├── portfolio-quality.yml        # PR verification and screenshots
-    └── deploy.yml                   # GitHub Pages publishing
-public/                              # Static assets
+    └── deploy.yml                   # Aki Worker deploy, then GitHub Pages publishing
+public/                              # Static assets, including aki-legal.html (Aki privacy notice and terms)
 scripts/verify-scroll-preview.mjs    # Dependency-free Chrome DevTools scroll/screenshot smoke
 ```
 
@@ -115,9 +119,41 @@ Copy `.env.example` into a local `.env` only if you need to test sending message
 - The form includes validation, a honeypot and client-side rate limiting. Delivery requires a correctly configured, reachable backend; if it fails, the website offers an email link.
 - Never commit real `.env` files or private client data.
 
+## Aki chatbot
+
+Aki's browser code only talks to the Worker in `worker/`; no provider key is ever in the site bundle.
+
+**Configuration**
+
+| Where | Name | Notes |
+| --- | --- | --- |
+| GitHub repository secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | A Workers Scripts · Edit token can only update an existing Worker; creating it needs product-level Workers Admin. Simplest: create the Worker once from your machine (`worker/node_modules/.bin/wrangler login`, then `npm run aki:deploy`), after which the Edit-only token is enough |
+| GitHub repository secrets | `VITE_AKI_API_URL`, `VITE_AKI_TURNSTILE_SITEKEY` | Worker URL with `https://` (for example `https://aki-api.<subdomain>.workers.dev`) and the public Turnstile site key. Unset `VITE_AKI_API_URL` hides Aki |
+| Cloudflare Worker secrets (`aki-api` → Settings → Variables and Secrets, type Secret) | `GROQ_API_KEY`, `GEMINI_API_KEY`, `TURNSTILE_SECRET`, `SESSION_HMAC_SECRET`, `IP_HASH_SECRET` | The last two are long random strings (`openssl rand -base64 32`). Without them the Worker fails closed |
+| `worker/wrangler.toml` `[vars]` | models, caps, `ALLOWED_ORIGINS`, `GEMINI_ALLOWED_COUNTRIES`, `CONSENT_VERSION` | `CONSENT_VERSION`'s first entry must equal `public/aki-legal.html`; when bumping it, keep the old one after a comma until the site has deployed |
+
+Keep every account on its free tier: no payment method on Cloudflare, Groq or the Google project behind the Gemini key.
+
+**Local development**
+
+```bash
+npm ci --prefix worker
+npm run aki:test                     # Worker unit tests; no real provider calls
+cp worker/.dev.vars.example worker/.dev.vars   # fill in keys (git-ignored); dev uses Cloudflare's always-pass Turnstile test secret from wrangler.toml
+npm run aki:dev                      # Worker on http://127.0.0.1:8787
+```
+
+Then run the site with `VITE_AKI_API_URL=http://127.0.0.1:8787` and `VITE_AKI_TURNSTILE_SITEKEY=1x00000000000000000000AA` in `.env.local`.
+
+**First rollout**
+
+1. Create the `aki-api` Worker once from your machine (`npm ci --prefix worker`, `worker/node_modules/.bin/wrangler login`, `npm run aki:deploy`), because the Edit-only CI token cannot create it.
+2. Add the four GitHub repository secrets above, then merge to `main`. The deploy workflow updates the Worker, then publishes the site.
+3. In Cloudflare add the five Worker secrets. Aki starts answering once they are saved.
+
 ## CI, visual previews and deployment
 
-The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run build`, and `scripts/verify-scroll-preview.mjs` using Node.js's built-in WebSocket and the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**.
+The PR workflow (`.github/workflows/portfolio-quality.yml`) runs `npm ci`, ESLint on modified JS/JSX files, `npm run aki:test`, `npm run build`, and `scripts/verify-scroll-preview.mjs` using Node.js's built-in WebSocket and the Chrome DevTools protocol—**no Puppeteer/Playwright dependency**.
 
 ### Responsive verification matrix
 
@@ -145,7 +181,7 @@ These automated checks **do not prove** smooth animation, screen-reader announce
 CHROME_BIN="$(command -v google-chrome || command -v chromium)" node scripts/verify-scroll-preview.mjs
 ```
 
-The GitHub Pages workflow (`.github/workflows/deploy.yml`) runs on pushes to `main` and publishes the built `dist/` directory. The repository also has a manual `npm run deploy` command. Review pull requests before merging to avoid unintentionally publishing changes.
+The deploy workflow (`.github/workflows/deploy.yml`) runs on pushes to `main`: it tests and deploys the Aki Worker first, then builds and publishes `dist/` to GitHub Pages. **A failed Worker deploy (for example missing Cloudflare secrets) blocks the Pages publish.** The repository also has a manual `npm run deploy` command, which publishes the site only and does not touch the Worker. Review pull requests before merging to avoid unintentionally publishing changes.
 
 ## Maintaining content
 
