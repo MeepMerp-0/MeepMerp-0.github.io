@@ -16,6 +16,22 @@ const MIN_TYPING_MS = 700;
 const now = () => Date.now();
 
 // Plain text only: every message goes through here as React text nodes.
+// Only links to this page's sections become links; any other Markdown link shows as its plain label.
+const LINK = /\[([^\]\n]{1,60})\]\(([^)\s]{1,200})\)/g;
+const SECTION = /^(?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact)$/;
+function replyParts(text) {
+  const parts = [];
+  let at = 0;
+  for (const m of text.matchAll(LINK)) {
+    if (m.index > at) parts.push(text.slice(at, m.index));
+    const id = m[2].match(SECTION)?.[1];
+    parts.push(id ? { label: m[1], href: `#${id}` } : m[1]);
+    at = m.index + m[0].length;
+  }
+  if (at < text.length) parts.push(text.slice(at));
+  return parts;
+}
+
 function Message({ item, first }) {
   const mine = item.role === 'user';
   const who = mine ? 'You' : 'Aki';
@@ -26,7 +42,7 @@ function Message({ item, first }) {
         <span className="sr-only">{who} said: </span>
         {item.typing ? <span className="aki-typing"><i /><i /><i /></span> : item.greet ? (
           <p>{MSG.greetingHead} <span aria-hidden="true">{'\u{1F44B}'}</span> {MSG.greetingBody}</p>
-        ) : <p>{item.text}</p>}
+        ) : <p>{replyParts(item.text).map((p, i) => (typeof p === 'string' ? p : <a key={i} href={p.href}>{p.label}</a>))}</p>}
         {item.links?.length > 0 && (
           <p className="aki-links">
             {item.links.map((l) => (
@@ -142,7 +158,9 @@ function AkiWidget() {
     else if (mood) head = mood.state;
     else if (typing && input.trim()) head = 'listening';
   }
-  const level = link === 'down' ? 'down' : (link === 'busy' || wait || (pending && slow)) ? 'busy' : 'ok';
+  // A visitor's own spam cooldown is not "busy"; only a real provider/site limit is.
+  const level = link === 'down' ? 'down' : (link === 'busy' || wait?.big) ? 'busy' : 'ok';
+  const headLabel = level === 'ok' && isTyping ? MSG.head.typing : MSG.head[level];
   const feed = [
     { id: 'greet', role: 'assistant', greet: true },
     ...log,
@@ -341,6 +359,20 @@ function AkiWidget() {
 
   const close = () => { flushFaq(); setOpen(false); setTyping(false); };
 
+  // Section links in replies scroll the page; on phones the panel closes first so the section is visible.
+  const onLogClick = (e) => {
+    const a = e.target.closest?.('a[href^="#"]');
+    const target = a && document.getElementById(a.getAttribute('href').slice(1));
+    if (!target) return;
+    e.preventDefault();
+    if (window.matchMedia('(max-width: 559px)').matches) close();
+    window.history.replaceState(null, '', a.getAttribute('href'));
+    target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+    // Keyboard and screen-reader users continue from the section, after any panel-close focus move.
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    setTimeout(() => target.focus({ preventScroll: true }), 0);
+  };
+
   const onKeyDown = (e) => {
     if (e.key === 'Escape') close();
   };
@@ -387,7 +419,7 @@ function AkiWidget() {
             <div>
               <p className="aki-status-line">
                 <span className="aki-dot" data-level={level} aria-hidden="true" />
-                <span aria-hidden="true">{MSG.head[level]}</span>
+                <span aria-hidden="true">{headLabel}</span>
                 <span className="sr-only" role="status">{MSG.head[level]}</span>
               </p>
             </div>
@@ -405,12 +437,11 @@ function AkiWidget() {
             />
           ) : (
             <div className="aki-body aki-chat">
-              <div ref={logRef} className="aki-log">
+              <div ref={logRef} className="aki-log" onClick={onLogClick}>
                 <div role="log" aria-live="polite" aria-label="Conversation with Aki">
                 {feed.map((item, i) => <Message key={item.id} item={item} first={feed[i - 1]?.role !== item.role} />)}
                 {slow && pending && (
-                  <div className="aki-status">
-                    <p>{MSG.busy}</p>
+                  <div className="aki-cancel-row">
                     <button type="button" className="button aki-cancel" onClick={cancel}>Cancel</button>
                   </div>
                 )}

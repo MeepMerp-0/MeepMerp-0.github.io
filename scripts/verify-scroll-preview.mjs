@@ -514,7 +514,6 @@ async function step(name, fn) {
   console.log('[aki]', name, 'ok');
 }
 
-const BUSY = AKI_MESSAGES.busy;
 const CLEAR = '.aki-link[aria-label="Clear conversation"]';
 
 async function runAkiSmoke() {
@@ -952,14 +951,17 @@ async function runAkiSmoke() {
     await step('queue status and Cancel', async () => {
       await akiPage({ chat: (b) => ({ body: aiReply(b, 'slow'), holdMs: 5000 }) });
       await openChat();
-      await sendMessage('queued');
       const started = Date.now();
-      await until('[...document.querySelectorAll(".aki-status p")].some((p) => p.textContent === ' + q(BUSY) + ')', 'busy line', 6000);
-      check(Date.now() - started >= 2000, 'busy line appeared too early');
+      await sendMessage('queued');
+      check(await evaluate('document.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)").textContent') === AKI_MESSAGES.head.typing,
+        'header does not say typing while a reply is pending');
+      await until('document.querySelector(".aki-cancel")', 'Cancel button', 6000);
+      check(Date.now() - started >= 2000, 'Cancel appeared too early');
+      check(await evaluate('document.querySelector(".aki-dot").dataset.level') === 'ok', 'a slow reply turned the dot busy');
       await click('.aki-cancel');
       await delay(300);
       check(stub.closed.includes('/v1/chat'), 'Cancel did not close the request');
-      check(!(await exists('.aki-status')) && await evaluate('document.getElementById("aki-input").value') === 'queued',
+      check(!(await exists('.aki-cancel-row')) && await evaluate('document.getElementById("aki-input").value') === 'queued',
         'Cancel left the status line or lost the message');
       check(!hist(await snap(), 'local') && !hist(await snap(), 'session'), 'Cancel changed history');
       stub.chat = (b) => ({ body: aiReply(b, 'fast') });
@@ -1126,6 +1128,35 @@ async function runAkiSmoke() {
       check(stub.log.length === chats && (await evaluate('document.querySelector("#aki-input").value')) === 'にほ', 'Enter during IME composition sent the message');
     });
 
+    await step('spam cooldown is not busy; replies link only to page sections', async () => {
+      await akiPage({ chat: (b, n) => ({ body: n === 1 ? { type: 'rate_limited', scope: 'ip', retryAfter: 2 }
+        : aiReply(b, 'Reach Jason via the [Contact](#contact) section, not [this](https://evil.example/#contact) or [that](javascript:void0).') }) });
+      await openChat();
+      await sendMessage('one');
+      await until('document.querySelector(".aki-status")', 'cooldown line');
+      check((await texts('.aki-status')).some((t) => t.includes('spam-free')), 'cooldown copy does not mention spam');
+      check(await evaluate('document.querySelector(".aki-dot").dataset.level') === 'ok', 'own cooldown turned the dot busy');
+      await until('!document.querySelector(".aki-status")', 'cooldown over', 6000);
+      await sendAndWait('two');
+      const links = await evaluate('[...document.querySelectorAll(".aki-msg-assistant p a")].map((a) => [a.textContent, a.getAttribute("href")])');
+      check(JSON.stringify(links) === JSON.stringify([['Contact', '#contact']]), 'reply links ' + JSON.stringify(links));
+      check((await texts('.aki-msg-assistant p')).some((t) => t.includes('not this or that.')), 'disallowed links not shown as plain labels');
+      await click('.aki-msg-assistant p a');
+      await delay(1500);
+      const pos = await evaluate('({ hash: location.hash, top: document.getElementById("contact").getBoundingClientRect().top, y: scrollY, max: document.documentElement.scrollHeight - innerHeight })');
+      check(pos.hash === '#contact' && (Math.abs(pos.top) < 140 || pos.y >= pos.max - 2), 'not scrolled to Contact ' + JSON.stringify(pos));
+      check(await exists('#aki-panel'), 'desktop panel closed on a section link');
+      check(await evaluate('document.activeElement?.id') === 'contact', 'focus did not move to Contact');
+
+      await viewport(390, 844);
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'See [Work](#work).') }) });
+      await openChat();
+      await sendAndWait('work?');
+      await click('.aki-msg-assistant p a');
+      await until('!document.querySelector("#aki-panel") && location.hash === "#work" && document.activeElement?.id === "work"', 'phone panel closed, moved and focused Work', 4000);
+      await viewport(1440, 900);
+    });
+
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {
       await akiPage({ chat: (b, n) => ({ body: n === 1 ? { type: 'provider_unavailable', reason: 'groq_busy', retryAfter: 3 } : aiReply(b, 'ok') }) });
       await openChat();
@@ -1228,7 +1259,7 @@ async function runAkiSmoke() {
     await step('header dot: busy, down, then green again', async () => {
       const head = () => evaluate('(() => { const p = document.querySelector("#aki-panel"); return { level: p.querySelector(".aki-dot")?.dataset.level,'
         + 'text: p.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)")?.textContent }; })()');
-      const seq = [{ type: 'rate_limited', scope: 'ip', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' }, null];
+      const seq = [{ type: 'rate_limited', scope: 'site_minute', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' }, null];
       const quota = () => ({ type: 'quota_exhausted', scope: 'ip', resetsAt: new Date(Date.now() + 4000).toISOString() });
       await akiPage({ chat: (b, n) => ({ body: n === 4 ? quota() : seq[n - 1] || aiReply(b, 'back') }) });
       await openChat();
