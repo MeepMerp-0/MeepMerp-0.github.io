@@ -202,7 +202,8 @@ async function turnstileToken(container, signal) {
     id = ts.render(container, {
       sitekey: SITEKEY,
       action: 'aki_session',
-      size: 'flexible',
+      // Flexible needs 300px; narrow phone panels get the compact widget.
+      size: container.parentElement.clientWidth < 324 ? 'compact' : 'flexible',
       callback: done(resolve),
       'error-callback': done(reject),
       'timeout-callback': done(reject),
@@ -290,9 +291,15 @@ function interpret({ status, body }) {
     return { kind: 'ai', reply: body.reply, sig: body.sig, ts: body.ts, prev: body.prevSig ?? '', provider: body.provider };
   }
   if (t === 'faq') return { kind: 'faq' };
-  if (t === 'provider_unavailable') return { kind: 'unavailable', reason: body.reason };
+  if (t === 'provider_unavailable') {
+    const retryAfter = Math.ceil(Number(body.retryAfter));
+    return { kind: 'unavailable', reason: body.reason, ...(retryAfter > 0 ? { retryAfter } : {}) };
+  }
   if (t === 'rate_limited') return { kind: 'rate', scope: body.scope, retryAfter: Math.max(1, Math.ceil(Number(body.retryAfter) || 5)) };
-  if (t === 'quota_exhausted') return { kind: 'unavailable', reason: 'quota' };
+  if (t === 'quota_exhausted') {
+    const resetsAt = Date.parse(body.resetsAt);
+    return { kind: 'quota', ...(Number.isFinite(resetsAt) ? { resetsAt } : {}) };
+  }
   if (t === 'invalid_request') return { kind: 'invalid', error: body.error };
   return { kind: 'network' };
 }

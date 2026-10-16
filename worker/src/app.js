@@ -142,7 +142,10 @@ export function readConfig(env) {
     ipSecret: e.IP_HASH_SECRET.trim(),
     turnstileSecret: e.TURNSTILE_SECRET.trim(),
     groqModel: e.GROQ_MODEL.trim(),
-    consentVersion: e.CONSENT_VERSION.trim(),
+    // Current version first; while a new notice rolls out the previous one may follow a comma, so the
+    // live site keeps working until its new bundle deploys. Remove it once the site is updated.
+    consentVersion: e.CONSENT_VERSION.split(',')[0].trim(),
+    consentVersions: e.CONSENT_VERSION.split(',').map((v) => v.trim()).filter(Boolean),
     origins,
     hostnames,
     actions,
@@ -251,7 +254,7 @@ export async function prepareChat(req) {
   if (!validHistory(history)) return fail(bad('bad_history'));
   const session = await verifySession(config.sessionSecret, sessionToken, deps.now());
   if (!session) return fail({ type: 'session_required' });
-  if (session.cv !== config.consentVersion) return fail({ type: 'session_required', reason: 'consent' });
+  if (!config.consentVersions.includes(session.cv)) return fail({ type: 'session_required', reason: 'consent' });
   if (config.siteDailyCap === 0) return fail({ type: 'provider_unavailable', reason: 'disabled', turnId });
   if (!deps.ip) return fail({ type: 'provider_unavailable', reason: 'misconfigured', turnId });
   const chain = await verifyChain(config.sessionSecret, mid, prevSig, history, deps.now());
@@ -408,7 +411,7 @@ async function session(req) {
   if (typeof token !== 'string') return respond(bad('bad_request'));
   // The 18+ gate (§2), checked before siteverify so a bad request spends no siteverify call.
   const { ack18, geminiAck, consentVersion } = body;
-  if (ack18 !== true || typeof geminiAck !== 'boolean' || consentVersion !== config.consentVersion) {
+  if (ack18 !== true || typeof geminiAck !== 'boolean' || !config.consentVersions.includes(consentVersion)) {
     return respond(bad('bad_consent'));
   }
   if (config.siteDailyCap === 0) return respond({ type: 'provider_unavailable', reason: 'disabled' });
@@ -418,11 +421,11 @@ async function session(req) {
   const g = geminiAck && geminiSwitch(config, country) === 'eligible';
   const sid = crypto.randomUUID();
   // The audit record; a failed write fails the session closed (handle's catch).
-  await deps.limiter.consent({ sid, consentVersion: config.consentVersion, gemini: g, country: country ?? null });
+  await deps.limiter.consent({ sid, consentVersion, gemini: g, country: country ?? null });
   const exp = deps.now() + SESSION_TTL_MS;
   return respond({
     type: 'session',
-    sessionToken: await signSession(config.sessionSecret, { sid, exp, cv: config.consentVersion, g }),
+    sessionToken: await signSession(config.sessionSecret, { sid, exp, cv: consentVersion, g }),
     expiresAt: new Date(exp).toISOString(),
     memory: memoryRule(country),
     gemini: g ? 'on' : 'off',

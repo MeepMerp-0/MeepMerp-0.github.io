@@ -856,11 +856,24 @@ test('RPC parity: every OPS key has a matching Limiter method in index.js, and t
   assert.deepEqual(named.sort(), Object.keys(OPS).sort());
 });
 
+test('a previous consent version listed after the current one still gets and keeps a session', async () => {
+  const app = makeApp({ env: { CONSENT_VERSION: `2099-01-01,${CV}` } });
+  const s = await app.session();
+  assert.equal(s.status, 200, JSON.stringify(s.json));
+  const r = await app.chat({});
+  assert.equal(r.json.type, 'ai', JSON.stringify(r.json));
+  const region = await app.send('/v1/region', {});
+  assert.equal(region.json.consentVersion, '2099-01-01');
+  app.tick();
+  const dropped = await app.chat({}, { env: { ...app.env, CONSENT_VERSION: '2099-01-01' } });
+  assert.deepEqual([dropped.status, dropped.json], [401, { type: 'session_required', reason: 'consent' }]);
+});
+
 test('version parity: AKI_CONSENT_VERSION, the legal page and both wrangler.toml lines are equal', () => {
   const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
   const client = read('../../src/data/akiFaq.js').match(/export const AKI_CONSENT_VERSION\s*=\s*['"]([^'"]+)['"]/)?.[1];
   const legal = read('../../public/aki-legal.html').match(/data-consent-version="([^"]+)"/)?.[1];
-  const toml = [...read('../wrangler.toml').matchAll(/^CONSENT_VERSION\s*=\s*"([^"]*)"/gm)].map((m) => m[1]);
+  const toml = [...read('../wrangler.toml').matchAll(/^CONSENT_VERSION\s*=\s*"([^"]*)"/gm)].map((m) => m[1].split(',')[0].trim());
   assert.ok(client, 'AKI_CONSENT_VERSION found');
   assert.equal(legal, client);
   assert.deepEqual(toml, [client, client]);

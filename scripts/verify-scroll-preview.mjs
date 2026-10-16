@@ -525,7 +525,7 @@ async function runAkiSmoke() {
   let site;
   const script = await call('Page.addScriptToEvaluateOnNewDocument', {
     source: 'window.__tsRenders = []; window.turnstile = { render(el, o) {'
-      + 'window.__tsRenders.push({ action: o.action, sitekey: o.sitekey });'
+      + 'window.__tsRenders.push({ action: o.action, sitekey: o.sitekey, size: o.size });'
       + 'setTimeout(() => o.callback("stub-token"), 0); return "w" + window.__tsRenders.length; },'
       + 'remove() {} };',
   });
@@ -613,7 +613,7 @@ async function runAkiSmoke() {
       await openChat();
       await sendAndWait('hello');
       const renders = await evaluate('window.__tsRenders');
-      check(renders.length && renders[0].action === 'aki_session' && renders[0].sitekey === 'stub-sitekey',
+      check(renders.length && renders[0].action === 'aki_session' && renders[0].sitekey === 'stub-sitekey' && renders[0].size === 'flexible',
         'turnstile.render options ' + JSON.stringify(renders));
       const probe = () => evaluate('({ last: [...document.querySelectorAll(".aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing)) p")].pop()?.textContent,'
         + 'img: document.querySelectorAll(".aki-log img").length, xss: window.__xss })');
@@ -1081,6 +1081,22 @@ async function runAkiSmoke() {
       await sendMessage('hello');
       await until('document.querySelector(".aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing))")', 'faq reply');
       check((await texts('.aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing)) p')).includes(AKI_MESSAGES.region), 'region line missing after faq');
+      check(!(await exists('#aki-input')), 'free-text composer still shown after faq');
+    });
+
+    await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {
+      await akiPage({ chat: (b, n) => ({ body: n === 1 ? { type: 'provider_unavailable', reason: 'groq_busy', retryAfter: 3 } : aiReply(b, 'ok') }) });
+      await openChat();
+      await sendMessage('hello');
+      await until('document.querySelector(".aki-dot")?.dataset.level === "busy" && document.querySelector(".aki-status")', 'busy wait');
+      check((await texts('.aki-status')).some((t) => t.includes('very busy')), 'groq_busy wait text missing');
+      check(await evaluate('document.querySelector(".aki-send").disabled'), 'send enabled during groq_busy wait');
+      await viewport(320, 700);
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'ok') }) });
+      await openChat();
+      await sendAndWait('hello');
+      check((await evaluate('window.__tsRenders'))[0]?.size === 'compact', 'Turnstile at 320px: ' + JSON.stringify(await evaluate('window.__tsRenders')));
+      await viewport(1440, 900);
     });
 
     await step('stale site: bad_consent shows the reload line', async () => {
@@ -1169,8 +1185,8 @@ async function runAkiSmoke() {
     await step('header dot: busy, down, then green again', async () => {
       const head = () => evaluate('(() => { const p = document.querySelector("#aki-panel"); return { level: p.querySelector(".aki-dot")?.dataset.level,'
         + 'text: p.querySelector(".aki-status-line span[aria-hidden]:not(.aki-dot)")?.textContent }; })()');
-      const seq = [{ type: 'rate_limited', scope: 'ip', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' },
-        { type: 'quota_exhausted' }];
+      const seq = [{ type: 'rate_limited', scope: 'ip', retryAfter: 2 }, { type: 'provider_unavailable', reason: 'groq_failed' }, null,
+        { type: 'quota_exhausted', scope: 'ip', resetsAt: new Date(Date.now() + 3600000).toISOString() }];
       await akiPage({ chat: (b, n) => ({ body: seq[n - 1] || aiReply(b, 'back') }) });
       await openChat();
       await sendMessage('one');
@@ -1180,9 +1196,13 @@ async function runAkiSmoke() {
       await sendAndWait('two');
       check((await head()).level === 'down' && (await head()).text === AKI_MESSAGES.head.down, 'down after provider_unavailable ' + JSON.stringify(await head()));
       await sendAndWait('three');
-      check((await head()).level === 'down', 'down after quota_exhausted ' + JSON.stringify(await head()));
-      await sendAndWait('four');
       check((await head()).level === 'ok' && (await head()).text === AKI_MESSAGES.head.ok, 'green after a reply ' + JSON.stringify(await head()));
+      await sendMessage('four');
+      await until('!document.querySelector("#aki-input")', 'composer hidden after quota_exhausted');
+      check((await head()).level === 'down', 'down after quota_exhausted ' + JSON.stringify(await head()));
+      check((await texts('.aki-msg-assistant p')).some((t) => t.startsWith("Aki has used up today's free answers") && t.includes('after ')),
+        'quota line with the reset time missing');
+      check(await exists('.aki-chip'), 'quick answers hidden after quota_exhausted');
     });
 
     await step('rounded panel and chips; welcome fits at 320px in both themes', async () => {

@@ -34,6 +34,7 @@ export const AKI_MESSAGES = {
   typing: 'Aki is typing\u2026',
   failure: "Hmm, I can't reach my AI service right now \u{1F615} Here are some quick answers, or try again shortly.",
   busy: 'Aki is busy right now \u23F3 This can take up to about 40 seconds.',
+  quota: (at) => `Aki has used up today's free answers \u{1F64F} ${at ? `Free-text chat is back ${at}. ` : 'Try again tomorrow. '}The quick answers below still work.`,
   veryBusy: (n) => `Aki is very busy right now. Try again in ${n} seconds.`,
   retry: (n) => `Please wait ${n} seconds before sending another message.`,
   region: "Free-text chat isn't available in your region, but these quick answers are \u{1F30D}",

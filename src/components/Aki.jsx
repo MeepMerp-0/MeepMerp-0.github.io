@@ -239,7 +239,7 @@ function AkiWidget() {
   const handle = (res, message, mid, base) => {
     if (res.kind === 'ai') setLink('ok');
     else if (res.kind === 'unavailable') setLink(res.reason === 'groq_busy' ? 'busy' : res.reason === 'content_blocked' ? link : 'down');
-    else if (res.kind === 'network' || res.kind === 'invalid') setLink('down');
+    else if (res.kind === 'network' || res.kind === 'invalid' || res.kind === 'quota') setLink('down');
     switch (res.kind) {
       case 'ai': {
         const user = { role: 'user', content: message, ts: now() };
@@ -260,8 +260,17 @@ function AkiWidget() {
         break;
       }
       case 'updated': note('assistant', MSG.updated); break;
+      case 'quota': {
+        const at = res.resetsAt && new Date(res.resetsAt).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        setQuickOnly(true);
+        note('assistant', MSG.quota(at && `after ${at}`));
+        break;
+      }
       case 'unavailable':
-        if (res.reason === 'content_blocked') note('assistant', MSG.blocked); else failure();
+        if (res.reason === 'content_blocked') note('assistant', MSG.blocked);
+        else if (res.reason === 'groq_busy' && res.retryAfter) {
+          setWait({ n: res.retryAfter, big: true, say: MSG.veryBusy(res.retryAfter) });
+        } else failure();
         break;
       default: failure();
     }
@@ -367,7 +376,7 @@ function AkiWidget() {
               <p className="aki-status-line">
                 <span className="aki-dot" data-level={level} aria-hidden="true" />
                 <span aria-hidden="true">{MSG.head[level]}</span>
-                <span className="sr-only" role="status">{MSG.head[link]}</span>
+                <span className="sr-only" role="status">{MSG.head[level]}</span>
               </p>
             </div>
             <button type="button" className="icon-button" aria-label="Close Aki" onClick={close}>
@@ -415,7 +424,7 @@ function AkiWidget() {
                 </>
               )}
 
-              {AKI_CAN_CHAT ? (
+              {AKI_CAN_CHAT ? !quickOnly && (
                 <form className="aki-form" onSubmit={(e) => { e.preventDefault(); send(); }}>
                   <label className="sr-only" htmlFor="aki-input">Ask about Jason's work</label>
                   <div className="aki-compose">
