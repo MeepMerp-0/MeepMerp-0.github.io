@@ -1157,7 +1157,7 @@ async function runAkiSmoke() {
         + 'em: m.querySelector("em")?.textContent, code: m.querySelector("code")?.textContent, raw: /\\*\\*|`/.test(m.textContent),'
         + 'chip: [...m.querySelectorAll(".aki-links a")].map((a) => [a.textContent, a.getAttribute("href")]) }; })()');
       check(r.li === 2 && r.strong.join() === 'Email:,Phone:' && r.em === 'Feel free' && r.code === '+000' && !r.raw, 'markdown render ' + JSON.stringify(r));
-      check(JSON.stringify(r.chip) === JSON.stringify([['Go to Contact', '#contact']]), 'contact chip ' + JSON.stringify(r.chip));
+      check(JSON.stringify(r.chip) === JSON.stringify([['\u2192 Contact', '#contact']]), 'contact chip ' + JSON.stringify(r.chip));
       await click('.aki-msg-assistant .aki-links a');
       await until('location.hash === "#contact"', 'chip goes to Contact', 4000);
 

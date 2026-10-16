@@ -88,7 +88,8 @@ const sectionLinks = (question, reply) => {
   // Only a link to the asked-about section counts; a link elsewhere still gets this one.
   // Links inside `code` are not rendered, so they do not count.
   const linked = [...reply.replace(/`[^`\n]+`/g, '').matchAll(new RegExp(SECTION_LINK.source, 'g'))].some((m) => m[1] === t[0]);
-  return linked ? undefined : [{ label: `Go to ${t[1]}`, href: `#${t[0]}` }];
+  // The label is the section's own name from the (English) page navigation, so it reads the same in any reply language.
+  return linked ? undefined : [{ label: `\u2192 ${t[1]}`, href: `#${t[0]}` }];
 };
 
 function Message({ item, first }) {
