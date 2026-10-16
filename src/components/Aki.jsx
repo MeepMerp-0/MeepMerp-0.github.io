@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ShieldCheck, X } from 'lucide-react';
 import { RobotHead } from 'robot-heads';
 import { pickGreeting } from '../data/akiGreetings.js';
+import { WHATSAPP_URL } from '../data/portfolioData.js';
 import { AKI_FAQ, AKI_MESSAGES as MSG, AKI_WELCOME_COPY as W } from '../data/akiFaq.js';
 import {
   AKI_ENABLED, AKI_CAN_CHAT, appendPair, clearGate, clearHistory, codePoints, fetchRegion,
@@ -20,8 +21,11 @@ const now = () => Date.now();
 // # headings, **bold**, *italic*, `code` and links. Only links to this page's sections become links;
 // any other link shows as its plain label.
 const INLINE = /\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`|\[([^\]\n]{1,60})\]\(([^)\s]{1,200})\)/g;
-const SECTION = /^(?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact)$/;
-const SECTION_LINK = /\]\((?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact)\)/;
+// #whatsapp is a placeholder the models write instead of the number (Google never gets it); the page links it to WHATSAPP_URL.
+const SECTION = /^(?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact|whatsapp)$/;
+const SECTION_LINK = /\]\((?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact|whatsapp)\)/;
+const EXTERNAL = { rel: 'noopener noreferrer', target: '_blank' };
+const hrefOf = (id) => (id === 'whatsapp' ? WHATSAPP_URL : `#${id}`);
 
 function inline(text) {
   const out = [];
@@ -35,7 +39,7 @@ function inline(text) {
     else if (m[3]) out.push(<code key={k}>{m[3]}</code>);
     else {
       const id = m[5].match(SECTION)?.[1];
-      out.push(id ? <a key={k} href={`#${id}`}>{m[4]}</a> : m[4]);
+      out.push(id ? <a key={k} href={hrefOf(id)} {...(id === 'whatsapp' && EXTERNAL)}>{m[4]}</a> : m[4]);
     }
     at = m.index + m[0].length;
   }
@@ -71,7 +75,9 @@ function Markdown({ text }) {
 // ponytail: keyword lists for the common visitor languages; a question in another language relies on the model's own link.
 const topic = (latin, other) => new RegExp(`(?<!\\p{L})(?:${latin})(?!\\p{L})|${other}`, 'iu');
 const TOPICS = [
-  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone number|(?:his|jason\\W?s) (?:phone|number)|call (?:him|jason)|tel[eé]fono|telefone|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan|address|location|located|where (?:is|does) (?:he|jason)|based in',
+  // No letter guards: "WhatsApp" is never part of a longer word, and Japanese writes it right next to kana.
+  ['whatsapp', 'WhatsApp', /whats\W?app|\u0648\u0627\u062A\u0633\u0627\u0628|\u30EF\u30C3\u30C4\u30A2\u30C3\u30D7/iu],
+  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone number|(?:his|jason\\W?s) (?:phone|number)|call (?:him|jason)|tel[eé]fono|telefone|llamar|reach|hire|get in touch|joindre|makipag-ugnayan|address|location|located|where (?:is|does) (?:he|jason)|based in',
     '\u062A\u0648\u0627\u0635\u0644|\u0627\u062A\u0635\u0627\u0644|\u0628\u0631\u064A\u062F|\u0647\u0627\u062A\u0641|\u9023\u7D61|\u30E1\u30FC\u30EB|\u96FB\u8A71')],
   ['process', 'Process', topic('process|proceso|processus|prozess|processo|proseso|workflow|approach',
     '\u0639\u0645\u0644\u064A\u0629|\u30D7\u30ED\u30BB\u30B9')],
@@ -87,10 +93,12 @@ const sectionLinks = (question, reply) => {
   if (!topics.length) return undefined;
   const t = topics[0];
   // A link to any section the question is about counts; an unrelated one does not. Links inside `code` are not rendered.
+  // A WhatsApp question needs the WhatsApp link itself: a Contact link does not answer it.
+  const wanted = t[0] === 'whatsapp' ? [t] : topics;
   const linked = [...reply.replace(/`[^`\n]+`/g, '').matchAll(new RegExp(SECTION_LINK.source, 'g'))]
-    .some((m) => topics.some(([id]) => id === m[1]));
+    .some((m) => wanted.some(([id]) => id === m[1]));
   // The label is the section's own name from the (English) page navigation, so it reads the same in any reply language.
-  return linked ? undefined : [{ label: `\u2192 ${t[1]}`, href: `#${t[0]}` }];
+  return linked ? undefined : [{ label: `\u2192 ${t[1]}`, href: hrefOf(t[0]) }];
 };
 
 function Message({ item, first }) {

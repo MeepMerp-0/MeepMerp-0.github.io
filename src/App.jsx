@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import PortfolioWorkflow from './components/PortfolioWorkflow.jsx';
 import { Aki } from './components/Aki.jsx';
-import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, FOCUS_AREAS, SKILL_GROUPS } from './data/portfolioData.js';
+import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, FOCUS_AREAS, SKILL_GROUPS, WHATSAPP_URL } from './data/portfolioData.js';
 import { useContactForm } from './hooks/useContactForm.js';
 import { submitContactForm } from './services/formService.js';
 
@@ -79,7 +79,7 @@ function Header({ theme, setTheme }) {
             aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
             {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
           </button>
-          <a className="header-cta" href="https://wa.me/971504482694?text=Hi%20Jason%2C%20I%20saw%20your%20portfolio%20and%20I%27d%20like%20to%20talk%20about%20a%20project%20or%20opportunity." target="_blank" rel="noopener noreferrer" aria-label="Let's talk on WhatsApp (opens in a new tab)">Let's talk <ArrowUpRight size={15} aria-hidden="true" /></a>
+          <a className="header-cta" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="Let's talk on WhatsApp (opens in a new tab)">Let's talk <ArrowUpRight size={15} aria-hidden="true" /></a>
           <button ref={menuButton} className="icon-button mobile-menu" type="button" onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen} aria-controls="main-navigation" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}>
             {menuOpen ? <X size={21} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}

@@ -1,5 +1,8 @@
 // ─── data/portfolioData.js ───
 
+// The header's "Let's talk" button and Aki's WhatsApp link both open this chat.
+export const WHATSAPP_URL = 'https://wa.me/971504482694?text=Hi%20Jason%2C%20I%20saw%20your%20portfolio%20and%20I%27d%20like%20to%20talk%20about%20a%20project%20or%20opportunity.';
+
 export const PERSONAL = {
   name: 'Jason Selerio',
   title: 'AI & Full-Stack Engineer',
