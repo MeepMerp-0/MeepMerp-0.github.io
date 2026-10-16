@@ -1157,6 +1157,39 @@ async function runAkiSmoke() {
       await viewport(1440, 900);
     });
 
+    await step('replies render Markdown; a topic question always gets its section link', async () => {
+      const md = "Jason's contact details:\n\n- **Email:** jason@example.com\n- **Phone:** `+000`\n\n*Feel free* to reach out.";
+      await akiPage({ chat: (b) => ({ body: aiReply(b, md) }) });
+      await openChat();
+      await sendAndWait("what is jason's contact info?");
+      const r = await evaluate('(() => { const m = [...document.querySelectorAll(".aki-msg-assistant")].pop();'
+        + 'return { li: m.querySelectorAll("ul > li").length, strong: [...m.querySelectorAll("strong")].map((e) => e.textContent),'
+        + 'em: m.querySelector("em")?.textContent, code: m.querySelector("code")?.textContent, raw: /\\*\\*|`/.test(m.textContent),'
+        + 'chip: [...m.querySelectorAll(".aki-links a")].map((a) => [a.textContent, a.getAttribute("href")]) }; })()');
+      check(r.li === 2 && r.strong.join() === 'Email:,Phone:' && r.em === 'Feel free' && r.code === '+000' && !r.raw, 'markdown render ' + JSON.stringify(r));
+      check(JSON.stringify(r.chip) === JSON.stringify([['Go to Contact', '#contact']]), 'contact chip ' + JSON.stringify(r.chip));
+      await click('.aki-msg-assistant .aki-links a');
+      await until('location.hash === "#contact"', 'chip goes to Contact', 4000);
+    });
+
+    await step('send clears and disables the box; the visitor gets typing dots too', async () => {
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'ok'), holdMs: 1500 }) });
+      await openChat();
+      await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "hel");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await until('document.querySelector(".aki-row-user .aki-typing")', 'visitor typing dots');
+      await evaluate('(() => { const el = document.getElementById("aki-input");'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "hello");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await click('.aki-form button[type=submit]');
+      await until('document.querySelector(".aki-row-assistant .aki-typing")', 'Aki typing dots');
+      const s = await evaluate('(() => { const el = document.getElementById("aki-input"); return { value: el.value, disabled: el.disabled,'
+        + 'you: Boolean(document.querySelector(".aki-row-user .aki-typing")) }; })()');
+      check(s.value === '' && s.disabled && !s.you, 'box while Aki answers ' + JSON.stringify(s));
+      await until('!document.getElementById("aki-input").disabled && document.activeElement?.id === "aki-input"', 'box enabled and focused after the reply', 6000);
+    });
+
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {
       await akiPage({ chat: (b, n) => ({ body: n === 1 ? { type: 'provider_unavailable', reason: 'groq_busy', retryAfter: 3 } : aiReply(b, 'ok') }) });
       await openChat();

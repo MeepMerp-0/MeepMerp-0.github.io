@@ -16,21 +16,66 @@ const MIN_TYPING_MS = 700;
 const now = () => Date.now();
 
 // Plain text only: every message goes through here as React text nodes.
-// Only links to this page's sections become links; any other Markdown link shows as its plain label.
-const LINK = /\[([^\]\n]{1,60})\]\(([^)\s]{1,200})\)/g;
+// Small Markdown subset for Aki's replies, rendered as React nodes (never HTML): paragraphs, - / 1. lists,
+// # headings, **bold**, *italic*, `code` and links. Only links to this page's sections become links;
+// any other link shows as its plain label.
+const INLINE = /\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`|\[([^\]\n]{1,60})\]\(([^)\s]{1,200})\)/g;
 const SECTION = /^(?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact)$/;
-function replyParts(text) {
-  const parts = [];
+const SECTION_LINK = /\]\((?:https:\/\/meepmerp-0\.github\.io\/?)?#(home|work|about|process|contact)\)/;
+
+function inline(text) {
+  const out = [];
   let at = 0;
-  for (const m of text.matchAll(LINK)) {
-    if (m.index > at) parts.push(text.slice(at, m.index));
-    const id = m[2].match(SECTION)?.[1];
-    parts.push(id ? { label: m[1], href: `#${id}` } : m[1]);
+  for (const m of text.matchAll(INLINE)) {
+    if (m.index > at) out.push(text.slice(at, m.index));
+    const k = out.length;
+    if (m[1]) out.push(<strong key={k}>{m[1]}</strong>);
+    else if (m[2]) out.push(<em key={k}>{m[2]}</em>);
+    else if (m[3]) out.push(<code key={k}>{m[3]}</code>);
+    else {
+      const id = m[5].match(SECTION)?.[1];
+      out.push(id ? <a key={k} href={`#${id}`}>{m[4]}</a> : m[4]);
+    }
     at = m.index + m[0].length;
   }
-  if (at < text.length) parts.push(text.slice(at));
-  return parts;
+  if (at < text.length) out.push(text.slice(at));
+  return out;
 }
+
+function Markdown({ text }) {
+  const blocks = [];
+  let list = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    const item = line.match(/^(?:[-*•]|(\d+)[.)])\s+(.*)$/);
+    if (item) {
+      const ordered = Boolean(item[1]);
+      if (!list || list.ordered !== ordered) blocks.push(list = { ordered, items: [] });
+      list.items.push(item[2]);
+      continue;
+    }
+    list = null;
+    if (line) blocks.push({ text: line.replace(/^#{1,6}\s+/, ''), heading: /^#{1,6}\s/.test(line) });
+  }
+  return blocks.map((b, i) => {
+    if (!b.items) return <p key={i}>{b.heading ? <strong>{inline(b.text)}</strong> : inline(b.text)}</p>;
+    const List = b.ordered ? 'ol' : 'ul';
+    return <List key={i}>{b.items.map((t, n) => <li key={n}>{inline(t)}</li>)}</List>;
+  });
+}
+
+// A reply about one part of the site always ends with a link there, even when the model forgot one.
+const TOPICS = [
+  ['contact', 'Contact', /\b(contact|e-?mail|phone|call|reach|hire|whatsapp|get in touch)\b/i],
+  ['work', 'Work', /\b(projects?|built|demos?|apps?|portfolio)\b/i],
+  ['about', 'About', /\b(experience|background|skills?|stack|tech\w*|resume|cv|career|about)\b/i],
+  ['process', 'Process', /\b(process|workflow|approach)\b/i],
+];
+const sectionLinks = (question, reply) => {
+  if (SECTION_LINK.test(reply)) return undefined;
+  const t = TOPICS.find(([, , re]) => re.test(question));
+  return t && [{ label: `Go to ${t[1]}`, href: `#${t[0]}` }];
+};
 
 function Message({ item, first }) {
   const mine = item.role === 'user';
@@ -42,7 +87,7 @@ function Message({ item, first }) {
         <span className="sr-only">{who} said: </span>
         {item.typing ? <span className="aki-typing"><i /><i /><i /></span> : item.greet ? (
           <p>{MSG.greetingHead} <span aria-hidden="true">{'\u{1F44B}'}</span> {MSG.greetingBody}</p>
-        ) : <p>{replyParts(item.text).map((p, i) => (typeof p === 'string' ? p : <a key={i} href={p.href}>{p.label}</a>))}</p>}
+        ) : mine ? <p>{item.text}</p> : <Markdown text={item.text} />}
         {item.links?.length > 0 && (
           <p className="aki-links">
             {item.links.map((l) => (
@@ -108,7 +153,8 @@ function Welcome({ region, initial, onContinue, onClose }) {
   );
 }
 
-const toLog = (h) => (h ? h.messages.map((m, i) => ({ id: `s${i}`, role: m.role, text: m.content })) : []);
+const toLog = (h) => (h ? h.messages.map((m, i, all) => ({ id: `s${i}`, role: m.role, text: m.content,
+  ...(m.role === 'assistant' && all[i - 1]?.role === 'user' ? { links: sectionLinks(all[i - 1].content, m.content) } : {}) })) : []);
 
 function AkiWidget() {
   const reduceMotion = useReducedMotion();
@@ -118,6 +164,7 @@ function AkiWidget() {
   const [history, setHistory] = useState(loadHistory);
   const [log, setLog] = useState(() => toLog(history));
   const [input, setInput] = useState('');
+  const refocus = useRef(false);
   const [pending, setPending] = useState(null);
   const [slow, setSlow] = useState(false);
   const [replying, setReplying] = useState(false);
@@ -166,6 +213,8 @@ function AkiWidget() {
     ...log,
     ...(pending ? [{ id: 'pending', role: 'user', text: pending }] : []),
     ...(isTyping ? [{ id: 'typing', role: 'assistant', typing: true }] : []),
+    // The visitor's own typing dots, mirroring Aki's, while they compose a message.
+    ...(!isTyping && typing && input.trim() ? [{ id: 'you-typing', role: 'user', typing: true }] : []),
   ];
   const note = (role, text, links) => setLog((l) => [...l, { id: `n${uid.current += 1}`, role, text, links }]);
 
@@ -207,6 +256,13 @@ function AkiWidget() {
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
   }, [input, step, open]);
 
+  // The box is disabled while Aki answers, which drops focus; give it back if the visitor was typing there.
+  useEffect(() => {
+    if (busy || !refocus.current) return;
+    refocus.current = false;
+    inputRef.current?.focus();
+  }, [busy]);
+
   // The daily quota resets at resetsAt: bring free-text chat back without a reload.
   useEffect(() => {
     if (!quotaUntil) return undefined;
@@ -247,6 +303,12 @@ function AkiWidget() {
 
   const flushFaq = () => { const done = faqDone.current; stopFaq(); done?.(); };
 
+  const cancelSend = () => {
+    const message = pending;
+    cancel();
+    if (message) setInput(message);
+  };
+
   const cancel = () => {
     clearTimeout(holdTimer.current);
     abortRef.current?.abort();
@@ -266,6 +328,8 @@ function AkiWidget() {
   const failure = () => { note('assistant', MSG.failure); setMood({ state: 'error', ms: 2000 }); };
 
   const handle = (res, message, mid, base) => {
+    // The box was cleared on send; an unanswered message comes back so it can be sent again.
+    if (res.kind !== 'ai') setInput((v) => v || message);
     if (res.kind === 'ai') setLink('ok');
     else if (res.kind === 'unavailable') setLink(res.reason === 'groq_busy' ? 'busy' : res.reason === 'content_blocked' ? link : 'down');
     else if (res.kind === 'network' || res.kind === 'invalid' || res.kind === 'quota') setLink('down');
@@ -276,7 +340,7 @@ function AkiWidget() {
         setHistory(appendPair(base, user, assistant));
         setLog((l) => [...l,
           { id: `u${uid.current += 1}`, role: 'user', text: message },
-          { id: `a${uid.current += 1}`, role: 'assistant', text: res.reply }]);
+          { id: `a${uid.current += 1}`, role: 'assistant', text: res.reply, links: sectionLinks(message, res.reply) }]);
         setInput('');
         setMood({ state: 'speaking', ms: Math.min(4000, 1000 + res.reply.length * 25) });
         break;
@@ -334,6 +398,8 @@ function AkiWidget() {
     const t0 = now();
     setUsedTry(true);
     setPending(message);
+    setInput('');
+    refocus.current = document.activeElement === inputRef.current;
     slowTimer.current = setTimeout(() => setSlow(true), SLOW_MS);
     const res = await sendTurn({
       message, mid, stored: base.messages, container: turnstileRef.current, signal: ctrl.signal,
@@ -442,7 +508,7 @@ function AkiWidget() {
                 {feed.map((item, i) => <Message key={item.id} item={item} first={feed[i - 1]?.role !== item.role} />)}
                 {slow && pending && (
                   <div className="aki-cancel-row">
-                    <button type="button" className="button aki-cancel" onClick={cancel}>Cancel</button>
+                    <button type="button" className="button aki-cancel" onClick={cancelSend}>Cancel</button>
                   </div>
                 )}
                 </div>
@@ -477,7 +543,7 @@ function AkiWidget() {
                       rows={1}
                       placeholder="Ask me about Jason's work..."
                       value={input}
-                      readOnly={busy}
+                      disabled={busy}
                       aria-describedby={count >= 400 ? 'aki-count' : undefined}
                       onChange={(e) => setInput(e.target.value)}
                       onFocus={() => setTyping(true)}
