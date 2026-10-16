@@ -424,7 +424,19 @@ async function chat(req) {
     if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve().then(() => limiter.end(closeReq)).catch(() => {});
     const step = (req) => Promise.resolve().then(() => limiter.backup({ ...key, cfg: config.limits, ...req })).catch(() => null);
     if (config.backup.on && (await step({ provider: 'workers_ai' }))?.type === 'go') {
+      // The step holds the visitor lease; release it once Workers AI is done (before any Gemma step reserves).
+      const release = () => {
+        const p = Promise.resolve().then(() => limiter.end(key)).catch(() => {});
+        waitUntil(p);
+        return p;
+      };
+      // Disconnected while the step was reserved: send nothing to Workers AI (§1.6).
+      if (deps.signal?.aborted) {
+        release();
+        return new Response(null, { status: 499 });
+      }
       const w = await callWorkersAI(config, deps, messages);
+      await release();
       if (w.ok) return reply('workers_ai', w.content);
       console.log(JSON.stringify({ workers_ai_failed: true }));
     }

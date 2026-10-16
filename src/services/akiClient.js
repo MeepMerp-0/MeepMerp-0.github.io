@@ -5,7 +5,8 @@ const API = (import.meta.env.VITE_AKI_API_URL || '').replace(/\/+$/, '');
 const SITEKEY = import.meta.env.VITE_AKI_TURNSTILE_SITEKEY || '';
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 const TIMEOUT_MS = 45000;
-// A chat turn may run Gemini, Groq, Workers AI and Gemma in turn (12 + 10 + 10 + 12 s at most).
+// A chat turn may run Gemini, Groq, Workers AI and Gemma in turn (12 + 10 + 10 + 12 s at most), plus any
+// Groq queue or hop wait (MAX_QUEUE_WAIT: 0 s in production, 5 s in dev).
 const CHAT_TIMEOUT_MS = 60000;
 const REGION_TIMEOUT_MS = 5000;
 const DAY = 24 * 3600 * 1000;

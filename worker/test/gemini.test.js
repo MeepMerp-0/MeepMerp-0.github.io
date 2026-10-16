@@ -725,3 +725,40 @@ test('a retried close keeps Groq 429 details; a retried Gemma end pauses only Ge
   e.real.end({ ...k, googleStatus: 429, retryAfter: '30' });
   assert.equal(e.store.get('g').geminiBlockedUntil, 0, 'a retried Gemma end paused Gemini');
 });
+
+test('a disconnect while the Workers AI step is reserved sends nothing to Workers AI', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  const ctrl = new AbortController();
+  const backup = app.limiter.backup;
+  app.limiter.backup = (r) => { const out = backup(r); if ((r.provider ?? 'workers_ai') === 'workers_ai') ctrl.abort(); return out; };
+  const r = await app.chat({}, { signal: ctrl.signal });
+  assert.equal(r.status, 499);
+  assert.equal(app.aiCalls.length, 0);
+  await Promise.all(app.waited);
+  assert.equal([...app.store.list()].find(([k]) => k.startsWith('v:'))[1].lease, null, 'lease left behind');
+});
+
+test('one turn can run the whole chain: Gemini fails, Groq fails, Workers AI fails, Gemma answers', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV };
+  const app = withAi(makeApp({ env }), () => { throw new Error('4006'); });
+  await app.session();
+  app.reset();
+  let googleN = 0;
+  app.google = () => (++googleN === 1 ? status(500)() : gem200('From Gemma'));
+  app.groq = status(500);
+  const r = await app.chat({ message: 'hello' });
+  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'gemma', 'From Gemma']);
+  assert.deepEqual(fetched(app), ['google', 'groq', 'google']);
+  assert.ok(app.googleCalls()[0].url.includes('/gemini-test:'));
+  assert.ok(app.googleCalls()[1].url.includes('/gemma-4-31b-it:'));
+  assert.equal(app.aiCalls.length, 1);
+});
+
+test('the visitor lease is released after a Workers AI reply', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  await Promise.all(app.waited);
+  assert.equal([...app.store.list()].find(([k]) => k.startsWith('v:'))[1].lease, null);
+});

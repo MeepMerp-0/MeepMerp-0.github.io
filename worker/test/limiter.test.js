@@ -1115,3 +1115,24 @@ test('the Gemma step holds the visitor lease until end()', () => {
   assert.equal(e.v('A').lease, null);
   assert.equal(e.lim.reserve(e.req('A')).type, 'go');
 });
+
+test('the Workers AI step holds the visitor lease until end(); its own lease never blocks the Gemma step', () => {
+  const e = setup({ groqSitePerMin: 10, backupDailyCap: 5, gemmaDailyCap: 5 });
+  const a = e.req('A');
+  assert.equal(e.lim.backup(a).provider, 'workers_ai');
+  assert.equal(e.v('A').lease.turnId, `${a.sid}:${a.turnId}`);
+  e.at(5 * S);
+  assert.equal(e.lim.reserve(e.req('A')).scope, 'concurrent');
+  // A lost release: the same turn's Gemma step is still allowed.
+  assert.deepEqual(e.lim.backup({ ...a, provider: 'gemma', gemini: true }), GEMMA_GO);
+  e.lim.end({ ...a, googleStatus: 200 });
+  assert.equal(e.v('A').lease, null);
+
+  const f = setup({ backupDailyCap: 5 });
+  const b = f.req('B');
+  f.lim.backup(b);
+  f.lim.end(b);
+  assert.equal(f.v('B').lease, null);
+  f.at(5 * S);
+  assert.equal(f.lim.reserve(f.req('B')).type, 'go');
+});

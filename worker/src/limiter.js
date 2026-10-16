@@ -61,6 +61,7 @@ export const REPLY_MAX_AGE_MS = DAY;
 export const COOLDOWN_MS = 4_000;
 export const GROQ_LEASE_MS = 15_000;
 export const GEMINI_LEASE_MS = 20_000;
+export const WORKERS_AI_LEASE_MS = 12_000;
 export const HOP_WAIT_MAX_MS = 15_000;
 export const DONE_MS = 10 * MINUTE;
 export const DEFAULT_PAUSE_MS = 20_000;
@@ -180,8 +181,9 @@ function cooldownCheck(v, now) {
   return v.lastAt != null && now - v.lastAt < COOLDOWN_MS ? limited('cooldown', v.lastAt + COOLDOWN_MS - now) : null;
 }
 
-function leaseCheck(v, now) {
-  return v.lease && v.lease.exp > now ? limited('concurrent', v.lease.exp - now) : null;
+// key: the turn asking; its own lease (a backup step after another) does not block it.
+function leaseCheck(v, now, key) {
+  return v.lease && v.lease.exp > now && v.lease.turnId !== key ? limited('concurrent', v.lease.exp - now) : null;
 }
 
 function windowsCheck(v, now) {
@@ -367,6 +369,8 @@ export function end(slice, now, _cfg, { sid, turnId, googleStatus, groqStatus, r
     const { g, v, t } = s;
     // t.model survives on the DONE record, so a retried end() for a Gemma turn still pauses only Gemma.
     applyStatus(g, now, { googleStatus, groqStatus, retryAfter }, t?.model);
+    // A closed turn may still hold the lease of its Workers AI step: release that (it only clears this turn's lease).
+    if (t?.state === 'DONE') releaseLease(v, keyOf(sid, turnId));
     if (!t || (t.state !== 'IN_FLIGHT' && t.state !== 'GEMINI_IN_FLIGHT')) return null;
     if (t.exp > now) releaseLease(v, keyOf(sid, turnId));
     // A Gemma last-resort turn is the end of the line: no further backup step for it.
@@ -389,7 +393,7 @@ export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', 
     // A turn that already took a window entry (Groq or Gemini reserve, or the Workers AI step) is not counted or
     // window-checked again.
     const fresh = !t || (t.uncounted && !t.backup);
-    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now) || (fresh ? windowsCheck(v, now) : null);
+    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now, key) || (fresh ? windowsCheck(v, now) : null);
     if (refused) return refused;
     if (gemma) {
       // Google's last resort: same consent as Gemini, its own Pacific-day count, pause and the shared-key latch.
@@ -418,6 +422,8 @@ export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', 
       s.t = { state: 'GEMINI_IN_FLIGHT', model: 'gemma', exp: now + GEMINI_LEASE_MS, day: pacificDay(now) };
       return { ...go(0, 'gemini'), model: 'gemma' };
     }
+    // The visitor lease holds their next turn while Workers AI works; end() releases it afterwards.
+    v.lease = { turnId: key, exp: now + WORKERS_AI_LEASE_MS };
     s.t = { ...doneTurn(now), backup: true };
     return go(0, 'workers_ai');
   });
