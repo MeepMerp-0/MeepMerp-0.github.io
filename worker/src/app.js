@@ -443,10 +443,24 @@ function region(req) {
 
 // --- entry ---
 
+// Reads at most MAX_BODY bytes: a chunked body with no content-length is cut off, not buffered whole.
 async function readBody(request) {
   if (Number(request.headers.get('content-length')) > MAX_BODY) return null;
-  const text = await request.text();
-  return enc.encode(text).length > MAX_BODY ? null : text;
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY) { await reader.cancel(); return null; }
+    chunks.push(value);
+  }
+  const all = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) { all.set(c, at); at += c.byteLength; }
+  return new TextDecoder().decode(all);
 }
 
 const ROUTES = { '/v1/session': session, '/v1/chat': chat, '/v1/region': region };

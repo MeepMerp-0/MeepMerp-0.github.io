@@ -63,7 +63,8 @@ function makeApp(opts = {}) {
       else headers.origin = o.origin;
     }
     const raw = o.raw ?? JSON.stringify(body);
-    const request = new Request(`https://aki.example${path}`, { method: o.method ?? 'POST', headers, body: (o.method ?? 'POST') === 'POST' ? raw : undefined });
+    const request = new Request(`https://aki.example${path}`, { method: o.method ?? 'POST', headers,
+      body: o.stream ?? ((o.method ?? 'POST') === 'POST' ? raw : undefined), ...(o.stream ? { duplex: 'half' } : {}) });
     const res = await handle(request, o.env ?? app.env, {
       limiter: app.limiter,
       fetch: app.fetch,
@@ -284,6 +285,15 @@ test('a body over 32 KB gives 413, declared or chunked', async () => {
   assert.deepEqual(a.json, { type: 'invalid_request', error: 'body_too_large' });
   const b = await app.send('/v1/chat', null, { raw: big, headers: { 'content-length': String(big.length) } });
   assert.equal(b.status, 413);
+});
+
+test('an endless chunked body is cut off at the cap, not buffered', async () => {
+  const app = makeApp();
+  let pulled = 0;
+  const endless = new ReadableStream({ pull(c) { pulled += 1; c.enqueue(new Uint8Array(1024).fill(32)); } });
+  const res = await app.send('/v1/chat', null, { stream: endless });
+  assert.equal(res.status, 413);
+  assert.ok(pulled < 40, 'read ' + pulled + ' KB before stopping');
 });
 
 test('the maximum-length CJK request passes and is not a 413', async () => {
