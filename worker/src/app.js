@@ -110,7 +110,7 @@ function list(v) {
 }
 
 function readGemini(env) {
-  const dailyCap = intIn(env.GEMINI_DAILY_CAP, 1, 20);
+  const dailyCap = intIn(env.GEMINI_DAILY_CAP, 1, 500);
   const countries = list(env.GEMINI_ALLOWED_COUNTRIES);
   const countriesOk = countries && countries.every((c) => COUNTRY_RE.test(c) && c !== 'XX' && !EEA_UK_CH.includes(c) && !AI_BLOCKED.includes(c));
   const on = env.GEMINI_ENABLED === 'true' && dailyCap !== null && countriesOk
@@ -125,7 +125,7 @@ export function readConfig(env) {
   const origins = list(e.ALLOWED_ORIGINS);
   const hostnames = list(e.TURNSTILE_HOSTNAMES);
   const actions = list(e.TURNSTILE_ACTIONS);
-  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 100);
+  const siteDailyCap = intIn(e.SITE_DAILY_CAP, 0, 1000);
   const groqSitePerMin = intIn(e.GROQ_SITE_PER_MIN, 1, Number.MAX_SAFE_INTEGER);
   const maxTokens = intIn(e.GROQ_MAX_COMPLETION_TOKENS, 1, Number.MAX_SAFE_INTEGER);
   const maxQueueWait = intIn(e.MAX_QUEUE_WAIT, 0, 30);

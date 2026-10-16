@@ -61,7 +61,8 @@ export const CONSENT_TTL_MS = DAY;
 export const RECORD_TTL_MS = 47 * HOUR;
 export const CLEANUP_INTERVAL_MS = HOUR;
 
-const VISITOR_LIMITS = [['hour', HOUR, 15], ['day', DAY, 30]];
+// Per visitor, whichever provider answers; the Groq site rate is limited separately (site_minute).
+const VISITOR_LIMITS = [['minute', MINUTE, 4], ['hour', HOUR, 15], ['day', DAY, 30]];
 
 const PT = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Los_Angeles', hourCycle: 'h23',
@@ -165,7 +166,7 @@ function leaseCheck(v, now) {
 }
 
 function windowsCheck(v, now, cfg) {
-  for (const [scope, span, max] of [['minute', MINUTE, Math.min(4, cfg.groqSitePerMin)], ...VISITOR_LIMITS]) {
+  for (const [scope, span, max] of VISITOR_LIMITS) {
     const recent = v.w.filter((x) => x > now - span);
     if (!(recent.length < max)) return limited(scope, recent[recent.length - max] + span - now);
   }

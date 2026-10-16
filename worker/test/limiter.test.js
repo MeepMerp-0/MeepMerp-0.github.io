@@ -110,16 +110,16 @@ test('a groq_busy refusal does not carry turn times older than a day into the re
   assert.deepEqual(e.v('A').w, []);
 });
 
-test('visitor minute cap, and the site minute cap from a third ipKey (R4-33)', () => {
+test('a Gemini visitor gets 4 a minute even when GROQ_SITE_PER_MIN is 2; the site minute cap from a third ipKey (R4-33)', () => {
   const e = setup();
-  for (const ms of [0, 4 * S]) {
-    e.at(ms);
-    const a = e.req('A');
-    assert.equal(e.lim.reserve(a).type, 'go');
-    e.lim.end(a);
+  for (let i = 0; i < 4; i++) {
+    e.at(i * 4 * S);
+    const a = e.req('A', { gemini: true });
+    assert.deepEqual(e.lim.reserve(a), GEMINI_GO);
+    e.lim.end({ ...a, googleStatus: 200 });
   }
-  e.at(8 * S);
-  assert.deepEqual(e.lim.reserve(e.req('A')), rl('minute', 52));
+  e.at(16 * S);
+  assert.deepEqual(e.lim.reserve(e.req('A', { gemini: true })), rl('minute', 44));
 
   const f = setup();
   assert.deepEqual(f.lim.reserve(f.req('A')), go(0));
@@ -127,7 +127,7 @@ test('visitor minute cap, and the site minute cap from a third ipKey (R4-33)', (
   assert.deepEqual(f.lim.reserve(f.req('C')), rl('site_minute', 38));
 });
 
-test('with GROQ_SITE_PER_MIN=10 the visitor minute cap is 4', () => {
+test('the visitor minute cap is 4 with a higher GROQ_SITE_PER_MIN too', () => {
   const e = setup({ groqSitePerMin: 10 });
   for (let i = 0; i < 4; i++) {
     e.at(i * 4 * S);
@@ -333,9 +333,9 @@ test('visitor limits and the daily cap are never queued and write no slot', () =
   const cases = [
     ['cooldown', {}, (e) => { const a = e.req('A'); e.lim.reserve(a); e.lim.end(a); e.at(S); }],
     ['concurrent', {}, (e) => { e.lim.reserve(e.req('A')); e.at(5 * S); }],
-    ['minute', {}, (e) => {
-      for (const ms of [0, 4 * S]) { e.at(ms); const a = e.req('A'); e.lim.reserve(a); e.lim.end(a); }
-      e.at(8 * S);
+    ['minute', { groqSitePerMin: 10 }, (e) => {
+      for (let i = 0; i < 4; i++) { e.at(i * 4 * S); const a = e.req('A'); e.lim.reserve(a); e.lim.end(a); }
+      e.at(16 * S);
     }],
     ['site_daily', { siteDailyCap: 1 }, (e) => { e.lim.end(e.req('B')); e.lim.reserve(e.req('B')); e.at(5 * S); }],
   ];
@@ -400,14 +400,14 @@ test('a cancel after a Pacific-day rollover refunds no daily counter', () => {
 });
 
 test('reserve-then-cancel cycles spend the visitor windows (R5-6)', () => {
-  const e = setup();
-  for (const ms of [0, 4 * S]) {
-    e.at(ms);
+  const e = setup({ groqSitePerMin: 10 });
+  for (let i = 0; i < 4; i++) {
+    e.at(i * 4 * S);
     const a = e.req('A');
     assert.equal(e.lim.reserve(a).type, 'go');
     e.lim.cancel(a);
   }
-  e.at(8 * S);
+  e.at(16 * S);
   assert.equal(e.lim.reserve(e.req('A')).scope, 'minute');
 
   const f = setup();
@@ -580,10 +580,12 @@ test('a Gemini-route turn counts one window entry and stamps the cooldown', () =
   assert.equal(e.t(a).state, 'DONE');
   e.at(2 * S);
   assert.deepEqual(e.lim.reserve(e.req('A', { gemini: true })), rl('cooldown', 2));
-  e.at(4 * S);
-  e.lim.end(gem(e, 'A'));
-  e.at(8 * S);
-  assert.deepEqual(e.lim.reserve(e.req('A', { gemini: true })), rl('minute', 52));
+  for (const ms of [4 * S, 8 * S, 12 * S]) {
+    e.at(ms);
+    e.lim.end(gem(e, 'A'));
+  }
+  e.at(16 * S);
+  assert.deepEqual(e.lim.reserve(e.req('A', { gemini: true })), rl('minute', 44));
 });
 
 test('fallback: hop to Groq extends lease and exp in one write, no window entry, groq++', () => {
