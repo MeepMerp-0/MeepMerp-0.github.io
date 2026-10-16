@@ -368,6 +368,9 @@ function AkiWidget() {
     if (window.matchMedia('(max-width: 559px)').matches) close();
     window.history.replaceState(null, '', a.getAttribute('href'));
     target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+    // Keyboard and screen-reader users continue from the section, after any panel-close focus move.
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    setTimeout(() => target.focus({ preventScroll: true }), 0);
   };
 
   const onKeyDown = (e) => {

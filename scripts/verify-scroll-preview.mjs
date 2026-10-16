@@ -1146,13 +1146,14 @@ async function runAkiSmoke() {
       const pos = await evaluate('({ hash: location.hash, top: document.getElementById("contact").getBoundingClientRect().top, y: scrollY, max: document.documentElement.scrollHeight - innerHeight })');
       check(pos.hash === '#contact' && (Math.abs(pos.top) < 140 || pos.y >= pos.max - 2), 'not scrolled to Contact ' + JSON.stringify(pos));
       check(await exists('#aki-panel'), 'desktop panel closed on a section link');
+      check(await evaluate('document.activeElement?.id') === 'contact', 'focus did not move to Contact');
 
       await viewport(390, 844);
       await akiPage({ chat: (b) => ({ body: aiReply(b, 'See [Work](#work).') }) });
       await openChat();
       await sendAndWait('work?');
       await click('.aki-msg-assistant p a');
-      await until('!document.querySelector("#aki-panel") && location.hash === "#work"', 'phone panel closed and moved to Work', 4000);
+      await until('!document.querySelector("#aki-panel") && location.hash === "#work" && document.activeElement?.id === "work"', 'phone panel closed, moved and focused Work', 4000);
       await viewport(1440, 900);
     });
 
