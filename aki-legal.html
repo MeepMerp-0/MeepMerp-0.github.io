@@ -30,10 +30,10 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 </style>
 </head>
 <body>
-<main data-consent-version="2026-10-16.4">
+<main data-consent-version="2026-10-16.5">
 <a class="back" href="./">Back to the portfolio</a>
 <h1>Aki: Privacy Notice and Terms of Use</h1>
-<p class="muted">Version 2026-10-16.4. One notice for every visitor, wherever you are. It is modelled on the GDPR approach and also considers the UAE data protection law (Federal Decree-Law 45/2021), the Philippine Data Privacy Act (RA 10173) where it applies, and US notice basics including COPPA.</p>
+<p class="muted">Version 2026-10-16.5. One notice for every visitor, wherever you are. It is modelled on the GDPR approach and also considers the UAE data protection law (Federal Decree-Law 45/2021), the Philippine Data Privacy Act (RA 10173) where it applies, and US notice basics including COPPA.</p>
 <nav aria-label="Sections"><ul>
 <li><a href="#privacy">Privacy Notice</a></li>
 <li><a href="#gemini">Google Gemini</a></li>
@@ -66,8 +66,9 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <ul>
 <li><strong>GitHub (site hosting):</strong> This site is hosted on GitHub Pages. GitHub logs visitors' IP addresses, whether or not they are signed in to GitHub.</li>
 <li><strong>Cloudflare:</strong> runs the Aki service and the Turnstile bot check. It receives your IP address and the content of your requests in order to deliver them, and Turnstile collects browser and device signals to tell people from bots.</li>
+<li><strong>Cloudflare Workers AI (backup):</strong> if Groq is busy, has used its daily share or fails to answer, Aki may ask a Meta Llama model run by Cloudflare's Workers AI instead. It receives your message, recent conversation and Aki's instructions, the same as Groq, but not your IP address, session ID or country from us. Cloudflare states that it does not use Workers AI inputs or outputs to train models.</li>
 <li><strong>Groq:</strong> answers when you haven't allowed Gemini, where Gemini isn't offered, and as a backup when Gemini fails to answer (not after a Gemini safety decline or a cancel). It receives your message, recent conversation and Aki's instructions. It does not receive your IP address, session ID or country. Groq does not train on this data. Groq may keep logs up to 30 days for reliability and abuse. Processed in the United States.</li>
-<li id="gemini"><strong>Google Gemini, first choice for adults where available:</strong> if you are in an eligible region and leave the Gemini box ticked, Gemini answers first. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. If Gemini fails to answer, the same message and conversation are sent to Groq instead, so one message can reach both. This does not happen if Gemini declines a message on safety grounds (nothing is re-sent to Groq) or if you cancel or disconnect while Gemini is working (nothing is sent to Groq). When Gemini answers, Google receives your message as you typed it, your recent conversation with Aki, and Aki's instructions. Earlier messages that contain Jason's contact details, or anything that looks like an email address or phone number, are left out. It does not receive your IP address, session ID or country from us. <strong>On Gemini's free tier Google is not our processor: it uses this data for its own purposes, as an independent controller, under its own privacy policy</strong> (<a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google Privacy Policy</a>).</li>
+<li id="gemini"><strong>Google Gemini, first choice for adults where available:</strong> if you are in an eligible region and leave the Gemini box ticked, Gemini answers first. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. If Gemini fails to answer, the same message and conversation are sent to Groq instead, so one message can reach both. This does not happen if Gemini declines a message on safety grounds (nothing is re-sent to Groq) or if you cancel or disconnect while Gemini is working (nothing is sent to Groq). When Gemini answers, Google receives your message as you typed it, your recent conversation with Aki, and Aki's instructions. When Gemini's daily limit is reached or it is paused, Google may answer with a Gemma model through the same Gemini API, under the same terms and with the same data. Earlier messages that contain Jason's contact details, or anything that looks like an email address or phone number, are left out. It does not receive your IP address, session ID or country from us. <strong>On Gemini's free tier Google is not our processor: it uses this data for its own purposes, as an independent controller, under its own privacy policy</strong> (<a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google Privacy Policy</a>).</li>
 <li>We do not sell your information or share it for advertising.</li>
 </ul>
 
@@ -130,7 +131,7 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <p>Aki's answers are generated by AI and can be wrong. See the <a href="#terms">Terms of Use</a>.</p>
 
 <h3>17. Changes</h3>
-<p>Version 2026-10-16.4. If this notice changes materially, the version and date change with it, and Aki asks again for any consent that depends on it.</p>
+<p>Version 2026-10-16.5. If this notice changes materially, the version and date change with it, and Aki asks again for any consent that depends on it.</p>
 </section>
 
 <section id="terms">
@@ -149,13 +150,13 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <p>Don't send personal, confidential or sensitive information to Aki, about yourself or anyone else. Anything you send may be passed to an AI provider as described in the Privacy Notice.</p>
 
 <h3>5. Providers</h3>
-<p>If you are in an eligible region and allow Gemini, Google Gemini answers first and Groq answers if Gemini fails to answer. Groq does not answer if Gemini declines a message on safety grounds, or if you cancel while Gemini is working. Otherwise Groq answers. You confirm you are 18 or older before using Aki (a self-declaration that is not verified). Fixed quick answers apply when neither is available, and in regions where Aki is limited to quick answers (Privacy Notice item 8).</p>
+<p>If you are in an eligible region and allow Gemini, Google Gemini answers first and Groq answers if Gemini fails to answer. Groq does not answer if Gemini declines a message on safety grounds, or if you cancel while Gemini is working. Otherwise Groq answers, and Cloudflare Workers AI answers if Groq is busy or fails. Google may answer with Gemini or, once Gemini's daily limit is reached, with Gemma. You confirm you are 18 or older before using Aki (a self-declaration that is not verified). Fixed quick answers apply when none of them is available, and in regions where Aki is limited to quick answers (Privacy Notice item 8).</p>
 
 <h3>6. Availability</h3>
 <p>Aki is free, rate-limited and provided "as is". When Aki is busy your question may wait in line, and an answer can take up to about 40 seconds. Providers and limits may change, and the Gemini option may be withdrawn at any time.</p>
 
 <h3>7. Changes</h3>
-<p>Version 2026-10-16.4. These terms may change; the version and date change with them.</p>
+<p>Version 2026-10-16.5. These terms may change; the version and date change with them.</p>
 </section>
 </main>
 </body>
