@@ -417,10 +417,11 @@ async function chat(req) {
   // sessions that allowed Gemini), each once per turn, before the client's quick answers. Both were added in the
   // current notice, so a session agreed under an older one never reaches them.
   const useGemma = Boolean(config.gemini.gemmaModel) && ctx.gemini;
-  const backupOr = async (refusal, closed = false) => {
+  const backupOr = async (refusal, { closed = false, closeReq = key } = {}) => {
     if (!(config.backup.on || useGemma) || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
     // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first.
-    if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve().then(() => limiter.end(key)).catch(() => {});
+    // A retry after a failed close sends the same payload, so a Groq 429 pause is still recorded.
+    if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve().then(() => limiter.end(closeReq)).catch(() => {});
     const step = (req) => Promise.resolve().then(() => limiter.backup({ ...key, cfg: config.limits, ...req })).catch(() => null);
     if (config.backup.on && (await step({ provider: 'workers_ai' }))?.type === 'go') {
       const w = await callWorkersAI(config, deps, messages);
@@ -464,12 +465,12 @@ async function chat(req) {
   // There is never a Groq → Gemini hop (§1.2). A Groq 429 pauses Groq in end(), which also closes the turn
   // before the Workers AI backup may take it.
   let closed = false;
-  const ended = Promise.resolve().then(() => limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter }))
-    .then(() => { closed = true; }, () => {});
+  const closeReq = { ...key, groqStatus: groq.status, retryAfter: groq.retryAfter };
+  const ended = Promise.resolve().then(() => limiter.end(closeReq)).then(() => { closed = true; }, () => {});
   waitUntil(ended);
   await ended;
   // A failed close is retried inside backupOr, so the backups are not refused for an open turn.
-  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' }, closed);
+  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' }, { closed, closeReq });
 }
 
 // --- session ---

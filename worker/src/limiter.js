@@ -365,11 +365,12 @@ export function cancel(slice, now, _cfg, { sid, turnId }) {
 export function end(slice, now, _cfg, { sid, turnId, googleStatus, groqStatus, retryAfter }) {
   return step(slice, now, (s) => {
     const { g, v, t } = s;
-    applyStatus(g, now, { googleStatus, groqStatus, retryAfter }, t?.state === 'GEMINI_IN_FLIGHT' ? t.model : undefined);
+    // t.model survives on the DONE record, so a retried end() for a Gemma turn still pauses only Gemma.
+    applyStatus(g, now, { googleStatus, groqStatus, retryAfter }, t?.model);
     if (!t || (t.state !== 'IN_FLIGHT' && t.state !== 'GEMINI_IN_FLIGHT')) return null;
     if (t.exp > now) releaseLease(v, keyOf(sid, turnId));
     // A Gemma last-resort turn is the end of the line: no further backup step for it.
-    s.t = { ...doneTurn(now), ...(t.model === 'gemma' && { gemma: true, backup: true }) };
+    s.t = { ...doneTurn(now), ...(t.model === 'gemma' && { model: 'gemma', gemma: true, backup: true }) };
     return null;
   });
 }

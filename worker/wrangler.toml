@@ -34,10 +34,11 @@ GEMINI_DAILY_CAP = "400"
 # (AI Studio free tier: 14.4K RPD, 30 RPM, 16K TPM); 26B-A4B is a mixture-of-experts model (~4B active)
 GEMMA_MODEL = "gemma-4-26b-a4b-it"
 GEMMA_DAILY_CAP = "5000"
-# Workers AI after Groq: fast Llama 3.1 8B; ~18 neurons a typical reply, ~32 at most, so 300 fit the 10,000 free
-# neurons a day (reset 00:00 UTC)
+# Workers AI after Groq: fast Llama 3.1 8B; ~18 neurons a typical reply. Worst case (1.7K-token instructions, 6 long
+# history messages, a 500-character multibyte message, a 600-token reply) is ~45, so 200 fit the 10,000 free neurons
+# a day (reset 00:00 UTC)
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast"
-WORKERS_AI_DAILY_CAP = "300"
+WORKERS_AI_DAILY_CAP = "200"
 # Launch checklist (A2): replace with Google's available regions minus EEA_UK_CH, XX and AI_BLOCKED
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 # First entry must equal the version of public/aki-legal.html. When bumping it, keep the old one
@@ -82,6 +83,6 @@ GEMINI_DAILY_CAP = "400"
 GEMMA_MODEL = "gemma-4-26b-a4b-it"
 GEMMA_DAILY_CAP = "5000"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast"
-WORKERS_AI_DAILY_CAP = "300"
+WORKERS_AI_DAILY_CAP = "200"
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 CONSENT_VERSION = "2026-10-16.5,2026-10-16.4"

@@ -708,3 +708,20 @@ test('a failed close after a Groq failure is retried, so Workers AI still answer
   app.limiter.end = (r) => { if (!failed) { failed = true; throw new Error('rpc'); } return end(r); };
   assert.equal((await app.chat()).json.provider, 'workers_ai');
 });
+
+test('a retried close keeps Groq 429 details; a retried Gemma end pauses only Gemma', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(429, { 'retry-after': '60' });
+  const end = app.limiter.end;
+  let failed = false;
+  app.limiter.end = (r) => { if (!failed && r.groqStatus === 429) { failed = true; throw new Error('rpc'); } return end(r); };
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  assert.ok(app.store.get('g').groqBlockedUntil > app.clock.t, 'Groq pause lost on the retried close');
+
+  const e = makeApp({ env: { ...GEMMA_ENV } });
+  const k = { ipKey: 'k', sid: 's', turnId: 't' };
+  e.real.backup({ ...k, cfg: readConfig(e.env).limits, provider: 'gemma', gemini: true });
+  e.real.end({ ...k, googleStatus: 429, retryAfter: '30' });
+  e.real.end({ ...k, googleStatus: 429, retryAfter: '30' });
+  assert.equal(e.store.get('g').geminiBlockedUntil, 0, 'a retried Gemma end paused Gemini');
+});
