@@ -65,12 +65,19 @@ function Markdown({ text }) {
 }
 
 // A reply about one part of the site always ends with a link there, even when the model forgot one.
-// Most specific first: "work process" is Process, "contact for work" is Contact.
+// Most specific first: "work process" is Process, "contact for work" is Contact. Latin-script words must
+// stand alone; Arabic and Japanese terms match anywhere, since those scripts join words differently.
+// ponytail: keyword lists for the common visitor languages; a question in another language relies on the model's own link.
+const topic = (latin, other) => new RegExp(`(?<!\\p{L})(?:${latin})(?!\\p{L})|${other}`, 'iu');
 const TOPICS = [
-  ['contact', 'Contact', /\b(contact|e-?mail|phone|call|reach|hire|whatsapp|get in touch)\b/i],
-  ['process', 'Process', /\b(process|workflow|approach)\b/i],
-  ['about', 'About', /\b(experience|background|skills?|stack|tech\w*|resume|cv|career|about)\b/i],
-  ['work', 'Work', /\b(work|projects?|built|demos?|apps?|portfolio)\b/i],
+  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone|tel[eé]fono|telefone|call|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan',
+    '\u062A\u0648\u0627\u0635\u0644|\u0627\u062A\u0635\u0627\u0644|\u0628\u0631\u064A\u062F|\u0647\u0627\u062A\u0641|\u9023\u7D61|\u30E1\u30FC\u30EB|\u96FB\u8A71')],
+  ['process', 'Process', topic('process|proceso|processus|prozess|processo|proseso|workflow|approach',
+    '\u0639\u0645\u0644\u064A\u0629|\u30D7\u30ED\u30BB\u30B9')],
+  ['about', 'About', topic('experience|experiencia|exp[eé]rience|erfahrung|experi[eê]ncia|karanasan|background|skills?|habilidades|comp[eé]tences|stack|tech\\w*|tecnolog\\w*|resume|cv|career|carrera|about',
+    '\u062E\u0628\u0631\u0629|\u0645\u0647\u0627\u0631\u0627\u062A|\u7D4C\u9A13|\u30B9\u30AD\u30EB')],
+  ['work', 'Work', topic('work|trabajo|travail|arbeit|trabalho|projects?|proyectos?|projets?|projekte?|projetos?|proyekto|built|demos?|apps?|portfolio|portafolio',
+    '\u0645\u0634\u0627\u0631\u064A\u0639|\u0623\u0639\u0645\u0627\u0644|\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8|\u4F5C\u54C1')],
 ];
 const sectionLinks = (question, reply) => {
   const t = TOPICS.find(([, , re]) => re.test(question));
@@ -402,7 +409,8 @@ function AkiWidget() {
     setUsedTry(true);
     setPending(message);
     setInput('');
-    refocus.current = document.activeElement === inputRef.current;
+    // Enter in the box or a click on Send (which takes focus): either way the visitor was composing.
+    refocus.current = Boolean(inputRef.current?.form?.contains(document.activeElement));
     slowTimer.current = setTimeout(() => setSlow(true), SLOW_MS);
     const res = await sendTurn({
       message, mid, stored: base.messages, container: turnstileRef.current, signal: ctrl.signal,

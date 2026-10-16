@@ -1180,6 +1180,9 @@ async function runAkiSmoke() {
       check(await chipFor('how do I contact him?', 'See his [Work](#work).') === '#contact', 'wrong-section link suppressed the Contact chip');
       check(await chipFor("show me Jason's work", 'Plenty to see.') === '#work', 'no Work chip for "work"');
       check(await chipFor('how do I contact him?', 'Use the [Contact](#contact) form.') === '', 'chip added although Contact was linked');
+      check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
+      check(await chipFor('ジェイソンのプロジェクトは？', 'いくつかあります。') === '#work', 'no Work chip for Japanese');
+      check(await chipFor('كيف أتواصل مع جيسون؟', 'يمكنك مراسلته.') === '#contact', 'no Contact chip for Arabic');
     });
 
     await step('send clears and disables the box; the visitor gets typing dots too', async () => {
@@ -1192,6 +1195,8 @@ async function runAkiSmoke() {
       await evaluate('(() => { const el = document.getElementById("aki-input");'
         + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "hello");'
         + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      // A pointer click focuses Send before submitting; element.click() does not, so focus it first.
+      await evaluate('document.querySelector(".aki-form button[type=submit]").focus()');
       await click('.aki-form button[type=submit]');
       await until('document.querySelector(".aki-row-assistant .aki-typing")', 'Aki typing dots');
       const s = await evaluate('(() => { const el = document.getElementById("aki-input"); return { value: el.value, disabled: el.disabled,'
