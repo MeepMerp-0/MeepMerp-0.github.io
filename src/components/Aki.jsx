@@ -71,11 +71,11 @@ function Markdown({ text }) {
 // ponytail: keyword lists for the common visitor languages; a question in another language relies on the model's own link.
 const topic = (latin, other) => new RegExp(`(?<!\\p{L})(?:${latin})(?!\\p{L})|${other}`, 'iu');
 const TOPICS = [
-  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone|tel[eé]fono|telefone|call|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan',
+  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone number|(?:his|jason\\W?s) (?:phone|number)|call (?:him|jason)|tel[eé]fono|telefone|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan',
     '\u062A\u0648\u0627\u0635\u0644|\u0627\u062A\u0635\u0627\u0644|\u0628\u0631\u064A\u062F|\u0647\u0627\u062A\u0641|\u9023\u7D61|\u30E1\u30FC\u30EB|\u96FB\u8A71')],
   ['process', 'Process', topic('process|proceso|processus|prozess|processo|proseso|workflow|approach',
     '\u0639\u0645\u0644\u064A\u0629|\u30D7\u30ED\u30BB\u30B9')],
-  ['about', 'About', topic('experience|experiencia|exp[eé]rience|erfahrung|experi[eê]ncia|karanasan|background|skills?|habilidades|comp[eé]tences|stack|tech\\w*|tecnolog\\w*|resume|cv|career|carrera|about',
+  ['about', 'About', topic('who(?:\\W?s| is| are)|introduce|bio|experience|experiencia|exp[eé]rience|erfahrung|experi[eê]ncia|karanasan|background|skills?|habilidades|comp[eé]tences|stack|tech\\w*|tecnolog\\w*|resume|cv|career|carrera|about',
     '\u062E\u0628\u0631\u0629|\u0645\u0647\u0627\u0631\u0627\u062A|\u7D4C\u9A13|\u30B9\u30AD\u30EB')],
   ['work', 'Work', topic('work|trabajo|travail|arbeit|trabalho|projects?|proyectos?|projets?|projekte?|projetos?|proyekto|built|demos?|apps?|portfolio|portafolio',
     '\u0645\u0634\u0627\u0631\u064A\u0639|\u0623\u0639\u0645\u0627\u0644|\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8|\u4F5C\u54C1')],

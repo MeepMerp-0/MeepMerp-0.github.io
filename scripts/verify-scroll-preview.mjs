@@ -1174,6 +1174,9 @@ async function runAkiSmoke() {
       check(await chipFor('how do I contact him?', 'Use **[Contact](#contact)**.') === '', 'chip added although a bold link renders');
       check(await evaluate('[...document.querySelectorAll(".aki-msg-assistant strong > a")].pop()?.getAttribute("href")') === '#contact', 'link inside bold not rendered');
       check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
+      check(await chipFor('Has Jason built any phone apps?', 'See [Work](#work).') === '', 'phone apps got a Contact chip');
+      check(await chipFor('Who is Jason?', 'An engineer.') === '#about', 'no About chip for "Who is Jason?"');
+      check(await chipFor("what's his phone number?", 'Here it is.') === '#contact', 'no Contact chip for a phone number');
       check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
       // In a full log, the visitor's typing row scrolls into view.
       await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
