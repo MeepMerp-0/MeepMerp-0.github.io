@@ -42,7 +42,7 @@ Jason can be messaged on WhatsApp: for WhatsApp questions, answer with the [What
 
 export const GROQ_SYSTEM_PROMPT = `${RULES}\n\nPortfolio information (JSON):\n${GROQ_PACK}`;
 
-export const GEMINI_SYSTEM_PROMPT = `${RULES}\nFor contact details, point the visitor to the [Contact](#contact) section of the site.\n\nPortfolio information (JSON):\n${GEMINI_PACK}`;
+export const GEMINI_SYSTEM_PROMPT = `${RULES}\nFor contact details, point the visitor to the [Contact](#contact) section of the site; for WhatsApp, use the [WhatsApp](#whatsapp) link.\n\nPortfolio information (JSON):\n${GEMINI_PACK}`;
 
 // Substring patterns, lowercase; whole-word and digit patterns are handled by contactMatch.
 const SUBSTRINGS = [PERSONAL.email, 'gmail', 'Reem', 'Abu Dhabi', 'United Arab Emirates'];

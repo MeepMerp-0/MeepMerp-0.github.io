@@ -93,8 +93,10 @@ const sectionLinks = (question, reply) => {
   if (!topics.length) return undefined;
   const t = topics[0];
   // A link to any section the question is about counts; an unrelated one does not. Links inside `code` are not rendered.
+  // A WhatsApp question needs the WhatsApp link itself: a Contact link does not answer it.
+  const wanted = t[0] === 'whatsapp' ? [t] : topics;
   const linked = [...reply.replace(/`[^`\n]+`/g, '').matchAll(new RegExp(SECTION_LINK.source, 'g'))]
-    .some((m) => topics.some(([id]) => id === m[1]));
+    .some((m) => wanted.some(([id]) => id === m[1]));
   // The label is the section's own name from the (English) page navigation, so it reads the same in any reply language.
   return linked ? undefined : [{ label: `\u2192 ${t[1]}`, href: hrefOf(t[0]) }];
 };

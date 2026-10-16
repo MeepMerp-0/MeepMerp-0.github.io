@@ -1177,6 +1177,7 @@ async function runAkiSmoke() {
       check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
       check(await chipFor("what's his whatsapp number?", 'He uses WhatsApp.') === WHATSAPP_URL, 'no WhatsApp chip');
       check(await chipFor('WhatsAppの番号は？', 'どうぞ。') === WHATSAPP_URL, 'no WhatsApp chip for Japanese');
+      check(await chipFor('How can I contact him on WhatsApp?', 'Use the [Contact](#contact) section.') === WHATSAPP_URL, 'a Contact link suppressed the WhatsApp chip');
       check(await chipFor('whatsapp?', 'Message him on [WhatsApp](#whatsapp).') === '', 'chip added although WhatsApp was linked');
       const wa = await evaluate('(() => { const a = [...document.querySelectorAll(".aki-msg-assistant p a")].pop(); return [a?.getAttribute("href"), a?.target, a?.rel]; })()');
       check(JSON.stringify(wa) === JSON.stringify([WHATSAPP_URL, '_blank', 'noopener noreferrer']), 'WhatsApp link ' + JSON.stringify(wa));
