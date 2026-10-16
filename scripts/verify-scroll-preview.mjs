@@ -16,6 +16,7 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AKI_GREETINGS, AKI_GREETING_LINES } from '../src/data/akiGreetings.js';
 import { AKI_CONSENT_VERSION, AKI_FAQ, AKI_MESSAGES, AKI_WELCOME_COPY as W } from '../src/data/akiFaq.js';
+import { WHATSAPP_URL } from '../src/data/portfolioData.js';
 
 const baseUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/';
 const chromeBin = process.env.CHROME_BIN || 'google-chrome';
@@ -1174,6 +1175,11 @@ async function runAkiSmoke() {
       check(await chipFor('how do I contact him?', 'Use **[Contact](#contact)**.') === '', 'chip added although a bold link renders');
       check(await evaluate('[...document.querySelectorAll(".aki-msg-assistant strong > a")].pop()?.getAttribute("href")') === '#contact', 'link inside bold not rendered');
       check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
+      check(await chipFor("what's his whatsapp number?", 'He uses WhatsApp.') === WHATSAPP_URL, 'no WhatsApp chip');
+      check(await chipFor('WhatsAppの番号は？', 'どうぞ。') === WHATSAPP_URL, 'no WhatsApp chip for Japanese');
+      check(await chipFor('whatsapp?', 'Message him on [WhatsApp](#whatsapp).') === '', 'chip added although WhatsApp was linked');
+      const wa = await evaluate('(() => { const a = [...document.querySelectorAll(".aki-msg-assistant p a")].pop(); return [a?.getAttribute("href"), a?.target, a?.rel]; })()');
+      check(JSON.stringify(wa) === JSON.stringify([WHATSAPP_URL, '_blank', 'noopener noreferrer']), 'WhatsApp link ' + JSON.stringify(wa));
       check(await chipFor('Has Jason built any phone apps?', 'See [Work](#work).') === '', 'phone apps got a Contact chip');
       check(await chipFor('Who is Jason?', 'An engineer.') === '#about', 'no About chip for "Who is Jason?"');
       check(await chipFor('Where is Jason based?', 'In the UAE.') === '#contact', 'no Contact chip for location');
