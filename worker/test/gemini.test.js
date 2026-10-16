@@ -141,7 +141,7 @@ test('production vars are consistent, on or off (R5-8, R5-9)', async () => {
     assert.ok(cfg.gemini.dailyCap >= 1 && cfg.gemini.dailyCap <= 500);
     const app = makeApp({ env, country: cfg.gemini.countries[0] });
     const r = await app.chat();
-    assert.equal(r.json.provider, env.GEMMA_FIRST === 'true' ? 'gemma' : 'gemini');
+    assert.equal(r.json.provider, 'gemini');
     assert.equal(app.groqCalls().length, 0);
     for (const country of ['GB', 'XX', undefined]) {
       const a = makeApp({ env, country });
@@ -576,46 +576,6 @@ function withAi(app, reply = () => ({ response: 'From Workers AI' })) {
   return app;
 }
 
-test('once Gemini is capped, Gemma answers through the same API with Aki instructions in the first turn', async () => {
-  const app = makeApp({ env: { ...GEMMA_ENV, GEMINI_DAILY_CAP: '1' } });
-  assert.equal((await app.chat()).json.provider, 'gemini');
-  app.tick();
-  app.google = () => gem200('From Gemma');
-  const r = await app.chat({ message: 'who is Jason?' });
-  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'gemma', 'From Gemma']);
-  const call = app.googleCalls().at(-1);
-  assert.ok(call.url.endsWith('/gemma-4-31b-it:generateContent'), call.url);
-  const body = app.googleBody();
-  assert.equal(body.systemInstruction, undefined);
-  assert.ok(body.contents[0].parts[0].text.startsWith(GEMINI_SYSTEM_PROMPT));
-  assert.ok(body.contents.at(-1).parts[0].text.endsWith('who is Jason?'));
-  assert.ok(await signatureOk(SECRET, r.json.sig, app.mid, '', r.json.ts, 'who is Jason?', 'From Gemma'));
-});
-
-test('a Gemma 429 pauses only Gemma; a Gemini 429 sends the next turn to Gemma; GEMMA unset keeps it off', async () => {
-  const app = makeApp({ env: GEMMA_ENV });
-  app.google = status(429, { 'retry-after': '60' });
-  assert.equal((await app.chat()).json.provider, 'groq');
-  app.tick();
-  app.google = () => gem200('From Gemma');
-  assert.equal((await app.chat()).json.provider, 'gemma');
-  app.tick();
-  app.google = status(429, { 'retry-after': '60' });
-  assert.equal((await app.chat()).json.provider, 'groq');
-  const g = app.store.get('g');
-  assert.ok(g.gemmaBlockedUntil > app.clock.t && g.geminiBlockedUntil > app.clock.t);
-  app.tick(61_000);
-  app.google = () => gem200();
-  assert.equal((await app.chat()).json.provider, 'gemini');
-
-  const off = makeApp({ env: { GEMINI_DAILY_CAP: '1' } });
-  await off.chat();
-  off.tick();
-  off.reset();
-  assert.equal((await off.chat()).json.provider, 'groq');
-  noGoogle(off, 'no Gemma call without GEMMA_MODEL');
-});
-
 test('Workers AI answers when Groq fails or has no capacity, once per turn and within its daily cap', async () => {
   const app = withAi(makeApp({ geminiAck: false, env: { ...AI_ENV, GROQ_SITE_PER_MIN: '1' } }));
   app.groq = status(500);
@@ -684,11 +644,121 @@ test('a queued Groq turn that lapsed before its claim still gets the Workers AI 
   assert.equal(app.groqCalls().filter((c) => c).length, 1, 'the lapsed turn must not call Groq');
 });
 
-test('GEMMA_FIRST sends the first Google turn to Gemma; unset keeps Gemini first', async () => {
-  const app = makeApp({ env: { ...GEMMA_ENV, GEMMA_FIRST: 'true' } });
+
+test('order: Gemini, then Groq, then Workers AI, then Gemma as the last resort', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV, GEMINI_DAILY_CAP: '1' };
+  const app = withAi(makeApp({ env }), () => { throw new Error('4006'); });
+  assert.equal((await app.chat()).json.provider, 'gemini');
+  app.tick();
+  app.reset();
+  app.groq = status(500);
   app.google = () => gem200('From Gemma');
-  assert.equal((await app.chat()).json.provider, 'gemma');
-  assert.ok(app.googleCalls().at(-1).url.includes('gemma-4-31b-it'));
-  const plain = makeApp({ env: GEMMA_ENV });
-  assert.equal((await plain.chat()).json.provider, 'gemini');
+  const r = await app.chat({ message: 'who is Jason?' });
+  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'gemma', 'From Gemma']);
+  assert.deepEqual(fetched(app), ['groq', 'google']);
+  assert.equal(app.aiCalls.length, 1, 'Workers AI was tried before Gemma');
+  const call = app.googleCalls().at(-1);
+  assert.ok(call.url.endsWith('/gemma-4-31b-it:generateContent'), call.url);
+  const body = app.googleBody();
+  assert.equal(body.systemInstruction, undefined);
+  assert.ok(body.contents[0].parts[0].text.startsWith(GEMINI_SYSTEM_PROMPT));
+  assert.ok(await signatureOk(SECRET, r.json.sig, app.mid, '', r.json.ts, 'who is Jason?', 'From Gemma'));
+});
+
+test('Gemma is skipped when Workers AI answers, and never used without Gemini consent', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV, GEMINI_DAILY_CAP: '1' };
+  const app = withAi(makeApp({ env }));
+  await app.chat();
+  app.tick();
+  app.reset();
+  app.groq = status(500);
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  noGoogle(app, 'Gemma called although Workers AI answered');
+
+  const noAck = withAi(makeApp({ geminiAck: false, env }), () => { throw new Error('4006'); });
+  noAck.groq = status(500);
+  assert.equal((await noAck.chat()).json.reason, 'groq_failed');
+  noGoogle(noAck, 'Gemma called without Gemini consent');
+});
+
+test('a disconnect while the Gemma step is reserved sends nothing to Google and closes the turn', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV, GEMINI_DAILY_CAP: '1' };
+  const app = withAi(makeApp({ env }), () => { throw new Error('4006'); });
+  await app.chat();
+  app.tick();
+  app.reset();
+  app.groq = status(500);
+  const ctrl = new AbortController();
+  const backup = app.limiter.backup;
+  app.limiter.backup = (r) => { const out = backup(r); if (r.provider === 'gemma') ctrl.abort(); return out; };
+  const turnId = UUID();
+  const r = await app.chat({ turnId }, { signal: ctrl.signal });
+  assert.equal(r.status, 499);
+  noGoogle(app, 'Google called after the disconnect');
+  await Promise.all(app.waited);
+  const turnKey = [...app.store.list()].map(([k]) => k).find((k) => k.startsWith('t:') && k.endsWith(`:${turnId}`));
+  assert.equal(app.store.get(turnKey).state, 'DONE');
+});
+
+test('a failed close after a Groq failure is retried, so Workers AI still answers', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  const end = app.limiter.end;
+  let failed = false;
+  app.limiter.end = (r) => { if (!failed) { failed = true; throw new Error('rpc'); } return end(r); };
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+});
+
+test('a retried close keeps Groq 429 details; a retried Gemma end pauses only Gemma', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(429, { 'retry-after': '60' });
+  const end = app.limiter.end;
+  let failed = false;
+  app.limiter.end = (r) => { if (!failed && r.groqStatus === 429) { failed = true; throw new Error('rpc'); } return end(r); };
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  assert.ok(app.store.get('g').groqBlockedUntil > app.clock.t, 'Groq pause lost on the retried close');
+
+  const e = makeApp({ env: { ...GEMMA_ENV } });
+  const k = { ipKey: 'k', sid: 's', turnId: 't' };
+  e.real.backup({ ...k, cfg: readConfig(e.env).limits, provider: 'gemma', gemini: true });
+  e.real.end({ ...k, googleStatus: 429, retryAfter: '30' });
+  e.real.end({ ...k, googleStatus: 429, retryAfter: '30' });
+  assert.equal(e.store.get('g').geminiBlockedUntil, 0, 'a retried Gemma end paused Gemini');
+});
+
+test('a disconnect while the Workers AI step is reserved sends nothing to Workers AI', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  const ctrl = new AbortController();
+  const backup = app.limiter.backup;
+  app.limiter.backup = (r) => { const out = backup(r); if ((r.provider ?? 'workers_ai') === 'workers_ai') ctrl.abort(); return out; };
+  const r = await app.chat({}, { signal: ctrl.signal });
+  assert.equal(r.status, 499);
+  assert.equal(app.aiCalls.length, 0);
+  await Promise.all(app.waited);
+  assert.equal([...app.store.list()].find(([k]) => k.startsWith('v:'))[1].lease, null, 'lease left behind');
+});
+
+test('one turn can run the whole chain: Gemini fails, Groq fails, Workers AI fails, Gemma answers', async () => {
+  const env = { ...GEMMA_ENV, ...AI_ENV };
+  const app = withAi(makeApp({ env }), () => { throw new Error('4006'); });
+  await app.session();
+  app.reset();
+  let googleN = 0;
+  app.google = () => (++googleN === 1 ? status(500)() : gem200('From Gemma'));
+  app.groq = status(500);
+  const r = await app.chat({ message: 'hello' });
+  assert.deepEqual([r.json.type, r.json.provider, r.json.reply], ['ai', 'gemma', 'From Gemma']);
+  assert.deepEqual(fetched(app), ['google', 'groq', 'google']);
+  assert.ok(app.googleCalls()[0].url.includes('/gemini-test:'));
+  assert.ok(app.googleCalls()[1].url.includes('/gemma-4-31b-it:'));
+  assert.equal(app.aiCalls.length, 1);
+});
+
+test('the visitor lease is released after a Workers AI reply', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: AI_ENV }));
+  app.groq = status(500);
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  await Promise.all(app.waited);
+  assert.equal([...app.store.list()].find(([k]) => k.startsWith('v:'))[1].lease, null);
 });

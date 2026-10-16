@@ -63,7 +63,7 @@ export const AKI_WELCOME_COPY = {
     default_on: '\u{1F4BE} Chats stay in this browser for 7 days. Clear anytime.',
     opt_in: '\u{1F4BE} Chats stay in this browser until you close the tab. Clear anytime.',
   },
-  noteGemini: "Your messages are answered by an AI provider: Google Gemini (or Gemma) if this box stays ticked, otherwise Groq, with Cloudflare Workers AI as a backup. Please don't share personal or sensitive information.",
+  noteGemini: "Your messages are answered by an AI provider: Google Gemini if this box stays ticked, otherwise Groq, with Cloudflare Workers AI as a backup and, if the box stays ticked, Google's Gemma as a last resort. Please don't share personal or sensitive information.",
   noteGroq: "Your messages are answered by Groq, an AI provider, with Cloudflare Workers AI as a backup. Please don't share personal or sensitive information.",
   continueLabel: 'Continue to Aki \u2192',
   notNow: 'Not now',
