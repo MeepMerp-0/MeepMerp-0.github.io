@@ -654,3 +654,20 @@ test('Workers AI is not used for visitor limits, without the binding, or when it
   assert.equal((await broken.chat()).json.reason, 'groq_failed');
   assert.equal(broken.aiCalls.length, 1);
 });
+
+test('a session agreed under the previous notice never reaches Gemma or Workers AI', async () => {
+  const OLD = '2026-01-01.1';
+  const env = { ...GEMMA_ENV, ...AI_ENV, GEMINI_DAILY_CAP: '1', CONSENT_VERSION: `${CV},${OLD}` };
+  const app = withAi(makeApp({ env }));
+  const r = await app.send('/v1/session', { turnstileToken: 'tok', ack18: true, geminiAck: true, consentVersion: OLD });
+  assert.equal(r.json.type, 'session');
+  app.token = r.json.sessionToken;
+  assert.equal((await app.chat()).json.provider, 'gemini');
+  app.tick();
+  app.reset();
+  app.groq = status(500);
+  const second = await app.chat();
+  assert.equal(second.json.reason, 'groq_failed');
+  assert.ok(!app.googleCalls().some((c) => c.url.includes('gemma')), 'old-notice session reached Gemma');
+  assert.equal(app.aiCalls.length, 0, 'old-notice session reached Workers AI');
+});

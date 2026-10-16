@@ -15,7 +15,8 @@
  *
  * createLimiter(store, now) → {reserve, claim, cancel, end, fallback, consent, cleanup}.
  * Each method takes one request object and calls now() itself:
- *   reserve   {cfg, ipKey, sid, turnId, gemini}   gemini: true only if the session, config and country allow it
+ *   reserve   {cfg, ipKey, sid, turnId, gemini, gemma?}   gemini: true only if the session, config and country allow it;
+ *             gemma: false keeps a session agreed under an older notice off the Gemma tier
  *   claim     {cfg, ipKey, sid, turnId}
  *   fallback  {cfg, ipKey, sid, turnId, googleStatus, retryAfter}   Gemini failed (not blocked): hop to Groq
  *   cancel    {ipKey, sid, turnId}
@@ -235,7 +236,7 @@ function step(slice, now, fn) {
 
 // --- ops ---
 
-export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
+export function reserve(slice, now, cfg, { sid, turnId, gemini, gemma }) {
   checkCfg(cfg);
   return step(slice, now, (s) => {
     const key = keyOf(sid, turnId);
@@ -252,7 +253,7 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
     const under = c.groq + c.gemini + gemmaUsed < cfg.siteDailyCap;
     const model = gemini !== true || !under ? null
       : g.geminiBlockedUntil <= now && c.gemini < cfg.geminiDailyCap ? 'gemini'
-        : (g.gemmaBlockedUntil ?? 0) <= now && gemmaUsed < cfg.gemmaDailyCap ? 'gemma' : null;
+        : gemma !== false && (g.gemmaBlockedUntil ?? 0) <= now && gemmaUsed < cfg.gemmaDailyCap ? 'gemma' : null;
     if (model) {
       rollDay(g, today);
       if (model === 'gemma') g.gemma = gemmaUsed + 1;

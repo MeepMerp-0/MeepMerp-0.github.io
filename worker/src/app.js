@@ -286,6 +286,8 @@ export async function prepareChat(req) {
       ipKey: await hmac(config.ipSecret, ipPrefix(deps.ip)),
       country: deps.country,
       gemini: session.g && geminiSwitch(config, deps.country) === 'eligible',
+      // Gemma and Workers AI were added in the current notice: a session agreed under an older one never reaches them.
+      currentNotice: session.cv === config.consentVersion,
     },
   };
 }
@@ -364,7 +366,7 @@ async function chat(req) {
   };
   // A Cancel or disconnect before any step that can reach a provider makes no call (§1.6).
   if (deps.signal?.aborted) return new Response(null, { status: 499 });
-  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini });
+  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini, gemma: ctx.currentNotice });
 
   if (r.type === 'go' && r.provider === 'gemini') {
     // One waitUntil unit, so the lease release, the R5-24 latch and the 429 pause survive a visitor disconnect.
@@ -413,7 +415,7 @@ async function chat(req) {
   ];
   // Last AI resort before the client's quick answers: Workers AI, once per turn, when Groq has no capacity.
   const backupOr = async (refusal) => {
-    if (!config.backup.on || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
+    if (!config.backup.on || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
     const b = await Promise.resolve(limiter.backup({ ...key, cfg: config.limits })).catch(() => null);
     if (b?.type !== 'go') return out(refusal);
     const w = await callWorkersAI(config, deps, messages);
