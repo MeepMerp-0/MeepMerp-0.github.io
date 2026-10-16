@@ -71,7 +71,7 @@ function Markdown({ text }) {
 // ponytail: keyword lists for the common visitor languages; a question in another language relies on the model's own link.
 const topic = (latin, other) => new RegExp(`(?<!\\p{L})(?:${latin})(?!\\p{L})|${other}`, 'iu');
 const TOPICS = [
-  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone number|(?:his|jason\\W?s) (?:phone|number)|call (?:him|jason)|tel[eé]fono|telefone|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan',
+  ['contact', 'Contact', topic('contact\\w*|contacto|contactar|contato|kontakt\\w*|e-?mail|correo|phone number|(?:his|jason\\W?s) (?:phone|number)|call (?:him|jason)|tel[eé]fono|telefone|llamar|reach|hire|whatsapp|get in touch|joindre|makipag-ugnayan|address|location|located|where (?:is|does) (?:he|jason)|based in',
     '\u062A\u0648\u0627\u0635\u0644|\u0627\u062A\u0635\u0627\u0644|\u0628\u0631\u064A\u062F|\u0647\u0627\u062A\u0641|\u9023\u7D61|\u30E1\u30FC\u30EB|\u96FB\u8A71')],
   ['process', 'Process', topic('process|proceso|processus|prozess|processo|proseso|workflow|approach',
     '\u0639\u0645\u0644\u064A\u0629|\u30D7\u30ED\u30BB\u30B9')],
