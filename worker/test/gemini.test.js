@@ -69,7 +69,7 @@ function makeApp(opts = {}) {
     const res = await handle(request, o.env ?? app.env, {
       limiter: app.limiter,
       fetch: app.fetch,
-      sleep: async (ms) => { clock.t += ms; },
+      sleep: async (ms) => { clock.t += ms + (app.sleepExtra ?? 0); },
       signal: o.signal,
       waitUntil: (p) => app.waited.push(p),
       country: 'country' in o ? o.country : country,
@@ -670,4 +670,16 @@ test('a session agreed under the previous notice never reaches Gemma or Workers 
   assert.equal(second.json.reason, 'groq_failed');
   assert.ok(!app.googleCalls().some((c) => c.url.includes('gemma')), 'old-notice session reached Gemma');
   assert.equal(app.aiCalls.length, 0, 'old-notice session reached Workers AI');
+});
+
+test('a queued Groq turn that lapsed before its claim still gets the Workers AI backup', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: { ...AI_ENV, MAX_QUEUE_WAIT: '25' } }));
+  app.groq = status(429, { 'retry-after': '10' });
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+  app.tick();
+  app.groq = () => ok200();
+  app.sleepExtra = 20_000;
+  const r = await app.chat();
+  assert.deepEqual([r.json.type, r.json.provider], ['ai', 'workers_ai']);
+  assert.equal(app.groqCalls().filter((c) => c).length, 1, 'the lapsed turn must not call Groq');
 });

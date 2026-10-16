@@ -4,13 +4,14 @@
  *
  * Storage, one record per key (the DO passes ctx.storage.kv; tests pass memoryStore()):
  *   g                 global  {day, groq, gemini, S, groqBlockedUntil, geminiBlockedUntil,
- *                             gemma?, gemmaBlockedUntil?, backup?}  (optional fields appear on first use)
+ *                             gemma?, gemmaBlockedUntil?, backup?, backupDay? (UTC)}  (optional fields appear on first use)
  *                             S = [[slotAt, "sid:turnId"], ...] in ascending slotAt order (R5-32, R5-33)
  *   v:<ipKey>         visitor {w: accepted-turn times (24 h, ≤ 30), lastAt, lease: {turnId, exp} | null, at}
  *                             lease.turnId holds the full turn key "sid:turnId"
  *   t:<sid>:<turnId>  turn    {state, exp, slotAt?, reservedAt?, day?, hop?, at}
  *                             state: GEMINI_IN_FLIGHT (model: 'gemma' when Gemma answers) | IN_FLIGHT (Groq; hop:true
- *                             when it came from Google) | DONE (backup:true once the Workers AI backup was used)
+ *                             when it came from Google) | DONE (backup:true once the Workers AI backup was used;
+ *                             uncounted:true when the refusal took no visitor window entry)
  *   c:<sid>           consent {sid, consentVersion, ack18, gemini, confirmedAt, country}  (audit trail, addendum §2)
  *
  * createLimiter(store, now) → {reserve, claim, cancel, end, fallback, consent, cleanup}.
@@ -152,7 +153,6 @@ function rollDay(g, today) {
   if (g.day === today) return;
   Object.assign(g, { day: today, groq: 0, gemini: 0 });
   if ('gemma' in g) g.gemma = 0;
-  if ('backup' in g) g.backup = 0;
 }
 
 const todays = (g, today, k) => (g.day === today ? g[k] ?? 0 : 0);
@@ -169,7 +169,7 @@ function refundGroqDay(g, t, now) {
 function applyStatus(g, now, { googleStatus, groqStatus, retryAfter }, model) {
   if (googleStatus === 401 || googleStatus === 403) {
     g.geminiBlockedUntil = Math.max(g.geminiBlockedUntil, now + DAY);
-    if ('gemmaBlockedUntil' in g || model === 'gemma') g.gemmaBlockedUntil = Math.max(g.gemmaBlockedUntil ?? 0, now + DAY);
+    g.gemmaBlockedUntil = Math.max(g.gemmaBlockedUntil ?? 0, now + DAY);
   }
   if (googleStatus === 429 && model === 'gemma') g.gemmaBlockedUntil = Math.max(g.gemmaBlockedUntil ?? 0, now + pauseMs(retryAfter));
   else if (googleStatus === 429) g.geminiBlockedUntil = Math.max(g.geminiBlockedUntil, now + pauseMs(retryAfter));
@@ -266,7 +266,8 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini, gemma }) {
     }
     if (g.groqBlockedUntil - now > cfg.maxQueueWait * 1000) {
       v.lastAt = now;
-      s.t = doneTurn(now);
+      // uncounted: this refusal took no visitor window entry, so a Workers AI backup must take one.
+      s.t = { ...doneTurn(now), uncounted: true };
       return unavailable('groq_busy', { retryAfter: secs(g.groqBlockedUntil - now) });
     }
     if (!under) return exhausted('site_daily', now);
@@ -346,7 +347,7 @@ export function claim(slice, now, cfg, { sid, turnId }) {
     if (!t.hop) refundAttempt(v, t.reservedAt);
     refundGroqDay(g, t, now);
     releaseLease(v, key);
-    s.t = doneTurn(now);
+    s.t = { ...doneTurn(now), ...(!t.hop && { uncounted: true }) };
     return unavailable('groq_busy', { retryAfter: secs(g.groqBlockedUntil - now) });
   });
 }
@@ -387,14 +388,17 @@ export function backup(slice, now, cfg, { sid, turnId }) {
     const key = keyOf(sid, turnId);
     const { g, v, t } = s;
     if (t && (t.backup || t.state !== 'DONE' || t.exp <= now)) return unavailable('backup_failed');
-    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now) || windowsCheck(v, now);
+    // A turn that already took a window entry (Groq or Gemini reserve) is not counted or window-checked again.
+    const fresh = !t || t.uncounted;
+    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now) || (fresh ? windowsCheck(v, now) : null);
     if (refused) return refused;
-    const today = pacificDay(now);
-    const used = todays(g, today, 'backup');
-    if (!(used < (Number.isInteger(cfg?.backupDailyCap) ? cfg.backupDailyCap : 0))) return exhausted('backup_daily', now);
-    rollDay(g, today);
+    // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (not on the Pacific day).
+    const utc = new Date(now).toISOString().slice(0, 10);
+    const used = g.backupDay === utc ? g.backup ?? 0 : 0;
+    if (!(used < (Number.isInteger(cfg?.backupDailyCap) ? cfg.backupDailyCap : 0))) return unavailable('backup_daily');
+    g.backupDay = utc;
     g.backup = used + 1;
-    countAttempt(v, now);
+    if (fresh) countAttempt(v, now);
     v.lastAt = now;
     releaseLease(v, key);
     s.t = { ...doneTurn(now), backup: true };

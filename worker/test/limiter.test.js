@@ -1035,7 +1035,7 @@ test('a 429 pauses only the model that sent it; 401 latches Gemini and Gemma', (
 });
 
 test('backup: once per turn, visitor checks for a fresh turn, its own daily cap, never for an open turn', () => {
-  const e = setup({ backupDailyCap: 2 });
+  const e = setup({ backupDailyCap: 2, groqSitePerMin: 10 });
   const a = e.req('A');
   assert.deepEqual(e.lim.backup(a), { type: 'go', provider: 'workers_ai', waitMs: 0 });
   assert.equal(e.t(a).backup, true);
@@ -1044,18 +1044,39 @@ test('backup: once per turn, visitor checks for a fresh turn, its own daily cap,
   assert.equal(e.lim.reserve(a).error, 'turn_reused');
   assert.equal(e.lim.backup(e.req('A')).scope, 'cooldown');
 
+  // An open turn cannot take the backup; once Groq's attempt is closed it can, without a second window entry.
   e.at(5 * S);
   const open = e.req('B');
   e.lim.reserve(open);
   assert.equal(e.lim.backup(open).reason, 'backup_failed');
-  e.lim.end(open);
+  e.lim.end({ ...open, groqStatus: 500 });
   assert.equal(e.lim.backup(open).type, 'go');
+  assert.equal(e.v('B').w.length, 1, 'a Groq-counted turn was counted again');
   e.at(10 * S);
-  assert.equal(e.lim.backup(e.req('C')).scope, 'backup_daily');
-  assert.equal(setup().lim.backup(setup().req('D')).scope, 'backup_daily');
+  assert.equal(e.lim.backup(e.req('C')).reason, 'backup_daily');
+  assert.equal(setup().lim.backup(setup().req('D')).reason, 'backup_daily');
 });
 
-test('the day rollover resets the Gemma and backup counts', () => {
+test('a groq_busy refusal took no window entry, so its backup takes one', () => {
+  const e = setup({ backupDailyCap: 5 });
+  pauseGroq(e, 600);
+  e.at(S);
+  const a = e.req('A');
+  assert.equal(e.lim.reserve(a).reason, 'groq_busy');
+  assert.equal(e.t(a).uncounted, true);
+  assert.equal(e.lim.backup(a).type, 'go');
+  assert.equal(e.v('A').w.length, 1);
+});
+
+test('a Gemini 401 on a fresh record latches Gemma too', () => {
+  const e = setup({ gemmaDailyCap: 5, groqSitePerMin: 10 });
+  const a = gem(e, 'A');
+  e.lim.fallback({ ...a, cfg: e.cfg, googleStatus: 401 });
+  assert.equal(e.g().gemmaBlockedUntil, T0 + DAY);
+  assert.equal(e.lim.reserve(e.req('B', { gemini: true })).provider, 'groq');
+});
+
+test('the Pacific rollover resets Gemma; the backup count resets at 00:00 UTC', () => {
   const late = Date.UTC(2026, 9, 17, 6, 59, 0); // 23:59 PDT
   const e = setup({ geminiDailyCap: 1, gemmaDailyCap: 1, backupDailyCap: 1, groqSitePerMin: 10 }, late);
   gem(e, 'A');
@@ -1063,5 +1084,11 @@ test('the day rollover resets the Gemma and backup counts', () => {
   assert.equal(e.lim.backup(e.req('C')).type, 'go');
   e.at(2 * 60 * S);
   assert.deepEqual(e.lim.reserve(e.req('D', { gemini: true })), GEMINI_GO);
-  assert.deepEqual([e.g().gemini, e.g().gemma, e.g().backup], [1, 0, 0]);
+  assert.deepEqual([e.g().gemini, e.g().gemma], [1, 0]);
+  // Still the same UTC day (07:01 UTC): the backup stays spent until 00:00 UTC.
+  assert.equal(e.lim.backup(e.req('E')).reason, 'backup_daily');
+  const u = setup({ backupDailyCap: 1 }, Date.UTC(2026, 9, 17, 23, 59, 0));
+  assert.equal(u.lim.backup(u.req('A')).type, 'go');
+  u.at(2 * 60 * S);
+  assert.equal(u.lim.backup(u.req('B')).type, 'go');
 });

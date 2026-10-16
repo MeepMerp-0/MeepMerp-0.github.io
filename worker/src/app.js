@@ -416,6 +416,8 @@ async function chat(req) {
   // Last AI resort before the client's quick answers: Workers AI, once per turn, when Groq has no capacity.
   const backupOr = async (refusal) => {
     if (!config.backup.on || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
+    // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first (a no-op for a closed turn).
+    if (refusal.reason === 'groq_failed') await Promise.resolve(limiter.end(key)).catch(() => {});
     const b = await Promise.resolve(limiter.backup({ ...key, cfg: config.limits })).catch(() => null);
     if (b?.type !== 'go') return out(refusal);
     const w = await callWorkersAI(config, deps, messages);
