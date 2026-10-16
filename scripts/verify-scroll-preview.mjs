@@ -1176,6 +1176,8 @@ async function runAkiSmoke() {
       check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
       check(await chipFor('Has Jason built any phone apps?', 'See [Work](#work).') === '', 'phone apps got a Contact chip');
       check(await chipFor('Who is Jason?', 'An engineer.') === '#about', 'no About chip for "Who is Jason?"');
+      check(await chipFor("Tell me about Jason's projects", 'See [Work](#work).') === '', '"about" as a preposition added an About chip');
+      check(await chipFor("Tell me about Jason's projects", 'Several.') === '#work', 'no Work chip for projects');
       check(await chipFor("what's his phone number?", 'Here it is.') === '#contact', 'no Contact chip for a phone number');
       check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
       // In a full log, the visitor's typing row scrolls into view.
