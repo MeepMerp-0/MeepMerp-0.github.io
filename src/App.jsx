@@ -5,6 +5,7 @@ import {
   Menu, Moon, Sun, X,
 } from 'lucide-react';
 import PortfolioWorkflow from './components/PortfolioWorkflow.jsx';
+import { Aki } from './components/Aki.jsx';
 import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, FOCUS_AREAS, SKILL_GROUPS } from './data/portfolioData.js';
 import { useContactForm } from './hooks/useContactForm.js';
 import { submitContactForm } from './services/formService.js';
@@ -78,7 +79,7 @@ function Header({ theme, setTheme }) {
             aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
             {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
           </button>
-          <a className="header-cta" href={'mailto:' + PERSONAL.email}>Let's talk <ArrowUpRight size={15} aria-hidden="true" /></a>
+          <a className="header-cta" href="https://wa.me/971504482694?text=Hi%20Jason%2C%20I%20saw%20your%20portfolio%20and%20I%27d%20like%20to%20talk%20about%20a%20project%20or%20opportunity." target="_blank" rel="noopener noreferrer" aria-label="Let's talk on WhatsApp (opens in a new tab)">Let's talk <ArrowUpRight size={15} aria-hidden="true" /></a>
           <button ref={menuButton} className="icon-button mobile-menu" type="button" onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen} aria-controls="main-navigation" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}>
             {menuOpen ? <X size={21} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
@@ -99,7 +100,7 @@ function SectionIntro({ number, eyebrow, title, subtitle, id, motionStyle = 'ris
       className="section-intro"
       initial={reduceMotion || motionStyle === 'static' ? false : entrance}
       whileInView={{ x: 0, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
+      viewport={{ once: false, amount: 0.18 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="section-intro-label"><span>{number}</span> / {eyebrow}</div>
@@ -151,7 +152,7 @@ function Hero() {
           aria-label="Areas of work"
           style={{ y: reduceMotion ? 0 : noteParallaxY }}
         >
-          <div className="notes-heading"><span>FIELD NOTES</span><span>001 / {String(FOCUS_AREAS.length).padStart(3, '0')}</span></div>
+          <div className="notes-heading"><span>FIELD NOTES</span><span>{String(FOCUS_AREAS.length).padStart(2, '0')} NOTES</span></div>
           <p className="notes-title">What I work on</p>
           {FOCUS_AREAS.map((area, index) => (
             <div className="notes-entry" key={area.title}>
@@ -182,7 +183,7 @@ function ProjectRow({ project, index }) {
       className="project-row"
       initial={reduceMotion ? false : { x: index % 2 === 0 ? -16 : 16 }}
       whileInView={{ x: 0 }}
-      viewport={{ once: true, amount: 0.16 }}
+      viewport={{ once: false, amount: 0.16 }}
       transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="project-count">
@@ -276,7 +277,7 @@ function About() {
             className="about-story"
             initial={reduceMotion ? false : { x: -18 }}
             whileInView={{ x: 0 }}
-            viewport={{ once: true, amount: 0.17 }}
+            viewport={{ once: false, amount: 0.17 }}
             transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
           >
             <h3>A little about how I got here.</h3>
@@ -287,7 +288,7 @@ function About() {
             className="experience"
             initial={reduceMotion ? false : { x: 18 }}
             whileInView={{ x: 0 }}
-            viewport={{ once: true, amount: 0.14 }}
+            viewport={{ once: false, amount: 0.14 }}
             transition={{ duration: 0.62, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
           >
             <h3>EXPERIENCE / RECENT TO EARLIER</h3>
@@ -311,7 +312,7 @@ function About() {
           className="capabilities"
           initial={reduceMotion ? false : { y: 12 }}
           whileInView={{ y: 0 }}
-          viewport={{ once: true, amount: 0.16 }}
+          viewport={{ once: false, amount: 0.16 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="capabilities-lead">CURRENT TOOLKIT <span>SELECTED, NOT EXHAUSTIVE</span></div>
@@ -359,7 +360,7 @@ function Contact() {
             className="contact-sidebar"
             initial={reduceMotion ? false : { x: -16 }}
             whileInView={{ x: 0 }}
-            viewport={{ once: true, amount: 0.18 }}
+            viewport={{ once: false, amount: 0.18 }}
             transition={{ duration: 0.54, ease: [0.22, 1, 0.36, 1] }}
           >
             <h3>Let's make it useful.</h3>
@@ -372,7 +373,7 @@ function Contact() {
             className="contact-form-wrap"
             initial={reduceMotion ? false : { y: 22 }}
             whileInView={{ y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
             {sent ? (
@@ -447,8 +448,10 @@ export default function App() {
       <footer className="footer"><div className="shell footer-inner">
         <span>© {new Date().getFullYear()} {PERSONAL.name}</span>
         <span>DESIGNED WITH INTENT · BUILT WITH REACT</span>
+        <a href="aki-legal.html">PRIVACY &amp; TERMS</a>
         <a href="#home">BACK TO TOP ↑</a>
       </div></footer>
+      <Aki />
     </MotionConfig>
   );
 }

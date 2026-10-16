@@ -9,7 +9,7 @@ const STEP_LABELS = ['Beginner', 'Intermediate', 'Proficient', 'Advanced', 'Mast
 
 export default function TechBar({ label, step, delay = 0 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const inView = useInView(ref, { once: false, margin: '-60px' });
 
   return (
     <div ref={ref} style={{ marginBottom: 18 }}>
