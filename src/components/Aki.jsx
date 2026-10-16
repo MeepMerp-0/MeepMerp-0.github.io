@@ -79,6 +79,8 @@ const TOPICS = [
     '\u062E\u0628\u0631\u0629|\u0645\u0647\u0627\u0631\u0627\u062A|\u7D4C\u9A13|\u30B9\u30AD\u30EB')],
   ['work', 'Work', topic('work|trabajo|travail|arbeit|trabalho|projects?|proyectos?|projets?|projekte?|projetos?|proyekto|built|demos?|apps?|portfolio|portafolio',
     '\u0645\u0634\u0627\u0631\u064A\u0639|\u0623\u0639\u0645\u0627\u0644|\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8|\u4F5C\u54C1')],
+  ['home', 'Home', topic('home|homepage|inicio|accueil|startseite|in[ií]cio',
+    '\u0627\u0644\u0631\u0626\u064A\u0633\u064A\u0629|\u30DB\u30FC\u30E0')],
 ];
 const sectionLinks = (question, reply) => {
   const t = TOPICS.find(([, , re]) => re.test(question));
@@ -208,6 +210,7 @@ function AkiWidget() {
 
   const busy = Boolean(pending);
   const isTyping = busy || replying;
+  const youTyping = !isTyping && typing && Boolean(input.trim());
   const showTry = !isTyping && (!usedTry || quickOnly || link === 'down');
   const count = codePoints(input.trim());
   let head = 'idle';
@@ -226,7 +229,7 @@ function AkiWidget() {
     ...(pending ? [{ id: 'pending', role: 'user', text: pending }] : []),
     ...(isTyping ? [{ id: 'typing', role: 'assistant', typing: true }] : []),
     // The visitor's own typing dots, mirroring Aki's, while they compose a message.
-    ...(!isTyping && typing && input.trim() ? [{ id: 'you-typing', role: 'user', typing: true }] : []),
+    ...(youTyping ? [{ id: 'you-typing', role: 'user', typing: true }] : []),
   ];
   const note = (role, text, links) => setLog((l) => [...l, { id: `n${uid.current += 1}`, role, text, links }]);
 
@@ -259,7 +262,7 @@ function AkiWidget() {
   useEffect(() => {
     const el = logRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [log, pending, replying, slow, wait, open, step]);
+  }, [log, pending, replying, slow, wait, open, step, youTyping]);
 
   useEffect(() => {
     const el = inputRef.current;

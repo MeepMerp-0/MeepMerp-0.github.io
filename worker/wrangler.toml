@@ -26,7 +26,7 @@ GEMINI_MODEL = "gemini-3.5-flash-lite"
 # Launch checklist (A2): set to min(20, AI Studio RPD)
 GEMINI_DAILY_CAP = "20"
 # Launch checklist (A2): replace with Google's available regions minus EEA_UK_CH, XX and AI_BLOCKED
-GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE"
+GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 # First entry must equal the version of public/aki-legal.html. When bumping it, keep the old one
 # after a comma ("new,old") until the site has deployed, then remove it.
 CONSENT_VERSION = "2026-10-16.4"
@@ -61,5 +61,5 @@ TURNSTILE_ACTIONS = "aki_session"
 GEMINI_ENABLED = "true"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 GEMINI_DAILY_CAP = "20"
-GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE"
+GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 CONSENT_VERSION = "2026-10-16.4"

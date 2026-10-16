@@ -1173,7 +1173,14 @@ async function runAkiSmoke() {
       check(await chipFor('how do I contact him?', 'Use `[Contact](#contact)`.') === '#contact', 'a code-wrapped link suppressed the chip');
       check(await chipFor('how do I contact him?', 'Use **[Contact](#contact)**.') === '', 'chip added although a bold link renders');
       check(await evaluate('[...document.querySelectorAll(".aki-msg-assistant strong > a")].pop()?.getAttribute("href")') === '#contact', 'link inside bold not rendered');
+      check(await chipFor('take me home', 'Sure.') === '#home', 'no Home chip');
       check(await chipFor('¿Cómo contacto a Jason?', 'Puedes escribirle.') === '#contact', 'no Contact chip for Spanish');
+      // In a full log, the visitor's typing row scrolls into view.
+      await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "h");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await until('(() => { const log = document.querySelector(".aki-log"), row = document.querySelector(".aki-row-user .aki-typing");'
+        + 'return row && log.scrollHeight > log.clientHeight && row.getBoundingClientRect().bottom <= log.getBoundingClientRect().bottom + 1; })()', 'visitor typing row visible');
       check(await chipFor('ジェイソンのプロジェクトは？', 'いくつかあります。') === '#work', 'no Work chip for Japanese');
       check(await chipFor('كيف أتواصل مع جيسون؟', 'يمكنك مراسلته.') === '#contact', 'no Contact chip for Arabic');
     });
