@@ -16,23 +16,22 @@
  *
  * createLimiter(store, now) → {reserve, claim, cancel, end, fallback, consent, cleanup}.
  * Each method takes one request object and calls now() itself:
- *   reserve   {cfg, ipKey, sid, turnId, gemini, gemma?}   gemini: true only if the session, config and country allow it;
- *             gemma: false keeps a session agreed under an older notice off the Gemma tier
+ *   reserve   {cfg, ipKey, sid, turnId, gemini}   gemini: true only if the session, config and country allow it
  *   claim     {cfg, ipKey, sid, turnId}
  *   fallback  {cfg, ipKey, sid, turnId, googleStatus, retryAfter}   Gemini failed (not blocked): hop to Groq
  *   cancel    {ipKey, sid, turnId}
  *   end       {ipKey, sid, turnId, googleStatus?, groqStatus?, retryAfter?}   retryAfter = seconds or raw header
- *   backup    {cfg, ipKey, sid, turnId}   Workers AI, once per turn, after the Groq route had no capacity or failed
+ *   backup    {cfg, ipKey, sid, turnId, provider?, gemini?}   once per turn and provider, after the Groq route had no
+ *             capacity or failed: provider 'workers_ai' (default), then 'gemma' (only with gemini: true)
  *   consent   {sid, consentVersion, gemini, country}
  *   cleanup   () → number of records deleted (hourly alarm, R5-17)
  * cfg = {siteDailyCap, groqDailyCap?, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
- * groqDailyCap is Groq's own share of the day (missing = no extra limit). gemmaDailyCap and backupDailyCap
- * (missing or 0 = off) are the Gemma tier and the Workers AI backup. gemmaFirst: true puts Gemma before Gemini;
- * otherwise Gemma is used when Gemini is capped or paused.
+ * groqDailyCap is Groq's own share of the day (missing = no extra limit). backupDailyCap and gemmaDailyCap
+ * (missing or 0 = off) are the last two steps: Workers AI, then Gemma (Google's last resort, same consent as Gemini).
  * The Gemini latch, pause and caps are checked here; a turn that may not use Gemini silently takes the Groq route.
  *
  * Results:
- *   {type:'go', provider:'gemini', waitMs:0}  reserve: call Gemini now ({..., model:'gemma'}: call Gemma).
+ *   {type:'go', provider:'gemini', waitMs:0}  reserve: call Gemini now. backup (provider gemma): {..., model:'gemma'}.
  *   {type:'go', provider:'workers_ai', waitMs:0}  backup: call Workers AI now.
  *   {type:'go', provider:'groq', waitMs}      reserve and fallback. waitMs > 0: sleep, then claim. 0: call Groq now.
  *   {type:'go', waitMs}                       claim (Groq only).
@@ -237,7 +236,7 @@ function step(slice, now, fn) {
 
 // --- ops ---
 
-export function reserve(slice, now, cfg, { sid, turnId, gemini, gemma }) {
+export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
   checkCfg(cfg);
   return step(slice, now, (s) => {
     const key = keyOf(sid, turnId);
@@ -249,23 +248,16 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini, gemma }) {
     if (refused) return refused;
     const today = pacificDay(now);
     const c = dayCounts(g, today);
-    // Google first (§1.1): Gemini, then Gemma once Gemini is capped or paused. A missing cap compares false.
-    const gemmaUsed = todays(g, today, 'gemma');
-    const under = c.groq + c.gemini + gemmaUsed < cfg.siteDailyCap;
-    const geminiOk = g.geminiBlockedUntil <= now && c.gemini < cfg.geminiDailyCap;
-    const gemmaOk = gemma !== false && (g.gemmaBlockedUntil ?? 0) <= now && gemmaUsed < cfg.gemmaDailyCap;
-    // gemmaFirst: Gemma (more calls a day) leads and Gemini covers its cap or pause; otherwise the reverse.
-    const model = gemini !== true || !under ? null
-      : cfg.gemmaFirst === true && gemmaOk ? 'gemma' : geminiOk ? 'gemini' : gemmaOk ? 'gemma' : null;
-    if (model) {
+    // Gemini first (§1.1). A missing geminiDailyCap compares false, so the turn takes the Groq route.
+    const under = c.groq + c.gemini + todays(g, today, 'gemma') < cfg.siteDailyCap;
+    if (gemini === true && under && g.geminiBlockedUntil <= now && c.gemini < cfg.geminiDailyCap) {
       rollDay(g, today);
-      if (model === 'gemma') g.gemma = gemmaUsed + 1;
-      else g.gemini += 1;
+      g.gemini += 1;
       countAttempt(v, now);
       v.lastAt = now;
       v.lease = { turnId: key, exp: now + GEMINI_LEASE_MS };
-      s.t = { state: 'GEMINI_IN_FLIGHT', exp: now + GEMINI_LEASE_MS, day: today, ...(model === 'gemma' && { model }) };
-      return model === 'gemma' ? { ...go(0, 'gemini'), model } : go(0, 'gemini');
+      s.t = { state: 'GEMINI_IN_FLIGHT', exp: now + GEMINI_LEASE_MS, day: today };
+      return go(0, 'gemini');
     }
     if (g.groqBlockedUntil - now > cfg.maxQueueWait * 1000) {
       v.lastAt = now;
@@ -376,7 +368,8 @@ export function end(slice, now, _cfg, { sid, turnId, googleStatus, groqStatus, r
     applyStatus(g, now, { googleStatus, groqStatus, retryAfter }, t?.state === 'GEMINI_IN_FLIGHT' ? t.model : undefined);
     if (!t || (t.state !== 'IN_FLIGHT' && t.state !== 'GEMINI_IN_FLIGHT')) return null;
     if (t.exp > now) releaseLease(v, keyOf(sid, turnId));
-    s.t = doneTurn(now);
+    // A Gemma last-resort turn is the end of the line: no further backup step for it.
+    s.t = { ...doneTurn(now), ...(t.model === 'gemma' && { gemma: true, backup: true }) };
     return null;
   });
 }
@@ -386,24 +379,42 @@ export function end(slice, now, _cfg, { sid, turnId, googleStatus, groqStatus, r
  * from a groq_busy refusal) or after Groq failed and end() closed the turn. The daily cap keeps it inside the free
  * allocation. A fresh turn passes the visitor checks first; every backup counts one visitor window entry.
  */
-export function backup(slice, now, cfg, { sid, turnId }) {
+export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', gemini }) {
   return step(slice, now, (s) => {
     const key = keyOf(sid, turnId);
     const { g, v, t } = s;
-    if (t && (t.backup || t.state !== 'DONE' || t.exp <= now)) return unavailable('backup_failed');
-    // A turn that already took a window entry (Groq or Gemini reserve) is not counted or window-checked again.
-    const fresh = !t || t.uncounted;
+    const gemma = provider === 'gemma';
+    if (t && (t.state !== 'DONE' || t.exp <= now || (gemma ? t.gemma : t.backup))) return unavailable('backup_failed');
+    // A turn that already took a window entry (Groq or Gemini reserve, or the Workers AI step) is not counted or
+    // window-checked again.
+    const fresh = !t || (t.uncounted && !t.backup);
     const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now) || (fresh ? windowsCheck(v, now) : null);
     if (refused) return refused;
-    // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (not on the Pacific day).
-    const utc = new Date(now).toISOString().slice(0, 10);
-    const used = g.backupDay === utc ? g.backup ?? 0 : 0;
-    if (!(used < (Number.isInteger(cfg?.backupDailyCap) ? cfg.backupDailyCap : 0))) return unavailable('backup_daily');
-    g.backupDay = utc;
-    g.backup = used + 1;
+    if (gemma) {
+      // Google's last resort: same consent as Gemini, its own Pacific-day count, pause and the shared-key latch.
+      const today = pacificDay(now);
+      const c = dayCounts(g, today);
+      const used = todays(g, today, 'gemma');
+      if (gemini !== true || (g.gemmaBlockedUntil ?? 0) > now || !(used < (cfg?.gemmaDailyCap ?? 0))
+        || !(c.groq + c.gemini + used < cfg.siteDailyCap)) return unavailable('gemma_unavailable');
+      rollDay(g, today);
+      g.gemma = used + 1;
+    } else {
+      // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (not on the Pacific day).
+      const utc = new Date(now).toISOString().slice(0, 10);
+      const used = g.backupDay === utc ? g.backup ?? 0 : 0;
+      if (!(used < (Number.isInteger(cfg?.backupDailyCap) ? cfg.backupDailyCap : 0))) return unavailable('backup_daily');
+      g.backupDay = utc;
+      g.backup = used + 1;
+    }
     if (fresh) countAttempt(v, now);
     v.lastAt = now;
     releaseLease(v, key);
+    if (gemma) {
+      // In flight until end() reports Google's status (a 429 pauses Gemma, a 401/403 latches the key).
+      s.t = { state: 'GEMINI_IN_FLIGHT', model: 'gemma', exp: now + GEMINI_LEASE_MS, day: pacificDay(now) };
+      return { ...go(0, 'gemini'), model: 'gemma' };
+    }
     s.t = { ...doneTurn(now), backup: true };
     return go(0, 'workers_ai');
   });

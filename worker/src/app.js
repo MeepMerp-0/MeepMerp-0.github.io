@@ -166,7 +166,7 @@ export function readConfig(env, ai) {
     siteDailyCap,
     maxTokens,
     limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap,
-      gemmaDailyCap: gemini.gemmaDailyCap, gemmaFirst: gemini.gemmaDailyCap > 0 && e.GEMMA_FIRST === 'true', backupDailyCap: backup.dailyCap },
+      gemmaDailyCap: gemini.gemmaDailyCap, backupDailyCap: backup.dailyCap },
     gemini,
     backup,
   };
@@ -366,7 +366,7 @@ async function chat(req) {
   };
   // A Cancel or disconnect before any step that can reach a provider makes no call (§1.6).
   if (deps.signal?.aborted) return new Response(null, { status: 499 });
-  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini, gemma: ctx.currentNotice });
+  let r = await limiter.reserve({ ...key, cfg: config.limits, gemini: ctx.gemini });
 
   if (r.type === 'go' && r.provider === 'gemini') {
     // One waitUntil unit, so the lease release, the R5-24 latch and the 429 pause survive a visitor disconnect.
@@ -375,7 +375,7 @@ async function chat(req) {
       // Aborted during reserve: no Google call; the Gemini day count stays spent (never under-counts).
       const g = deps.signal?.aborted
         ? { ok: false, status: 0, retryAfter: null }
-        : await callGemini(config, deps, filterHistory(ctx.history), message, r.model === 'gemma' ? config.gemini.gemmaModel : undefined);
+        : await callGemini(config, deps, filterHistory(ctx.history), message);
       const status = { googleStatus: g.ok || g.blocked ? 200 : g.status, retryAfter: g.retryAfter };
       // §1.6: a Cancel or disconnect before or during the Gemini call ends the turn with no fallback and no Groq call.
       if (g.ok || g.blocked || deps.signal?.aborted) {
@@ -387,7 +387,7 @@ async function chat(req) {
     })();
     waitUntil(work.catch(() => {}));
     const { g, hop } = await work;
-    if (g.ok) return reply(r.model === 'gemma' ? 'gemma' : 'gemini', g.content);
+    if (g.ok) return reply('gemini', g.content);
     // Blocked content is never sent on to Groq (§1.2: that would be policy evasion).
     if (g.blocked) return out({ type: 'provider_unavailable', reason: 'content_blocked' });
     if (!hop) return new Response(null, { status: 499 });
@@ -413,16 +413,30 @@ async function chat(req) {
     ...ctx.history.map(({ role, content }) => ({ role, content })),
     { role: 'user', content: message },
   ];
-  // Last AI resort before the client's quick answers: Workers AI, once per turn, when Groq has no capacity.
-  const backupOr = async (refusal) => {
-    if (!config.backup.on || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
-    // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first (a no-op for a closed turn).
-    if (refusal.reason === 'groq_failed') await Promise.resolve(limiter.end(key)).catch(() => {});
-    const b = await Promise.resolve(limiter.backup({ ...key, cfg: config.limits })).catch(() => null);
-    if (b?.type !== 'go') return out(refusal);
-    const w = await callWorkersAI(config, deps, messages);
-    if (w.ok) return reply('workers_ai', w.content);
-    console.log(JSON.stringify({ workers_ai_failed: true }));
+  // After Groq, when it has no capacity or fails: Workers AI, then Google's Gemma as the last resort (only for
+  // sessions that allowed Gemini), each once per turn, before the client's quick answers. Both were added in the
+  // current notice, so a session agreed under an older one never reaches them.
+  const useGemma = Boolean(config.gemini.gemmaModel) && ctx.gemini;
+  const backupOr = async (refusal, closed = false) => {
+    if (!(config.backup.on || useGemma) || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
+    // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first.
+    if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve(limiter.end(key)).catch(() => {});
+    const step = (req) => Promise.resolve(limiter.backup({ ...key, cfg: config.limits, ...req })).catch(() => null);
+    if (config.backup.on && (await step({ provider: 'workers_ai' }))?.type === 'go') {
+      const w = await callWorkersAI(config, deps, messages);
+      if (w.ok) return reply('workers_ai', w.content);
+      console.log(JSON.stringify({ workers_ai_failed: true }));
+    }
+    if (!useGemma || deps.signal?.aborted) return out(refusal);
+    if ((await step({ provider: 'gemma', gemini: true }))?.type !== 'go') return out(refusal);
+    const g = await callGemini(config, deps, filterHistory(ctx.history), message, config.gemini.gemmaModel);
+    const ended = Promise.resolve(limiter.end({ ...key, googleStatus: g.ok || g.blocked ? 200 : g.status, retryAfter: g.retryAfter }))
+      .catch(() => {});
+    waitUntil(ended);
+    await ended;
+    if (g.ok) return reply('gemma', g.content);
+    if (g.blocked) return out({ type: 'provider_unavailable', reason: 'content_blocked' });
+    console.log(JSON.stringify({ gemma_failed: g.status }));
     return out(refusal);
   };
   if (r.type !== 'go') return backupOr(r);
@@ -442,7 +456,7 @@ async function chat(req) {
   const ended = Promise.resolve(limiter.end({ ...key, groqStatus: groq.status, retryAfter: groq.retryAfter })).catch(() => {});
   waitUntil(ended);
   await ended;
-  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' });
+  return backupOr({ type: 'provider_unavailable', reason: 'groq_failed' }, true);
 }
 
 // --- session ---

@@ -1007,33 +1007,6 @@ test('property: the site Groq cap is never exceeded, with Gemini hops interleave
 
 // --- Gemma tier and Workers AI backup ---
 
-test('Gemma takes Google turns once Gemini is capped, with its own count and cap', () => {
-  const e = setup({ groqSitePerMin: 10, geminiDailyCap: 1, gemmaDailyCap: 1 });
-  gem(e, 'A');
-  const b = e.req('B', { gemini: true });
-  assert.deepEqual(e.lim.reserve(b), { ...GEMINI_GO, model: 'gemma' });
-  assert.equal(e.t(b).model, 'gemma');
-  assert.deepEqual([e.g().gemini, e.g().gemma], [1, 1]);
-  assert.equal(e.lim.reserve(e.req('C', { gemini: true })).provider, 'groq');
-});
-
-test('a 429 pauses only the model that sent it; 401 latches Gemini and Gemma', () => {
-  const e = setup({ groqSitePerMin: 10, gemmaDailyCap: 5 });
-  const a = gem(e, 'A');
-  e.lim.end({ ...a, googleStatus: 429, retryAfter: '60' });
-  const b = e.req('B', { gemini: true });
-  assert.equal(e.lim.reserve(b).model, 'gemma');
-  e.lim.end({ ...b, googleStatus: 429, retryAfter: '30' });
-  assert.equal(e.g().gemmaBlockedUntil, T0 + 30 * S);
-  assert.equal(e.g().geminiBlockedUntil, T0 + 60 * S);
-  e.at(31 * S);
-  const c = e.req('C', { gemini: true });
-  assert.equal(e.lim.reserve(c).model, 'gemma');
-  e.lim.fallback({ ...c, cfg: e.cfg, googleStatus: 401 });
-  assert.equal(e.g().gemmaBlockedUntil, T0 + 31 * S + DAY);
-  assert.equal(e.g().geminiBlockedUntil, T0 + 31 * S + DAY);
-});
-
 test('backup: once per turn, visitor checks for a fresh turn, its own daily cap, never for an open turn', () => {
   const e = setup({ backupDailyCap: 2, groqSitePerMin: 10 });
   const a = e.req('A');
@@ -1076,32 +1049,57 @@ test('a Gemini 401 on a fresh record latches Gemma too', () => {
   assert.equal(e.lim.reserve(e.req('B', { gemini: true })).provider, 'groq');
 });
 
-test('the Pacific rollover resets Gemma; the backup count resets at 00:00 UTC', () => {
+
+const gemmaReq = (e, ip, extra = {}) => e.req(ip, { provider: 'gemma', gemini: true, ...extra });
+const GEMMA_GO = { ...GEMINI_GO, model: 'gemma' };
+
+test('Gemma backup: needs gemini, once per turn, after Workers AI without a second window entry, own cap', () => {
+  const e = setup({ groqSitePerMin: 10, backupDailyCap: 5, gemmaDailyCap: 2 });
+  const a = e.req('A');
+  e.lim.reserve(a);
+  e.lim.end({ ...a, groqStatus: 500 });
+  assert.equal(e.lim.backup({ ...a, provider: 'gemma' }).reason, 'gemma_unavailable', 'no gemini consent');
+  assert.equal(e.lim.backup(a).provider, 'workers_ai');
+  assert.deepEqual(e.lim.backup({ ...a, provider: 'gemma', gemini: true }), GEMMA_GO);
+  assert.equal(e.t(a).model, 'gemma');
+  assert.equal(e.v('A').w.length, 1, 'the turn was counted more than once');
+  e.lim.end({ ...a, googleStatus: 200 });
+  assert.equal(e.lim.backup({ ...a, provider: 'gemma', gemini: true }).reason, 'backup_failed');
+  assert.equal(e.lim.backup(a).reason, 'backup_failed');
+  e.at(5 * S);
+  assert.deepEqual(e.lim.backup(gemmaReq(e, 'B')), GEMMA_GO);
+  e.at(10 * S);
+  assert.equal(e.lim.backup(gemmaReq(e, 'C')).reason, 'gemma_unavailable', 'cap of 2 reached');
+});
+
+test('a Gemma 429 pauses only Gemma; a Gemma 401 latches Gemini too', () => {
+  const e = setup({ groqSitePerMin: 10, gemmaDailyCap: 9 });
+  const a = gemmaReq(e, 'A');
+  e.lim.backup(a);
+  e.lim.end({ ...a, googleStatus: 429, retryAfter: '30' });
+  assert.equal(e.g().gemmaBlockedUntil, T0 + 30 * S);
+  assert.equal(e.g().geminiBlockedUntil, 0);
+  assert.equal(e.lim.backup(gemmaReq(e, 'B')).reason, 'gemma_unavailable');
+  e.at(31 * S);
+  const c = gemmaReq(e, 'C');
+  assert.deepEqual(e.lim.backup(c), GEMMA_GO);
+  e.lim.end({ ...c, googleStatus: 401 });
+  assert.equal(e.g().geminiBlockedUntil, T0 + 31 * S + DAY);
+  assert.equal(e.g().gemmaBlockedUntil, T0 + 31 * S + DAY);
+});
+
+test('the Pacific rollover resets Gemma; the Workers AI count resets at 00:00 UTC', () => {
   const late = Date.UTC(2026, 9, 17, 6, 59, 0); // 23:59 PDT
-  const e = setup({ geminiDailyCap: 1, gemmaDailyCap: 1, backupDailyCap: 1, groqSitePerMin: 10 }, late);
-  gem(e, 'A');
-  assert.equal(e.lim.reserve(e.req('B', { gemini: true })).model, 'gemma');
-  assert.equal(e.lim.backup(e.req('C')).type, 'go');
+  const e = setup({ gemmaDailyCap: 1, backupDailyCap: 1, groqSitePerMin: 10 }, late);
+  assert.deepEqual(e.lim.backup(gemmaReq(e, 'A')), GEMMA_GO);
+  assert.equal(e.lim.backup(e.req('B')).type, 'go');
   e.at(2 * 60 * S);
-  assert.deepEqual(e.lim.reserve(e.req('D', { gemini: true })), GEMINI_GO);
-  assert.deepEqual([e.g().gemini, e.g().gemma], [1, 0]);
-  // Still the same UTC day (07:01 UTC): the backup stays spent until 00:00 UTC.
-  assert.equal(e.lim.backup(e.req('E')).reason, 'backup_daily');
+  assert.deepEqual(e.lim.backup(gemmaReq(e, 'C')), GEMMA_GO);
+  assert.equal(e.g().gemma, 1);
+  // Still the same UTC day (07:01 UTC): Workers AI stays spent until 00:00 UTC.
+  assert.equal(e.lim.backup(e.req('D')).reason, 'backup_daily');
   const u = setup({ backupDailyCap: 1 }, Date.UTC(2026, 9, 17, 23, 59, 0));
   assert.equal(u.lim.backup(u.req('A')).type, 'go');
   u.at(2 * 60 * S);
   assert.equal(u.lim.backup(u.req('B')).type, 'go');
-});
-
-test('gemmaFirst: Gemma leads, Gemini covers its cap and pause; old-notice sessions stay on Gemini', () => {
-  const e = setup({ groqSitePerMin: 10, gemmaDailyCap: 1, gemmaFirst: true });
-  const a = e.req('A', { gemini: true });
-  assert.equal(e.lim.reserve(a).model, 'gemma');
-  assert.deepEqual(e.lim.reserve(e.req('B', { gemini: true })), GEMINI_GO);
-  const f = setup({ groqSitePerMin: 10, gemmaDailyCap: 5, gemmaFirst: true });
-  const x = f.req('X', { gemini: true });
-  f.lim.reserve(x);
-  f.lim.end({ ...x, googleStatus: 429, retryAfter: '60' });
-  assert.deepEqual(f.lim.reserve(f.req('Y', { gemini: true })), GEMINI_GO);
-  assert.deepEqual(f.lim.reserve(f.req('Z', { gemini: true, gemma: false })), GEMINI_GO);
 });
