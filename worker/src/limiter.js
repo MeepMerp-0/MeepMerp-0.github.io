@@ -165,7 +165,7 @@ function leaseCheck(v, now) {
   return v.lease && v.lease.exp > now ? limited('concurrent', v.lease.exp - now) : null;
 }
 
-function windowsCheck(v, now, cfg) {
+function windowsCheck(v, now) {
   for (const [scope, span, max] of VISITOR_LIMITS) {
     const recent = v.w.filter((x) => x > now - span);
     if (!(recent.length < max)) return limited(scope, recent[recent.length - max] + span - now);
@@ -225,7 +225,7 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
     if (t && !(t.state === 'DONE' && t.exp <= now)) {
       return t.state === 'IN_FLIGHT' && t.exp > now ? limited('concurrent', t.exp - now) : invalid('turn_reused');
     }
-    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v, now, cfg);
+    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v, now);
     if (refused) return refused;
     const today = pacificDay(now);
     const c = dayCounts(g, today);
