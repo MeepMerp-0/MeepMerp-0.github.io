@@ -1,0 +1,74 @@
+name: Portfolio PR quality
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04  # Includes Chrome for real viewport snapshots
+    steps:
+      - name: Check out source and base history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Test the Aki Worker
+        run: npm run aki:test
+
+      - name: Lint the JavaScript/JSX changed in this pull request
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$BASE_SHA" ]; then
+            echo "Manual run: linting the redesigned entry points."
+            npx eslint src/App.jsx src/components/PortfolioWorkflow.jsx src/hooks/useContactForm.js
+            exit 0
+          fi
+
+          mapfile -d '' -t paths < <(git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD -- '*.js' '*.jsx')
+          if [ "${#paths[@]}" -gt 0 ]; then
+            printf 'Linting: %s\n' "${paths[@]}"
+            npx eslint "${paths[@]}"
+          else
+            echo "No changed JavaScript/JSX files to lint."
+          fi
+
+      - name: Build production website
+        run: npm run build
+
+      - name: Verify scroll navigation and capture real section previews
+        shell: bash
+        run: |
+          node --check scripts/verify-scroll-preview.mjs
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort >/tmp/portfolio-preview.log 2>&1 &
+          for attempt in {1..25}; do
+            if curl --silent --fail http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/ >/dev/null
+
+          export CHROME_BIN="$(command -v google-chrome || command -v chromium)"
+          test -n "$CHROME_BIN"
+          node scripts/verify-scroll-preview.mjs
+
+      - name: Attach browser screenshots for human design review
+        uses: actions/upload-artifact@v7
+        with:
+          name: portfolio-ui-previews
+          path: ui-previews/*.png
+          retention-days: 7

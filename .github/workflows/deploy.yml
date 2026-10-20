@@ -1,0 +1,84 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ['main']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci --prefix worker
+
+      - name: Test Worker
+        run: npm run aki:test
+
+      # CLOUDFLARE_API_TOKEN: Workers Admin for the first deploy (it creates the Worker); Workers Scripts:Edit is enough afterwards.
+      - name: Deploy Worker
+        working-directory: worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+  build-and-deploy:
+    needs: worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_FORM_BACKEND: ${{ secrets.VITE_FORM_BACKEND }}
+          VITE_FORM_SCRIPT_URL: ${{ secrets.VITE_FORM_SCRIPT_URL }}
+          VITE_AKI_API_URL: ${{ secrets.VITE_AKI_API_URL }}
+          VITE_AKI_TURNSTILE_SITEKEY: ${{ secrets.VITE_AKI_TURNSTILE_SITEKEY }}
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+      - name: Deploy
+        id: deployment
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Build or deploy failed"
+          exit 1

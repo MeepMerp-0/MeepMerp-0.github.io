@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark light">
+<title>Aki Privacy Notice and Terms</title>
+<style>
+:root{--bg:#101718;--bg2:#192122;--text:#f0f0e9;--muted:#acb9b2;--border:#364340;--signal:#b6e57a;--font-body:'Segoe UI','Helvetica Neue',Arial,sans-serif;--font-display:Georgia,'Iowan Old Style','Times New Roman',serif}
+@media (prefers-color-scheme:light){:root{--bg:#f5f3eb;--bg2:#eeece3;--text:#172422;--muted:#4b5b56;--border:#c7cfc5;--signal:#1a6541}}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.65 var(--font-body);overflow-wrap:anywhere}
+main{max-width:46rem;margin:0 auto;padding:24px 16px 64px}
+h1,h2{font-family:var(--font-display);font-weight:600;line-height:1.2}
+h1{font-size:clamp(1.7rem,6vw,2.4rem);margin:.5rem 0}
+h2{font-size:clamp(1.4rem,4.5vw,1.8rem);margin:2.5rem 0 .5rem;padding-top:1rem;border-top:1px solid var(--border)}
+h3{font-size:1.05rem;margin:1.5rem 0 .25rem}
+p,li{margin:.5rem 0}
+ul{padding-left:1.25rem}
+.muted{color:var(--muted)}
+a{color:var(--signal);text-underline-offset:3px}
+a:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.back{display:inline-flex;align-items:center;min-height:44px}
+.box{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:.25rem 1rem;margin:1rem 0}
+nav ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:0 1.25rem}
+nav a{display:inline-flex;align-items:center;min-height:44px}
+</style>
+</head>
+<body>
+<main data-consent-version="2026-10-21.1">
+<a class="back" href="./">Back to the portfolio</a>
+<h1>Aki: Privacy Notice and Terms of Use</h1>
+<p class="muted">Version 2026-10-21.1. One notice for every visitor, wherever you are. It is modelled on the GDPR approach and also considers the UAE data protection law (Federal Decree-Law 45/2021), the Philippine Data Privacy Act (RA 10173) where it applies, and US notice basics including COPPA.</p>
+<nav aria-label="Sections"><ul>
+<li><a href="#privacy">Privacy Notice</a></li>
+<li><a href="#gemini">Google Gemini</a></li>
+<li><a href="#terms">Terms of Use</a></li>
+</ul></nav>
+
+<section id="privacy">
+<h2>Privacy Notice</h2>
+
+<h3>1. Who we are</h3>
+<p>Aki is operated by Jason Selerio, an individual based in Abu Dhabi, United Arab Emirates, who decides how the personal information described here is used (the "controller"). Contact: <a href="mailto:jason.selerio@gmail.com">jason.selerio@gmail.com</a>.</p>
+
+<h3>2. Aki is AI</h3>
+<p>Aki is an automated AI assistant. It is not Jason and does not speak for Jason or any employer.</p>
+
+<h3>3. What we process</h3>
+<p>Your message; up to 6 earlier messages your browser sends with each turn, with a random conversation ID and the signatures and times attached to Aki's earlier replies; technical data: your IP address (used only to estimate your country and to make a keyed hash for rate limits; never stored in raw form or shared with AI providers), your country, and a temporary session ID; and a Cloudflare Turnstile bot check. Before you chat, you accept the <a href="#terms">Terms of Use</a>, which include that Aki is for people 18 or older, and choose whether to allow Gemini. When a chat session starts we keep a consent record: session ID, notice version, your acceptance of the Terms of Use, whether you allowed Gemini, the time and your country.</p>
+
+<h3>4. Why, and on what basis</h3>
+<ul>
+<li>Answering your questions about Jason's work: our legitimate interest in running the portfolio, and the steps you ask for.</li>
+<li>Security, abuse prevention and rate limiting: legitimate interest.</li>
+<li>Keeping your chat in your browser (section 10): legitimate interest in letting you pick up where you left off. It stays on your device, and you can delete it anytime with Clear.</li>
+<li>The Gemini option: a box that is pre-ticked on Aki's welcome screen where Gemini is available. You can untick it before continuing, or change it later via "Consent settings". We do not treat a pre-ticked box as a legal basis.</li>
+<li>Consent records: legitimate interest in showing the choices you made.</li>
+</ul>
+<p>Where a law, such as the UAE's data protection law, relies on different bases, we rely on the equivalent basis it provides.</p>
+
+<h3>5. Who receives what</h3>
+<ul>
+<li><strong>GitHub (site hosting):</strong> This site is hosted on GitHub Pages. GitHub logs visitors' IP addresses, whether or not they are signed in to GitHub.</li>
+<li><strong>Cloudflare:</strong> runs the Aki service and the Turnstile bot check. It receives your IP address and the content of your requests in order to deliver them, and Turnstile collects browser and device signals to tell people from bots.</li>
+<li><strong>Cloudflare Workers AI (backup):</strong> if Groq is busy, has used its daily share or fails to answer, Aki may ask a Meta Llama model run by Cloudflare's Workers AI instead. It receives your message, recent conversation and Aki's instructions, the same as Groq, but not your IP address, session ID or country from us. Cloudflare states that it does not use Workers AI inputs or outputs to train models.</li>
+<li><strong>Groq:</strong> answers when you haven't allowed Gemini, where Gemini isn't offered, and as a backup when Google fails to answer (not after a Google safety decline or a cancel). It receives your message, recent conversation and Aki's instructions. It does not receive your IP address, session ID or country. Groq does not train on this data. Groq may keep logs up to 30 days for reliability and abuse. Processed in the United States.</li>
+<li id="gemini"><strong>Google Gemini API, first choice for adults where available:</strong> "the Gemini option" means Google's Gemini API. If you are in an eligible region and leave the Gemini box ticked, a Gemini model answers first. Google's Gemma model, through the same Gemini API and under the same terms and with the same data, is used only as a last resort, when Gemini, Groq and Cloudflare Workers AI cannot answer, so one message can reach several of these providers. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. If Google fails to answer, the same message and conversation are sent to Groq instead, so one message can reach both. This does not happen if Google declines a message on safety grounds (nothing is re-sent to Groq) or if you cancel or disconnect while Google is working (nothing is sent to Groq). When Google answers, it receives your message as you typed it, your recent conversation with Aki, and Aki's instructions. Earlier messages that contain Jason's contact details, or anything that looks like an email address or phone number, are left out. It does not receive your IP address, session ID or country from us. <strong>On Gemini's free tier Google is not our processor: it uses this data for its own purposes, as an independent controller, under its own privacy policy</strong> (<a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google Privacy Policy</a>).</li>
+<li>We do not sell your information or share it for advertising.</li>
+</ul>
+
+<h3>6. What Google does with Gemini data</h3>
+<p>On the free tier, Google may use what you send, and Gemini's answers, to provide, improve and develop its products, and human reviewers may read, annotate and process them. Google keeps prompts and responses for 55 days to detect and prevent violations of its policies. For improving its products it may keep them longer, and it does not publish how long. Do not send personal or sensitive information.</p>
+<p class="muted">Sources: Gemini API usage policies, last updated 2026-06-09, and the Gemini API Additional Terms.</p>
+
+<h3>7. Choosing Gemini, and changing your mind</h3>
+<p>Gemini is optional. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. It is a pre-ticked choice, and you can untick it before continuing or change it anytime via Consent settings. With the box unticked, Groq answers and nothing goes to Google. To change your choice, use "Consent settings" in the chat; it applies from your next message. Anything already sent to Google can't be recalled.</p>
+
+<h3>8. Regional availability</h3>
+<ul>
+<li>Gemini is never used in the EEA, UK or Switzerland, in regions where Gemini is unavailable, or when we can't determine your location; Groq answers instead.</li>
+<li>In some regions, including comprehensively sanctioned countries, and over Tor, Aki gives only its fixed quick answers and uses no AI provider.</li>
+<li>Location is estimated from your IP address and can be wrong.</li>
+</ul>
+
+<h3>9. Age</h3>
+<p>Aki is for people 18 or older, as set out in the <a href="#terms">Terms of Use</a>. Accepting the Terms before chatting includes confirming that you are; this is a self-declaration and we don't verify it. If you're under 18, please choose "Not now". Viewing the portfolio doesn't require accepting the Terms.</p>
+
+<h3>10. Conversation memory</h3>
+<ul>
+<li>Your conversation is stored only in your browser. Our servers don't keep it.</li>
+<li>Outside the EEA, UK and Switzerland, your conversation is kept in your browser automatically for 7 days, then older messages are removed.</li>
+<li>In the EEA, UK and Switzerland, or if we can't tell where you are, it is kept only until you close the tab.</li>
+<li>There is no Remember setting. Use "Clear", or clear this site's data in your browser, to delete it anytime.</li>
+<li>Aki's replies carry a signature and a time so Aki can check that earlier replies sent back with a new question are genuine. Replies older than 24 hours are still shown to you but are no longer used as context.</li>
+</ul>
+
+<h3>11. Retention</h3>
+<ul>
+<li>Aki's servers keep no message content.</li>
+<li>Rate-limit counters (keyed hashes) and turn records are deleted within 48 hours.</li>
+<li>Consent records (one per chat session) are deleted within 25 hours.</li>
+<li>The session token stays in your browser for up to 24 hours or until the tab closes.</li>
+<li>Provider retention is as stated above.</li>
+</ul>
+
+<h3>12. International transfers</h3>
+<ul>
+<li>Aki's operator is in the UAE, Cloudflare runs on a global network, and Groq processes in the United States. Transfers to Cloudflare and Groq rely on the providers' contractual safeguards (for example Groq's data processing terms and standard contractual clauses, where applicable).</li>
+<li>If you allow Gemini, your message goes to Google (which may process it in the United States and elsewhere) according to the Gemini choice shown for that chat session (pre-ticked unless you unticked it); no data processing agreement covers it.</li>
+</ul>
+
+<h3>13. Children</h3>
+<p>Aki is for adults (18+) and is not directed to children. Please don't share personal information. If you believe a child has sent us personal information, contact us and we will delete what we hold. We cannot recall anything already sent to Google through the Gemini option.</p>
+
+<h3>14. Your rights, wherever you are</h3>
+<ul>
+<li>You can ask to access, correct or delete your information, object to or restrict its use, withdraw consent, and, where applicable, receive a copy in a portable form.</li>
+<li>Most of it exists only in your browser, where you control it directly. On our side we hold short-lived keyed counters and turn records, which we cannot link to you without your IP address. We hold a consent record for each chat session for up to 25 hours. For what Google holds after a Gemini turn, contact Google under its privacy policy.</li>
+<li>Contact <a href="mailto:jason.selerio@gmail.com">jason.selerio@gmail.com</a>. We will answer within the time your local law requires, and within one month at most.</li>
+<li>You can complain to the data protection authority where you live or work (for example in the EU/EEA, the UK, the UAE or the Philippines).</li>
+</ul>
+
+<h3>15. Contact form</h3>
+<p>If you use the contact form on this site instead of Aki, your name, email address and message are processed by the site's contact service, which emails them to Jason and may record them in a Google Sheets spreadsheet through a Google Apps Script. That is separate from Aki.</p>
+
+<h3>16. Limits of AI</h3>
+<p>Aki's answers are generated by AI and can be wrong. See the <a href="#terms">Terms of Use</a>.</p>
+
+<h3>17. Changes</h3>
+<p>Version 2026-10-21.1. If this notice changes materially, the version and date change with it, and Aki asks again for any consent that depends on it.</p>
+</section>
+
+<section id="terms">
+<h2>Terms of Use</h2>
+
+<h3>1. What Aki is and who can use it</h3>
+<p>Aki is a free AI assistant for adults (18+) on Jason Selerio's portfolio. It answers questions about Jason's work, projects and experience.</p>
+<p>You must accept these Terms on Aki's welcome screen before chatting. By accepting them, you confirm that you are 18 or older; this is a self-declaration that is not verified. If you don't agree, or you're under 18, choose "Not now". The rest of the portfolio works without Aki.</p>
+
+<h3>2. AI limits</h3>
+<p>Responses are AI-generated and may be inaccurate, incomplete or outdated. They are not statements, offers or commitments by Jason or any employer, and not legal, medical, financial or other professional advice. Verify anything important with Jason directly.</p>
+
+<h3>3. Acceptable use</h3>
+<p>No illegal, harmful or harassing use. No attempts to bypass safety measures, limits or regional restrictions. No automation or scraping. These terms incorporate Groq's acceptable use policy and, when you use the Gemini option, Google's Prohibited Use Policy.</p>
+
+<h3>4. No personal or sensitive information</h3>
+<p>Don't send personal, confidential or sensitive information to Aki, about yourself or anyone else. Anything you send may be passed to an AI provider as described in the Privacy Notice.</p>
+
+<h3>5. Providers</h3>
+<p>If you are in an eligible region and allow Gemini, Google Gemini answers first and Groq answers if Google fails to answer. Groq does not answer if Google declines a message on safety grounds, or if you cancel while Google is working. Otherwise Groq answers. Cloudflare Workers AI answers if Groq is busy or fails, and, if you allowed Gemini, Google's Gemma model is the last resort. Fixed quick answers apply when none of them is available, and in regions where Aki is limited to quick answers (Privacy Notice item 8).</p>
+
+<h3>6. Availability</h3>
+<p>Aki is free, rate-limited and provided "as is". When Aki is busy your question may wait in line, and an answer can take up to about a minute. Providers and limits may change, and the Gemini option may be withdrawn at any time.</p>
+
+<h3>7. Changes</h3>
+<p>Version 2026-10-21.1. These terms may change; the version and date change with them, and Aki asks you to accept the new version before you chat again.</p>
+</section>
+</main>
+</body>
+</html>

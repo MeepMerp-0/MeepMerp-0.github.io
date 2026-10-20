@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .js { fill: #172422; }
+    .dot { fill: #1a6541; }
+    @media (prefers-color-scheme: dark) {
+      .js { fill: #f0f0e9; }
+      .dot { fill: #b6e57a; }
+    }
+  </style>
+  <text x="30" y="47" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-style="italic" font-size="66" letter-spacing="-6"><tspan class="js">js</tspan><tspan class="dot" dx="2">.</tspan></text>
+</svg>
