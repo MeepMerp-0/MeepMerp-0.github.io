@@ -710,13 +710,27 @@ test('reusing a finished turnId gives 409 turn_reused', async () => {
   assert.equal(app.groqCalls().length, 1);
 });
 
-test('the Groq pack is at most 6,000 characters and private projects expose only their label', () => {
-  assert.ok(GROQ_PACK.length <= 6000);
+test('the Groq pack fits the 9,000-character CV budget and private projects expose only their label', () => {
+  assert.ok(GROQ_PACK.length <= 9000);
   const pack = JSON.parse(GROQ_PACK);
   for (const p of PROJECTS.filter((x) => x.privateLabel)) {
     const entry = pack.projects.find((x) => x.title === p.privateLabel);
     assert.deepEqual(Object.keys(entry).sort(), ['note', 'title']);
   }
+});
+
+test('Aki has all five CV roles, including freelance achievements and Pointwest', () => {
+    const { experience } = JSON.parse(GROQ_PACK);
+    assert.deepEqual(experience.map(({ company, role, period }) => [company, role, period]), [
+        ['INNERCIRCLE°', 'Lead AI & Full-Stack Engineer', 'May 2026 – Present'],
+        ['Freelance', 'Full-Stack Developer', 'February 2026 – Present'],
+        ['CliqueHA Information Services OPC', 'Software Developer Intern', 'February 2026 – May 2026'],
+        ['JsquarEd Co. Ltd.', 'Desktop Application Developer', 'July 2024 – August 2025'],
+        ['Pointwest Technologies', 'Associate Software Engineer', 'April 2019 – December 2021'],
+    ]);
+    assert.match(experience[1].highlights.join(' '), /FuturoHub.*80 KB.*25 unit and end-to-end/s);
+    assert.match(experience[2].highlights.join(' '), /25%.*15%/);
+    assert.match(experience[4].highlights.join(' '), /Selenium.*two-month engineering bootcamp/s);
 });
 
 // --- Terms gate (addendum §2) ---

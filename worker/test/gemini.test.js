@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { handle, signReply, signatureOk, readConfig } from '../src/app.js';
 import { filterHistory } from '../src/gemini.js';
 import { createLimiter, memoryStore, OPS, EEA_UK_CH, AI_BLOCKED, REPLY_MAX_AGE_MS, nextPacificMidnight } from '../src/limiter.js';
-import { GEMINI_PACK, GEMINI_SYSTEM_PROMPT, matchesContactPattern } from '../src/knowledge.js';
+import { GEMINI_PACK, GEMINI_SYSTEM_PROMPT, GROQ_PACK, matchesContactPattern } from '../src/knowledge.js';
 import { ABOUT_STORY, AVAILABILITY } from '../../src/data/portfolioData.js';
 
 const T0 = Date.UTC(2026, 9, 16, 19, 0, 0);
@@ -565,6 +565,19 @@ test('an expired history pair is dropped before the Google fetch', async () => {
 test('the Gemini pack matches no CONTACT_PATTERNS entry (V10, R4-14)', () => {
   assert.ok(!matchesContactPattern(GEMINI_PACK));
   assert.ok(!matchesContactPattern(GEMINI_SYSTEM_PROMPT));
+});
+
+test('Google gets the same CV roles and highlights without any work locations', () => {
+    const { experience } = JSON.parse(GEMINI_PACK);
+    const fullExperience = JSON.parse(GROQ_PACK).experience;
+    assert.deepEqual(experience, fullExperience.map(({ company, role, period, highlights }) => ({ company, role, period, highlights })));
+    for (const { location } of fullExperience) {
+        for (const place of location.split(', ')) {
+            assert.ok(matchesContactPattern(place));
+            assert.ok(!GEMINI_PACK.includes(place));
+            assert.deepEqual(filterHistory([{ role: 'user', content: 'Where did Jason work?' }, { role: 'assistant', content: place }]), []);
+        }
+    }
 });
 
 test('the Gemini pack follows the About story, minus location sentences', () => {
