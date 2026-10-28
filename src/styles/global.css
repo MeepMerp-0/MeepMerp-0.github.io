@@ -452,7 +452,7 @@ section[id] { scroll-margin-top: 0; }
 .aki-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .aki-actions .button { min-height: 40px; padding: 6px 16px; border-color: var(--border); border-radius: 10px; }
 .aki-actions .button-solid { flex: 1; border-color: transparent; }
-.aki-actions .button:disabled, .aki-send:disabled { opacity: .5; cursor: not-allowed; }
+.aki-actions .button:disabled, .aki-send:disabled, .aki-mic:disabled { opacity: .5; cursor: not-allowed; }
 .aki-foot-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; margin: -4px 0 0; font-size: 11px; color: var(--muted); }
 .aki-foot-links a, .aki-foot a, .aki-link { display: inline-flex; align-items: center; min-height: 32px; }
 /* Chat step keeps one height; the log scrolls instead of the panel growing. */
@@ -494,7 +494,13 @@ section[id] { scroll-margin-top: 0; }
 .aki-compose { display: flex; align-items: flex-end; gap: 8px; }
 .aki-compose textarea { flex: 1; min-width: 0; min-height: 40px; max-height: calc(4 * 1.45em + 20px); padding: 9px 12px; resize: none; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; line-height: 1.45; }
 .aki-compose textarea:focus-visible { outline: none; }
-.aki-send { flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 10px; }
+.aki-send, .aki-mic { flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 10px; }
+/* Outline twin of the textarea; focus ring comes from the global button:focus-visible rule. */
+.aki-mic { border-color: var(--border); background: var(--bg); color: var(--text); }
+.aki-mic:not(:disabled):hover { background: var(--nav-hover-bg); }
+.aki-mic[data-listening] { border-color: var(--signal); color: var(--signal); animation: aki-listen 1.6s ease-out infinite; }
+@keyframes aki-listen { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 40%, transparent); } to { box-shadow: 0 0 0 6px transparent; } }
+@media (prefers-reduced-motion: reduce) { .aki-mic[data-listening] { animation: none; } }
 #aki-count { font-size: 11px; color: var(--muted); }
 .aki-over { color: var(--text); font-weight: 700; }
 .aki-turnstile:empty { display: none; }

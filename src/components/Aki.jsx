@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, ShieldCheck, X } from 'lucide-react';
+import { ArrowRight, Mic, ShieldCheck, X } from 'lucide-react';
 import { RobotHead } from 'robot-heads';
 import { pickGreeting } from '../data/akiGreetings.js';
 import { WHATSAPP_URL } from '../data/portfolioData.js';
@@ -9,6 +9,7 @@ import {
   AKI_ENABLED, AKI_CAN_CHAT, appendPair, clearGate, clearHistory, codePoints, fetchRegion,
   loadHistory, newId, readGate, sendTurn, writeGate,
 } from '../services/akiClient.js';
+import { listen, VOICE_SUPPORTED } from '../services/akiVoice.js';
 
 const MAX_CHARS = 500;
 const SLOW_MS = 3000;
@@ -194,7 +195,7 @@ function AkiWidget() {
   const [history, setHistory] = useState(loadHistory);
   const [log, setLog] = useState(() => toLog(history));
   const [input, setInput] = useState('');
-  const refocus = useRef(false);
+  const refocus = useRef(null);
   const [pending, setPending] = useState(null);
   const [slow, setSlow] = useState(false);
   const [replying, setReplying] = useState(false);
@@ -206,6 +207,9 @@ function AkiWidget() {
   const [quickOnly, setQuickOnly] = useState(!AKI_CAN_CHAT);
   const [quotaUntil, setQuotaUntil] = useState(null);
   const [typing, setTyping] = useState(false);
+  const [listening, setListening] = useState(false);
+  // False hides the mic for this page load.
+  const [voiceOk, setVoiceOk] = useState(VOICE_SUPPORTED);
   const [mood, setMood] = useState(null);
   const [link, setLink] = useState('ok');
   const [, bump] = useReducer((n) => n + 1, 0);
@@ -219,6 +223,10 @@ function AkiWidget() {
   const panelRef = useRef(null);
   const logRef = useRef(null);
   const inputRef = useRef(null);
+  const micRef = useRef(null);
+  const voiceRef = useRef(null);
+  const voiceNoticed = useRef(false);
+  const sendRef = useRef(null);
   const focusInput = useRef(false);
   const turnstileRef = useRef(null);
   const wasOpen = useRef(false);
@@ -234,7 +242,7 @@ function AkiWidget() {
     if (wait) head = 'sleeping';
     else if (pending) head = slow ? 'working' : 'thinking';
     else if (mood) head = mood.state;
-    else if (typing && input.trim()) head = 'listening';
+    else if (listening || (typing && input.trim())) head = 'listening';
   }
   // A visitor's own spam cooldown is not "busy"; only a real provider/site limit is.
   const level = link === 'down' ? 'down' : (link === 'busy' || wait?.big) ? 'busy' : 'ok';
@@ -287,11 +295,13 @@ function AkiWidget() {
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
   }, [input, step, open]);
 
-  // The box is disabled while Aki answers, which drops focus; give it back if the visitor was typing there.
+  // The box and mic are disabled while Aki answers, which drops focus; give it back to the one the visitor used.
+  // After a voice turn that is the mic, so phones don't pop the keyboard (the box if a wait still disables the mic).
   useEffect(() => {
     if (busy || !refocus.current) return;
-    refocus.current = false;
-    inputRef.current?.focus();
+    const mic = refocus.current === micRef.current && !micRef.current.disabled;
+    refocus.current = null;
+    (mic ? micRef.current : inputRef.current)?.focus();
   }, [busy]);
 
   // The daily quota resets at resetsAt: bring free-text chat back without a reload.
@@ -318,6 +328,7 @@ function AkiWidget() {
 
   useEffect(() => () => {
     abortRef.current?.abort();
+    voiceRef.current?.abort();
     clearTimeout(slowTimer.current);
     clearTimeout(faqTimer.current);
     clearTimeout(holdTimer.current);
@@ -334,6 +345,8 @@ function AkiWidget() {
 
   const flushFaq = () => { const done = faqDone.current; stopFaq(); done?.(); };
 
+  const stopVoice = () => { voiceRef.current?.abort(); voiceRef.current = null; setListening(false); };
+
   const cancel = () => {
     clearTimeout(holdTimer.current);
     abortRef.current?.abort();
@@ -343,6 +356,7 @@ function AkiWidget() {
   const clearConversation = () => {
     cancel();
     stopFaq();
+    stopVoice();
     setWait(null);
     clearHistory();
     setHistory(null);
@@ -406,6 +420,7 @@ function AkiWidget() {
   const consentSettings = () => {
     cancel();
     stopFaq();
+    stopVoice();
     setWait(null);
     setWelcomeInit(readGate());
     clearGate();
@@ -413,9 +428,12 @@ function AkiWidget() {
     bump();
   };
 
-  async function send() {
-    const message = input.trim();
-    if (!message || count > MAX_CHARS || isTyping || wait) return;
+  async function send(text = input) {
+    const message = text.trim();
+    // Not count: a voice turn passes text the input state may not hold yet.
+    if (!message || codePoints(message) > MAX_CHARS || isTyping || wait) return;
+    // Enter or Send while listening sends the box as it is.
+    stopVoice();
     const mid = history?.mid ?? newId();
     const base = { mid, messages: history?.messages ?? [] };
     const ctrl = new AbortController();
@@ -424,8 +442,8 @@ function AkiWidget() {
     setUsedTry(true);
     setPending(message);
     setInput('');
-    // Enter in the box or a click on Send (which takes focus): either way the visitor was composing.
-    refocus.current = Boolean(inputRef.current?.form?.contains(document.activeElement));
+    // Enter in the box, or a click on Send or the mic (which take focus): the visitor was composing; remember where.
+    refocus.current = inputRef.current?.form?.contains(document.activeElement) ? document.activeElement : null;
     slowTimer.current = setTimeout(() => setSlow(true), SLOW_MS);
     const res = await sendTurn({
       message, mid, stored: base.messages, container: turnstileRef.current, signal: ctrl.signal,
@@ -439,6 +457,9 @@ function AkiWidget() {
     handle(res, message, mid, base);
   }
 
+  // Voice callbacks fire long after the tap; they must call the latest send, not the one from the tap's render.
+  useEffect(() => { sendRef.current = send; });
+
   const askFaq = (item) => {
     if (isTyping) return;
     setLog((l) => [...l, { id: `u${uid.current += 1}`, role: 'user', text: item.label }]);
@@ -449,7 +470,42 @@ function AkiWidget() {
     (panelRef.current?.querySelector('#aki-input') ?? panelRef.current)?.focus();
   };
 
-  const close = () => { flushFaq(); setOpen(false); setTyping(false); };
+  // First tap shows where the audio goes; the next one starts listening. Tapping while listening sends now.
+  const toggleVoice = () => {
+    if (listening) { voiceRef.current?.stop(); return; }
+    if (!voiceNoticed.current) { voiceNoticed.current = true; note('assistant', MSG.voiceNotice); return; }
+    // Words already typed stay in front of what is said.
+    const before = input.trim();
+    const join = (words) => (before && words ? `${before} ${words}` : before || words);
+    setListening(true);
+    // Safari never focuses a tapped button; without this the reply would hand focus to the box (phone keyboard).
+    micRef.current?.focus();
+    voiceRef.current = listen({
+      onText: (words) => {
+        setInput(join(words));
+        // Over the limit: stop, and leave the text in the box for the visitor to shorten.
+        if (codePoints(join(words)) > MAX_CHARS) stopVoice();
+      },
+      onDone: (words) => {
+        voiceRef.current = null;
+        setListening(false);
+        if (words) sendRef.current(join(words));
+      },
+      onError: (code) => {
+        voiceRef.current = null;
+        setListening(false);
+        if (code === 'not-allowed') note('assistant', MSG.micBlocked);
+        else {
+          // The mic is going away: move focus to the box first so it isn't lost with it.
+          if (document.activeElement === micRef.current) inputRef.current?.focus();
+          setVoiceOk(false);
+          note('assistant', MSG.voiceFailed);
+        }
+      },
+    });
+  };
+
+  const close = () => { flushFaq(); stopVoice(); setOpen(false); setTyping(false); };
 
   // Section links in replies scroll the page; on phones the panel closes first so the section is visible.
   const onLogClick = (e) => {
@@ -478,7 +534,7 @@ function AkiWidget() {
         aria-label="Ask Aki, AI assistant"
         aria-expanded={open}
         aria-controls="aki-panel"
-        onClick={() => { if (open) flushFaq(); setOpen((o) => !o); setGreeted(true); setTyping(false); }}
+        onClick={() => { if (open) { flushFaq(); stopVoice(); } setOpen((o) => !o); setGreeted(true); setTyping(false); }}
       >
         <RobotHead size={68} state={head} color="#7a4a2a" trimColor="#c8a27a" aria-hidden="true" />
       </button>
@@ -546,7 +602,7 @@ function AkiWidget() {
                   </>
                 )}
               </div>
-              <p className="sr-only" role="status">{isTyping ? MSG.typing : ''}</p>
+              <p className="sr-only" role="status">{isTyping ? MSG.typing : listening ? MSG.listening : ''}</p>
               {wait && (
                 <>
                   <p className="aki-status" aria-hidden="true">{wait.big ? MSG.veryBusy(wait.n) : MSG.retry(wait.n)}</p>
@@ -562,15 +618,29 @@ function AkiWidget() {
                       id="aki-input"
                       ref={inputRef}
                       rows={1}
-                      placeholder="Ask me about Jason's work..."
+                      placeholder={listening ? MSG.listening : "Ask me about Jason's work..."}
                       value={input}
                       disabled={busy}
+                      readOnly={listening}
                       aria-describedby={count >= 400 ? 'aki-count' : undefined}
                       onChange={(e) => setInput(e.target.value)}
                       onFocus={() => setTyping(true)}
                       onBlur={() => setTyping(false)}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); send(); } }}
                     />
+                    {voiceOk && (
+                      <button
+                        ref={micRef}
+                        type="button"
+                        className="button aki-mic"
+                        aria-label={listening ? 'Stop and send' : 'Speak to Aki'}
+                        data-listening={listening || undefined}
+                        disabled={!listening && (isTyping || Boolean(wait))}
+                        onClick={toggleVoice}
+                      >
+                        <Mic size={20} aria-hidden="true" />
+                      </button>
+                    )}
                     <button
                       type="submit"
                       className="button button-solid aki-send"

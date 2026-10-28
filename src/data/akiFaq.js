@@ -42,6 +42,10 @@ export const AKI_MESSAGES = {
   noCrypto: 'Free-text chat needs a newer browser. Quick answers are still available.',
   tooLong: 'That message is too long. Please shorten it.',
   empty: 'Type a message first.',
+  voiceNotice: "Voice chat uses your browser's own speech service (for example Google in Chrome, Microsoft in Edge, Apple in Safari), which hears what you say. I only get the text. Tap the mic again to start, and I'll send your message when you finish speaking.",
+  micBlocked: "I can't hear you: microphone access is blocked. Allow it in your browser settings, or type instead.",
+  voiceFailed: "Voice chat isn't available in this browser right now. You can still type.",
+  listening: 'Listening\u2026',
   head: { ok: 'Aki \u00B7 Here to help', typing: 'Aki \u00B7 Typing\u2026', busy: 'Aki \u00B7 Busy', down: 'Aki \u00B7 Not connected' }
 };
 
