@@ -527,7 +527,8 @@ async function runAkiSmoke() {
   const script = await call('Page.addScriptToEvaluateOnNewDocument', {
     source: 'window.__tsRenders = []; window.turnstile = { render(el, o) {'
       + 'window.__tsRenders.push({ action: o.action, sitekey: o.sitekey, size: o.size });'
-      + 'setTimeout(() => o.callback("stub-token"), 0); return "w" + window.__tsRenders.length; },'
+      // Answers at once unless a step sets window.__tsDelay (ms) to watch the check run.
+      + 'setTimeout(() => o.callback("stub-token"), window.__tsDelay || 0); return "w" + window.__tsRenders.length; },'
       + 'remove() {} };'
       // Chrome's own recognizer needs a voice and a speech service. This stand-in stays idle until a mic tap (only
       // the voice step makes one); like Chrome's, abort() ends with an "aborted" error, then end.
@@ -1044,6 +1045,53 @@ async function runAkiSmoke() {
       await sendAndWait('hello');
       check(sessionCalls()[0].body.geminiAck === false, 'unticked Gemini sent geminiAck true');
       check(!(await snap()).local['aki:v1:memory'], 'aki:v1:memory was written');
+    });
+
+    await step('Continue while the bot check runs: spinner, locked cards, status line, one session', async () => {
+      const welcome = () => evaluate('(() => { const w = document.querySelector(".aki-welcome"), b = w.querySelector(".aki-actions .button-solid"), s = w.querySelector("[role=status]");'
+        + 'return { label: b.textContent, spin: Boolean(b.querySelector("svg.aki-spin")), aria: b.getAttribute("aria-disabled"), disabled: b.disabled,'
+        + 'focused: document.activeElement === b, cards: [...w.querySelectorAll(".aki-card input")].map((i) => [i.checked, i.disabled, i.getAttribute("aria-disabled")]),'
+        + 'status: s && [s.textContent, s.className], afterWidget: Boolean(s && w.querySelector(".aki-turnstile").compareDocumentPosition(s) & 4) }; })()');
+      const gate = () => evaluate('sessionStorage.getItem("aki:v1:gate")');
+      await akiPage();
+      await openPanel();
+      await regionSettled();
+      let w = await welcome();
+      check(JSON.stringify(w.status) === JSON.stringify(['', 'sr-only']), 'idle welcome status line ' + JSON.stringify(w.status));
+      await setCard(W.accept.title, true);
+      // One box ticked, one not: neither may flip while the check runs.
+      check(await setCard(W.gemini.title, false), 'Gemini card missing');
+      await evaluate('window.__tsDelay = 2500');
+      // A pointer click focuses Continue; element.click() does not, so focus it first.
+      await evaluate('document.querySelector(".aki-actions .button-solid").focus()');
+      await click('.aki-actions .button-solid');
+      await until('document.querySelector(".aki-welcome[data-checking]")', 'the bot check to start');
+      w = await welcome();
+      check(w.label === W.checking && w.spin && w.aria === 'true' && !w.disabled && w.focused, 'Continue during the check ' + JSON.stringify(w));
+      check(JSON.stringify(w.cards) === JSON.stringify([[true, false, 'true'], [false, false, 'true']]), 'cards during the check ' + JSON.stringify(w.cards));
+      check(JSON.stringify(w.status) === JSON.stringify([W.verifying, 'aki-note']) && w.afterWidget, 'status line during the check ' + JSON.stringify(w));
+      // Hovered or keyboard-focused, Continue nudges its icon with a translateX. global.css applies that only where a
+      // mouse can hover, and headless Chrome's can't, so this rule stands in. The spinner must still turn (b != 0).
+      await evaluate('(() => { const s = document.createElement("style"); s.id = "smoke-nudge";'
+        + 's.textContent = ".aki-actions .button-solid svg { transform: translateX(3px); }"; document.head.append(s); })()');
+      const frames = [];
+      for (let i = 0; i < 3; i += 1) {
+        frames.push(await evaluate('getComputedStyle(document.querySelector(".aki-actions .aki-spin")).transform'));
+        await delay(110);
+      }
+      await evaluate('document.getElementById("smoke-nudge").remove()');
+      check(frames.some((m) => Math.abs(Number(m.split(/[(,]/)[2])) > 0.05), 'spinner under the hover nudge ' + JSON.stringify(frames));
+      // After the focus check: clicking a card's label focuses its box.
+      const confirmed = await gate();
+      await evaluate('document.querySelectorAll(".aki-welcome .aki-card").forEach((c) => c.click())');
+      await click('.aki-actions .button-solid');
+      w = await welcome();
+      check(w.label === W.checking && JSON.stringify(w.cards.map((c) => c[0])) === '[true,false]', 'card clicks during the check ' + JSON.stringify(w));
+      // A second mint would join the one in flight, so only the gate, rewritten by every Continue, shows a second run.
+      check(await gate() === confirmed, 'the second click ran Continue again');
+      await until('document.querySelector("#aki-input")', 'chat step after the check');
+      const renders = await evaluate('window.__tsRenders.length');
+      check(sessionCalls().length === 1 && renders === 1, 'sessions ' + sessionCalls().length + ', Turnstile renders ' + renders);
     });
 
     await step('region down: geminiAck false (D21)', async () => {

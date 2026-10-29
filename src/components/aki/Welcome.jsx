@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { LoaderCircle, ShieldCheck } from 'lucide-react';
 import { AKI_WELCOME_COPY as COPY } from '../../data/akiFaq.js';
 
-function ConsentCard({ checked, onChange, title, body, disabled }) {
+// While the bot check runs a card keeps its look but ignores changes: Continue has already read the choices.
+function ConsentCard({ checked, onChange, title, body, locked }) {
   return (
     <label className="aki-card">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} disabled={disabled} />
+      <input
+        type="checkbox"
+        checked={checked}
+        aria-disabled={locked || undefined}
+        onChange={(e) => { if (!locked) onChange(e.target.checked); }}
+      />
       <span><strong>{title}</strong><small>{body}</small></span>
     </label>
   );
@@ -19,7 +25,7 @@ export function Welcome({ region, initial, verifying, turnstileRef, onContinue, 
   const gemini = geminiPick ?? (initial ? initial.gemini : COPY.geminiDefault);
   const [beforeLink, afterLink] = COPY.accept.title.split(COPY.accept.link);
   return (
-    <div className="aki-body aki-welcome">
+    <div className="aki-body aki-welcome" data-checking={verifying || undefined}>
       <div className="aki-kicker">
         <span className="aki-badge"><ShieldCheck size={16} aria-hidden="true" /></span>
         <span className="aki-eyebrow">{COPY.eyebrow}</span>
@@ -29,11 +35,11 @@ export function Welcome({ region, initial, verifying, turnstileRef, onContinue, 
       <ConsentCard
         checked={accepted}
         onChange={setAccepted}
-        disabled={verifying}
+        locked={verifying}
         title={<>{beforeLink}<a href="aki-legal.html#terms" target="_blank" rel="noopener noreferrer">{COPY.accept.link}</a>{afterLink}</>}
         body={COPY.accept.body}
       />
-      {offered && <ConsentCard checked={gemini} onChange={setGeminiPick} title={COPY.gemini.title} body={COPY.gemini.body} disabled={verifying} />}
+      {offered && <ConsentCard checked={gemini} onChange={setGeminiPick} title={COPY.gemini.title} body={COPY.gemini.body} locked={verifying} />}
       <p className="aki-note">{COPY.storage[region.consentVersion ? region.memory : 'unknown']}</p>
       <p className="aki-note">{offered ? COPY.noteGemini : COPY.noteGroq}</p>
       <div className="aki-actions">
@@ -46,13 +52,17 @@ export function Welcome({ region, initial, verifying, turnstileRef, onContinue, 
           aria-describedby={accepted ? undefined : 'aki-terms-hint'}
           onClick={() => { if (!verifying) onContinue({ gemini: offered && gemini, memory: region.memory === 'default_on' }); }}
         >
-          {COPY.continueLabel}
+          {verifying
+            ? <><LoaderCircle size={16} className="aki-spin" aria-hidden="true" />{COPY.checking}</>
+            : COPY.continueLabel}
         </button>
         <button type="button" className="button" onClick={onClose}>{COPY.notNow}</button>
       </div>
       {/* Cloudflare's bot check shows here on Continue, so the chat box never has it. */}
       <div ref={turnstileRef} className="aki-turnstile" />
-      {verifying && <p className="aki-note" role="status">{COPY.verifying}</p>}
+      {/* Mounted from the start so screen readers announce the check. Below the widget: a challenge that needs a
+          click stays right under the buttons. */}
+      <p className={verifying ? 'aki-note' : 'sr-only'} role="status">{verifying ? COPY.verifying : ''}</p>
       {!accepted && <p id="aki-terms-hint" className="aki-note">{COPY.hint}</p>}
       <p className="aki-foot-links">
         <a href="aki-legal.html#privacy" target="_blank" rel="noopener noreferrer">{COPY.privacy}</a>

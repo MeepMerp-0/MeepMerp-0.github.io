@@ -445,6 +445,12 @@ section[id] { scroll-margin-top: 0; }
 .aki-actions .button { min-height: 40px; padding: 6px 16px; border-color: var(--border); border-radius: 10px; }
 .aki-actions .button-solid { flex: 1; border-color: transparent; }
 .aki-actions .button:disabled, .aki-send:disabled, .aki-mic:disabled { opacity: .5; cursor: not-allowed; }
+/* The bot check: Continue spins, and the cards keep their look while they wait. */
+.aki-welcome[data-checking] :is(.aki-card, .button-solid) { cursor: progress; }
+.aki-spin { animation: aki-spin 1s linear infinite; }
+/* Both ends set: with only `to`, the button's hover nudge (translateX) is the start frame and cancels the turn. */
+@keyframes aki-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .aki-spin { animation: none; } }
 .aki-foot-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; margin: -4px 0 0; font-size: 11px; color: var(--muted); }
 .aki-foot-links a, .aki-foot a, .aki-link { display: inline-flex; align-items: center; min-height: 32px; }
 /* Chat step keeps one height; the log scrolls instead of the panel growing. */

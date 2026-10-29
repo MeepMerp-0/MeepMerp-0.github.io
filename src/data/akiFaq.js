@@ -74,6 +74,7 @@ export const AKI_WELCOME_COPY = {
   noteGemini: "Your messages are answered by an AI provider: Google Gemini if this box stays ticked, otherwise Groq, with Cloudflare Workers AI as a backup and, if the box stays ticked, Google's Gemma as a last resort. Please don't share personal or sensitive information.",
   noteGroq: "Your messages are answered by Groq, an AI provider, with Cloudflare Workers AI as a backup. Please don't share personal or sensitive information.",
   continueLabel: 'Continue to Aki \u2192',
+  checking: 'Checking\u2026',
   notNow: 'Not now',
   hint: 'Accept the Terms of Use to continue.',
   verifying: 'One moment: Cloudflare is checking this browser before the chat opens.',
