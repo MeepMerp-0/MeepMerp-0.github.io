@@ -30,10 +30,10 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 </style>
 </head>
 <body>
-<main data-consent-version="2026-10-21.1">
+<main data-consent-version="2026-10-28.1">
 <a class="back" href="./">Back to the portfolio</a>
 <h1>Aki: Privacy Notice and Terms of Use</h1>
-<p class="muted">Version 2026-10-21.1. One notice for every visitor, wherever you are. It is modelled on the GDPR approach and also considers the UAE data protection law (Federal Decree-Law 45/2021), the Philippine Data Privacy Act (RA 10173) where it applies, and US notice basics including COPPA.</p>
+<p class="muted">Version 2026-10-28.1. One notice for every visitor, wherever you are. It is modelled on the GDPR approach and also considers the UAE data protection law (Federal Decree-Law 45/2021), the Philippine Data Privacy Act (RA 10173) where it applies, and US notice basics including COPPA.</p>
 <nav aria-label="Sections"><ul>
 <li><a href="#privacy">Privacy Notice</a></li>
 <li><a href="#gemini">Google Gemini</a></li>
@@ -50,11 +50,11 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <p>Aki is an automated AI assistant. It is not Jason and does not speak for Jason or any employer.</p>
 
 <h3>3. What we process</h3>
-<p>Your message; up to 6 earlier messages your browser sends with each turn, with a random conversation ID and the signatures and times attached to Aki's earlier replies; technical data: your IP address (used only to estimate your country and to make a keyed hash for rate limits; never stored in raw form or shared with AI providers), your country, and a temporary session ID; and a Cloudflare Turnstile bot check. Before you chat, you accept the <a href="#terms">Terms of Use</a>, which include that Aki is for people 18 or older, and choose whether to allow Gemini. When a chat session starts we keep a consent record: session ID, notice version, your acceptance of the Terms of Use, whether you allowed Gemini, the time and your country.</p>
+<p>Your message; if you use voice in a browser that has no speech service of its own, a recording of what you say, used only to turn it into text (see <a href="#voice">Voice input</a>); up to 6 earlier messages your browser sends with each turn, with a random conversation ID and the signatures and times attached to Aki's earlier replies; technical data: your IP address (used only to estimate your country and to make a keyed hash for rate limits; never stored in raw form or shared with AI providers), your country, and a temporary session ID; and a Cloudflare Turnstile bot check. Before you chat, you accept the <a href="#terms">Terms of Use</a>, which include that Aki is for people 18 or older, and choose whether to allow Gemini. When a chat session starts we keep a consent record: session ID, notice version, your acceptance of the Terms of Use, whether you allowed Gemini, the time and your country.</p>
 
 <h3>4. Why, and on what basis</h3>
 <ul>
-<li>Answering your questions about Jason's work: our legitimate interest in running the portfolio, and the steps you ask for.</li>
+<li>Answering your questions about Jason's work, including turning a voice recording into text where your browser can't: our legitimate interest in running the portfolio, and the steps you ask for.</li>
 <li>Security, abuse prevention and rate limiting: legitimate interest.</li>
 <li>Keeping your chat in your browser (section 10): legitimate interest in letting you pick up where you left off. It stays on your device, and you can delete it anytime with Clear.</li>
 <li>The Gemini option: a box that is pre-ticked on Aki's welcome screen where Gemini is available. You can untick it before continuing, or change it later via "Consent settings". We do not treat a pre-ticked box as a legal basis.</li>
@@ -66,10 +66,10 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <ul>
 <li><strong>GitHub (site hosting):</strong> This site is hosted on GitHub Pages. GitHub logs visitors' IP addresses, whether or not they are signed in to GitHub.</li>
 <li><strong>Cloudflare:</strong> runs the Aki service and the Turnstile bot check. It receives your IP address and the content of your requests in order to deliver them, and Turnstile collects browser and device signals to tell people from bots.</li>
-<li><strong>Cloudflare Workers AI (backup):</strong> if Groq is busy, has used its daily share or fails to answer, Aki may ask a Meta Llama model run by Cloudflare's Workers AI instead. It receives your message, recent conversation and Aki's instructions, the same as Groq, but not your IP address, session ID or country from us. Cloudflare states that it does not use Workers AI inputs or outputs to train models.</li>
-<li><strong>Groq:</strong> answers when you haven't allowed Gemini, where Gemini isn't offered, and as a backup when Google fails to answer (not after a Google safety decline or a cancel). It receives your message, recent conversation and Aki's instructions. It does not receive your IP address, session ID or country. Groq does not train on this data. Groq may keep logs up to 30 days for reliability and abuse. Processed in the United States.</li>
-<li id="gemini"><strong>Google Gemini API, first choice for adults where available:</strong> "the Gemini option" means Google's Gemini API. If you are in an eligible region and leave the Gemini box ticked, a Gemini model answers first. Google's Gemma model, through the same Gemini API and under the same terms and with the same data, is used only as a last resort, when Gemini, Groq and Cloudflare Workers AI cannot answer, so one message can reach several of these providers. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. If Google fails to answer, the same message and conversation are sent to Groq instead, so one message can reach both. This does not happen if Google declines a message on safety grounds (nothing is re-sent to Groq) or if you cancel or disconnect while Google is working (nothing is sent to Groq). When Google answers, it receives your message as you typed it, your recent conversation with Aki, and Aki's instructions. Earlier messages that contain Jason's contact details, or anything that looks like an email address or phone number, are left out. It does not receive your IP address, session ID or country from us. <strong>On Gemini's free tier Google is not our processor: it uses this data for its own purposes, as an independent controller, under its own privacy policy</strong> (<a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google Privacy Policy</a>).</li>
-<li id="voice"><strong>Your browser's speech service (only if you use voice):</strong> Voice input is optional. If you tap the microphone in Aki, your web browser turns your speech into text with its own speech service, for example Google in Chrome, Microsoft in Edge or Apple in Safari, under that company's own terms and privacy policy, not ours. Depending on the browser, your audio may be sent to that company's servers. Aki never receives your audio, only the resulting text, which it handles exactly like a typed message. Aki shows this notice before your first use, and the microphone only turns on after you tap it a second time. Don't use voice if you don't want your browser's speech service to hear you.</li>
+<li><strong>Cloudflare Workers AI (backup):</strong> if Groq is busy, has used its daily share or fails to answer, Aki may ask a Meta Llama model run by Cloudflare's Workers AI instead. It receives your message, recent conversation and Aki's instructions, the same as Groq, but not your IP address, session ID or country from us. In the same way, if Groq can't turn a voice recording into text, a speech-to-text model on Workers AI receives the recording instead (see <a href="#voice">Voice input</a>), again without your IP address, session ID or country. Cloudflare states that it does not use Workers AI inputs or outputs to train models.</li>
+<li><strong>Groq:</strong> answers when you haven't allowed Gemini, where Gemini isn't offered, and as a backup when Google fails to answer (not after a Google safety decline or a cancel). It receives your message, recent conversation and Aki's instructions. If you use voice in a browser that has no speech service of its own, Groq also receives your recording to turn it into text, whatever your Gemini choice (see <a href="#voice">Voice input</a>). It does not receive your IP address, session ID or country. Groq does not train on this data. Groq may keep logs up to 30 days for reliability and abuse. Processed in the United States.</li>
+<li id="gemini"><strong>Google Gemini API, first choice for adults where available:</strong> "the Gemini option" means Google's Gemini API. If you are in an eligible region and leave the Gemini box ticked, a Gemini model answers first. Google's Gemma model, through the same Gemini API and under the same terms and with the same data, is used only as a last resort, when Gemini, Groq and Cloudflare Workers AI cannot answer, so one message can reach several of these providers. The box is ticked by default where Gemini is available; untick it before continuing if you don't want your messages sent to Google, and Aki will use Groq instead. If Google fails to answer, the same message and conversation are sent to Groq instead, so one message can reach both. This does not happen if Google declines a message on safety grounds (nothing is re-sent to Groq) or if you cancel or disconnect while Google is working (nothing is sent to Groq). When Google answers, it receives your message as you sent it, your recent conversation with Aki, and Aki's instructions. Earlier messages that contain Jason's contact details, or anything that looks like an email address or phone number, are left out. It does not receive your IP address, session ID or country from us. <strong>On Gemini's free tier Google is not our processor: it uses this data for its own purposes, as an independent controller, under its own privacy policy</strong> (<a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google Privacy Policy</a>).</li>
+<li id="voice"><strong>Voice input (only if you use it):</strong> Voice input is optional. Aki shows a notice the first time you use voice on each visit, and your browser asks for microphone permission before its first use. Where your web browser has its own speech service, for example Google in Chrome, Microsoft in Edge or Apple in Safari, the browser turns your speech into text under that company's own terms and privacy policy, not ours. Depending on the browser, your audio may be sent to that company's servers; Aki never receives it. In those browsers, on computers, Aki also measures how loud your microphone is, inside your browser, to draw the moving line while you speak; that sound is never recorded or sent anywhere. Where your browser has no speech service of its own, Aki records what you say instead and, when you pause or finish, sends the recording so far to Aki's service on Cloudflare, which passes it to Groq, or to Cloudflare Workers AI as a backup, to be turned into text. If Aki detects no speech, nothing is sent. Aki's service keeps no audio and does not log what you said; Groq may keep logs up to 30 days, as for messages. Either way, Aki uses only the resulting text, which it handles exactly like a typed message. Don't use voice if you don't want these services to hear you.</li>
 <li>We do not sell your information or share it for advertising.</li>
 </ul>
 
@@ -101,7 +101,7 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 
 <h3>11. Retention</h3>
 <ul>
-<li>Aki's servers keep no message content.</li>
+<li>Aki's servers keep no message content and no voice recordings.</li>
 <li>Rate-limit counters (keyed hashes) and turn records are deleted within 48 hours.</li>
 <li>Consent records (one per chat session) are deleted within 25 hours.</li>
 <li>The session token stays in your browser for up to 24 hours or until the tab closes.</li>
@@ -132,7 +132,7 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <p>Aki's answers are generated by AI and can be wrong. See the <a href="#terms">Terms of Use</a>.</p>
 
 <h3>17. Changes</h3>
-<p>Version 2026-10-21.1. If this notice changes materially, the version and date change with it, and Aki asks again for any consent that depends on it.</p>
+<p>Version 2026-10-28.1. If this notice changes materially, the version and date change with it, and Aki asks again for any consent that depends on it.</p>
 </section>
 
 <section id="terms">
@@ -158,7 +158,7 @@ nav a{display:inline-flex;align-items:center;min-height:44px}
 <p>Aki is free, rate-limited and provided "as is". When Aki is busy your question may wait in line, and an answer can take up to about a minute. Providers and limits may change, and the Gemini option may be withdrawn at any time.</p>
 
 <h3>7. Changes</h3>
-<p>Version 2026-10-21.1. These terms may change; the version and date change with them, and Aki asks you to accept the new version before you chat again.</p>
+<p>Version 2026-10-28.1. These terms may change; the version and date change with them, and Aki asks you to accept the new version before you chat again.</p>
 </section>
 </main>
 </body>
