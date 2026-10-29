@@ -452,8 +452,10 @@ function AkiWidget() {
     // The box was cleared on send; an unanswered message comes back so it can be sent again.
     if (res.kind !== 'ai') setInput((v) => v || message);
     if (res.kind === 'ai') setLink('ok');
-    else if (res.kind === 'unavailable') setLink(res.reason === 'groq_busy' ? 'busy' : res.reason === 'content_blocked' ? link : 'down');
-    else if (res.kind === 'network' || res.kind === 'invalid' || res.kind === 'quota') setLink('down');
+    else if (res.kind === 'unavailable') {
+      // Blocked content says nothing about the connection, so it leaves the connection state alone.
+      if (res.reason !== 'content_blocked') setLink(res.reason === 'groq_busy' ? 'busy' : 'down');
+    } else if (res.kind === 'network' || res.kind === 'invalid' || res.kind === 'quota') setLink('down');
     switch (res.kind) {
       case 'ai': {
         const user = { role: 'user', content: message, ts: now() };
