@@ -5,7 +5,7 @@ import {
   Menu, Moon, Sun, X,
 } from 'lucide-react';
 import PortfolioWorkflow from './components/PortfolioWorkflow.jsx';
-import { Aki } from './components/Aki.jsx';
+import { Aki } from './components/aki/Aki.jsx';
 import { PERSONAL, PROJECTS, EXPERIENCE, ABOUT_STORY, AVAILABILITY, FOCUS_AREAS, SKILL_GROUPS, WHATSAPP_URL } from './data/portfolioData.js';
 import { useContactForm } from './hooks/useContactForm.js';
 import { submitContactForm } from './services/formService.js';
