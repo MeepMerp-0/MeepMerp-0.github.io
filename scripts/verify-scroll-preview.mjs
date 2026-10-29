@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { AKI_GREETINGS, AKI_GREETING_LINES } from '../src/data/akiGreetings.js';
 import { AKI_CONSENT_VERSION, AKI_FAQ, AKI_MESSAGES, AKI_WELCOME_COPY as W } from '../src/data/akiFaq.js';
 import { WHATSAPP_URL } from '../src/data/portfolioData.js';
+import { END_MS } from '../src/services/aki/voice/endDelay.js';
 
 const baseUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/';
 const chromeBin = process.env.CHROME_BIN || 'google-chrome';
@@ -527,7 +528,14 @@ async function runAkiSmoke() {
     source: 'window.__tsRenders = []; window.turnstile = { render(el, o) {'
       + 'window.__tsRenders.push({ action: o.action, sitekey: o.sitekey, size: o.size });'
       + 'setTimeout(() => o.callback("stub-token"), 0); return "w" + window.__tsRenders.length; },'
-      + 'remove() {} };',
+      + 'remove() {} };'
+      // Chrome's own recognizer needs a voice and a speech service. This stand-in stays idle until a mic tap (only
+      // the voice step makes one); like Chrome's, abort() ends with an "aborted" error, then end.
+      + 'window.SpeechRecognition = window.webkitSpeechRecognition = class { calls = [];'
+      + 'constructor() { window.__speech = this; } start() { this.calls.push("start"); }'
+      + 'stop() { this.calls.push("stop"); setTimeout(() => this.onend?.()); }'
+      + 'abort() { this.calls.push("abort"); setTimeout(() => { this.onerror?.({ error: "aborted" }); this.onend?.(); }); }'
+      + 'emit(...said) { this.onresult?.({ results: said.map((transcript) => [{ transcript }]) }); } };',
   });
   try {
     await build(outDir, apiOrigin);
@@ -1223,6 +1231,44 @@ async function runAkiSmoke() {
         + 'you: Boolean(document.querySelector(".aki-row-user .aki-typing")) }; })()');
       check(s.value === '' && s.disabled && !s.you, 'box while Aki answers ' + JSON.stringify(s));
       await until('!document.getElementById("aki-input").disabled && document.activeElement?.id === "aki-input"', 'box enabled and focused after the reply', 6000);
+    });
+
+    await step('voice discard sends nothing and puts the typed words back', async () => {
+      const DISCARD = '.aki-discard[aria-label="Discard voice message"]';
+      const voice = () => evaluate('(() => { const el = document.getElementById("aki-input"), mic = document.querySelector(".aki-mic");'
+        + 'return { discard: Boolean(document.querySelector(' + q(DISCARD) + ')), wave: Boolean(document.querySelector(".aki-wave")),'
+        + 'box: getComputedStyle(el).display !== "none", value: el.value, mic: mic.getAttribute("aria-label"), micFocused: document.activeElement === mic,'
+        + 'speech: window.__speech?.calls.join(), you: [...document.querySelectorAll(".aki-row-user")].map((r) => r.textContent) }; })()');
+      await akiPage();
+      await openChat();
+      await evaluate('(() => { const el = document.getElementById("aki-input");'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, "Tell me about");'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      await until('!document.querySelector(".aki-form button[type=submit]").disabled', 'Send enabled');
+      await click('.aki-mic');
+      let v = await voice();
+      check(v.discard && v.wave && !v.box && v.mic === 'Stop and send' && v.speech === 'start', 'listening ' + JSON.stringify(v));
+      await evaluate('window.__speech.emit("his projects")');
+      await until('document.querySelector(".aki-row-user p")?.textContent === "Tell me about his projects"', 'the live bubble to read "Tell me about his projects"');
+      // A pointer click focuses the trash button, which then unmounts; element.click() does not, so focus it first.
+      await evaluate('document.querySelector(' + q(DISCARD) + ').focus()');
+      await click(DISCARD);
+      v = await voice();
+      check(!v.discard && !v.wave && v.box && v.value === 'Tell me about' && v.micFocused, 'after discard ' + JSON.stringify(v));
+      check(v.speech === 'start,abort' && !v.you.length && !chatCalls().length,
+        'discard left a turn or a message ' + JSON.stringify(v) + ', chat calls ' + chatCalls().length);
+      // A turn still running would have sent by the end of the longest end-of-turn wait.
+      await delay(Math.max(...Object.values(END_MS)) + 500);
+      v = await voice();
+      check(v.speech === 'start,abort' && !chatCalls().length, 'after the end-of-turn wait ' + JSON.stringify(v) + ', chat calls ' + chatCalls().length);
+      // A turn that ends by itself (here Chrome's no-speech) takes the trash button with it; its focus goes to the mic.
+      await click('.aki-mic');
+      await until('document.querySelector(' + q(DISCARD) + ')', 'second turn listening');
+      await evaluate('document.querySelector(' + q(DISCARD) + ').focus()');
+      await evaluate('window.__speech.onerror({ error: "no-speech" }); window.__speech.onend()');
+      await until('!document.querySelector(' + q(DISCARD) + ')', 'silent turn ended');
+      v = await voice();
+      check(v.micFocused && v.box && v.value === 'Tell me about' && !chatCalls().length, 'after a silent turn ' + JSON.stringify(v));
     });
 
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {

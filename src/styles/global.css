@@ -485,10 +485,10 @@ section[id] { scroll-margin-top: 0; }
 .aki-compose { display: flex; align-items: flex-end; gap: 8px; }
 .aki-compose textarea { flex: 1; min-width: 0; min-height: 40px; max-height: calc(4 * 1.45em + 20px); padding: 9px 12px; resize: none; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; line-height: 1.45; }
 .aki-compose textarea:focus-visible { outline: none; }
-.aki-send, .aki-mic { flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 10px; }
+.aki-send, .aki-mic, .aki-discard { flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 10px; }
 /* Outline twin of the textarea; focus ring comes from the global button:focus-visible rule. */
-.aki-mic { border-color: var(--border); background: var(--bg); color: var(--text); }
-.aki-mic:not(:disabled):hover { background: var(--nav-hover-bg); }
+.aki-mic, .aki-discard { border-color: var(--border); background: var(--bg); color: var(--text); }
+.aki-mic:not(:disabled):hover, .aki-discard:hover { background: var(--nav-hover-bg); }
 .aki-mic[data-listening] { border-color: var(--signal); color: var(--signal); }
 /* Takes the box's place while the mic listens; the canvas strokes in its own text colour. */
 .aki-wave { flex: 1; min-width: 0; height: 40px; border: 1px solid var(--signal); border-radius: 10px; background: var(--bg); color: var(--signal); }

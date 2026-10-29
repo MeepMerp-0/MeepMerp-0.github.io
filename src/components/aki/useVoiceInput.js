@@ -5,7 +5,7 @@ import { listen, VOICE_MODE } from '../../services/akiVoice.js';
 import { toVoiceResult } from './outcomes.js';
 
 // One voice turn at a time. finish() ends it and sends what was heard; cancel() ends it and sends nothing.
-export function useVoiceInput({ turnstileRef, micRef, say, onText, onSpoken, onError }) {
+export function useVoiceInput({ turnstileRef, micRef, discardRef, say, onText, onSpoken, onError }) {
   const [listening, setListening] = useState(false);
   const turn = useRef(null);
   const noticed = useRef(false);
@@ -36,13 +36,11 @@ export function useVoiceInput({ turnstileRef, micRef, say, onText, onSpoken, onE
       transcribe: (blob, signal) => transcribe({ blob, container: turnstileRef.current, signal }).then(toVoiceResult),
       onText: (words) => latestHandlers.current.onText(join(words)),
       onDone: (words) => {
-        turn.current = null;
-        setListening(false);
+        ended();
         if (words) latestHandlers.current.onSpoken(join(words));
       },
       onError: (code) => {
-        turn.current = null;
-        setListening(false);
+        ended();
         // The mic stays: a failure may be passing (network), and the code helps tell which browser refuses.
         console.warn('Aki voice:', code);
         latestHandlers.current.onError(code);
@@ -56,7 +54,13 @@ export function useVoiceInput({ turnstileRef, micRef, say, onText, onSpoken, onE
 
   function cancel() {
     turn.current?.abort();
+    ended();
+  }
+
+  // However a turn ends, the trash button goes with it: focus on it moves to the mic, which stays.
+  function ended() {
     turn.current = null;
+    if (discardRef.current && document.activeElement === discardRef.current) micRef.current?.focus();
     setListening(false);
   }
 

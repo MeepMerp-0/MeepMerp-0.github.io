@@ -100,3 +100,29 @@ test('record: stop() with an up-to-date partial sends no extra request', async (
   assert.equal(v.result, 'Hello there.');
   assert.equal(v.uploads.length, 1);
 });
+
+// The trash button ends the turn this way (Aki's discardVoice() through cancel()).
+test('record: abort() mid-upload cancels the upload and drops its answer', async (t) => {
+  t.mock.timers.enable({ apis: ['setInterval', 'Date'] });
+  const calls = [];
+  let signal;
+  let answer;
+  const turn = record.listen({
+    onText: (s) => calls.push(['text', s]),
+    onDone: (s) => calls.push(['done', s]),
+    onError: (code) => calls.push(['error', code]),
+    transcribe: (blob, s) => {
+      signal = s;
+      return new Promise((resolve) => { answer = resolve; });
+    },
+  });
+  await flush();
+  await speak(t, 500);
+  await wait(t, 800);
+  assert.equal(signal?.aborted, false, 'a partial upload is in flight');
+  turn.abort();
+  assert.equal(signal.aborted, true);
+  answer({ text: 'Hello there.' });
+  await wait(t, 9000);
+  assert.deepEqual(calls, []);
+});

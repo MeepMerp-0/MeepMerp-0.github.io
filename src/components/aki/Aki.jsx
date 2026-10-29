@@ -29,7 +29,9 @@ function AkiWidget() {
   const logRef = useRef(null);
   const inputRef = useRef(null);
   const micRef = useRef(null);
+  const discardRef = useRef(null);
   const turnstileRef = useRef(null);
+  const draftBeforeVoice = useRef('');
 
   const status = useServiceStatus();
   const region = useRegion(open, onRegionLoaded);
@@ -38,7 +40,7 @@ function AkiWidget() {
   const conversation = useConversation({ turnstileRef, onOutcome: applyOutcome });
   const consent = useConsent({ turnstileRef });
   const voice = useVoiceInput({
-    turnstileRef, micRef, say: conversation.say, onText: onVoiceText, onSpoken: send, onError: onVoiceError,
+    turnstileRef, micRef, discardRef, say: conversation.say, onText: onVoiceText, onSpoken: send, onError: onVoiceError,
   });
 
   const { connection, cooldown, quickOnly, mood, health } = status;
@@ -157,8 +159,19 @@ function AkiWidget() {
 
   // One tap starts listening; the stop button it turns into sends what was heard.
   function toggleVoice() {
-    if (listening) voice.finish();
-    else voice.start(draft.trim());
+    if (listening) {
+      voice.finish();
+      return;
+    }
+    draftBeforeVoice.current = draft;
+    voice.start(draft.trim());
+  }
+
+  // The trash button: nothing is sent, and the box gets back what was typed before the mic. Focus goes to the mic,
+  // so another try is one tap away (useVoiceInput).
+  function discardVoice() {
+    voice.cancel();
+    setDraft(draftBeforeVoice.current);
   }
 
   function onVoiceText(text) {
@@ -214,6 +227,7 @@ function AkiWidget() {
                 <Composer
                   inputRef={inputRef}
                   micRef={micRef}
+                  discardRef={discardRef}
                   draft={draft}
                   onDraftChange={setDraft}
                   onFocusChange={setInputFocused}
@@ -223,6 +237,7 @@ function AkiWidget() {
                   listening={listening}
                   level={voice.level}
                   onMic={toggleVoice}
+                  onDiscard={discardVoice}
                   onSend={send}
                 />
               )}

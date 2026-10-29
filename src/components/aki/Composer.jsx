@@ -1,4 +1,4 @@
-import { ArrowRight, Mic, Square } from 'lucide-react';
+import { ArrowRight, Mic, Square, Trash2 } from 'lucide-react';
 import { AKI_MESSAGES as MSG } from '../../data/akiFaq.js';
 import { codePoints } from '../../services/akiClient.js';
 import { VOICE_MODE } from '../../services/akiVoice.js';
@@ -18,7 +18,8 @@ function submitOnEnter(e, onSend) {
 }
 
 export function Composer({
-  inputRef, micRef, draft, onDraftChange, onFocusChange, requesting, answering, coolingDown, listening, level, onMic, onSend,
+  inputRef, micRef, discardRef, draft, onDraftChange, onFocusChange, requesting, answering, coolingDown, listening, level,
+  onMic, onDiscard, onSend,
 }) {
   const count = codePoints(draft.trim());
   const showCount = count >= COUNTER_FROM;
@@ -26,7 +27,21 @@ export function Composer({
     <form className="aki-form" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
       <label className="sr-only" htmlFor="aki-input">Ask about Jason's work</label>
       <div className="aki-compose">
-        {listening && <Wave level={level} />}
+        {listening && (
+          <>
+            {/* Kept apart from the stop button, which sends, so a near miss can't do the opposite. */}
+            <button
+              ref={discardRef}
+              type="button"
+              className="button aki-discard"
+              aria-label="Discard voice message"
+              onClick={onDiscard}
+            >
+              <Trash2 size={18} aria-hidden="true" />
+            </button>
+            <Wave level={level} />
+          </>
+        )}
         <textarea
           id="aki-input"
           ref={inputRef}
