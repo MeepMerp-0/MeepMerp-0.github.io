@@ -12,9 +12,12 @@ export function useReturnFocus({ requesting, inputRef, micRef }) {
     (mic ? micRef.current : inputRef.current)?.focus();
   }, [requesting, inputRef, micRef]);
 
-  // Enter in the box, or a click on Send or the mic (which take focus): the visitor was composing; remember where.
-  function rememberComposer() {
-    control.current = inputRef.current?.form?.contains(document.activeElement) ? document.activeElement : null;
+  // Enter in the box, or a click on Send (which takes focus, except in Safari): the visitor was composing; remember
+  // where. Words sent with Send as the mic left them count as a voice turn.
+  function rememberComposer(spoken) {
+    control.current = spoken
+      ? micRef.current
+      : (inputRef.current?.form?.contains(document.activeElement) ? document.activeElement : null);
   }
 
   return { rememberComposer };

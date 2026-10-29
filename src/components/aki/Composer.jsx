@@ -24,12 +24,13 @@ export function Composer({
   const count = codePoints(draft.trim());
   const showCount = count >= COUNTER_FROM;
   return (
-    <form className="aki-form" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
+    // Enter in the box calls onSend itself, so a submit is always the Send button.
+    <form className="aki-form" onSubmit={(e) => { e.preventDefault(); onSend(true); }}>
       <label className="sr-only" htmlFor="aki-input">Ask about Jason's work</label>
       <div className="aki-compose">
         {listening && (
           <>
-            {/* Kept apart from the stop button, which sends, so a near miss can't do the opposite. */}
+            {/* Kept apart from the stop button, which keeps the words, so a near miss can't do the opposite. */}
             <button
               ref={discardRef}
               type="button"
@@ -61,7 +62,7 @@ export function Composer({
             ref={micRef}
             type="button"
             className="button aki-mic"
-            aria-label={listening ? 'Stop and send' : 'Speak to Aki'}
+            aria-label={listening ? 'Stop listening' : 'Speak to Aki'}
             data-listening={listening || undefined}
             disabled={!listening && (answering || coolingDown)}
             onClick={onMic}
@@ -69,14 +70,17 @@ export function Composer({
             {listening ? <Square size={16} fill="currentColor" aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
           </button>
         )}
-        <button
-          type="submit"
-          className="button button-solid aki-send"
-          aria-label="Send"
-          disabled={answering || coolingDown || !count || count > MAX_CHARS}
-        >
-          <ArrowRight size={20} aria-hidden="true" />
-        </button>
+        {/* Gone while the mic listens: what is heard goes in the box to check before it can be sent. */}
+        {!listening && (
+          <button
+            type="submit"
+            className="button button-solid aki-send"
+            aria-label="Send"
+            disabled={answering || coolingDown || !count || count > MAX_CHARS}
+          >
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
+        )}
       </div>
       {showCount && (
         <span id="aki-count" className={count > MAX_CHARS ? 'aki-over' : undefined}>

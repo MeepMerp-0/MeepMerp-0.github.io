@@ -42,14 +42,16 @@ export const AKI_MESSAGES = {
   noCrypto: 'Free-text chat needs a newer browser. Quick answers are still available.',
   tooLong: 'That message is too long. Please shorten it.',
   empty: 'Type a message first.',
-  voiceNotice: "Voice chat uses your browser's own speech service (for example Google in Chrome, Microsoft in Edge, Apple in Safari), which hears what you say. I only get the text. I'll send your message when you finish speaking, or tap stop to send it sooner.",
-  voiceNoticeServer: "This browser has no speech service of its own, so your recording goes to my server and on to Groq, or Cloudflare as a backup, to become text. I only use the text. I'll send your message when you finish speaking, or tap stop to send it sooner.",
+  voiceNotice: "Voice chat uses your browser's own speech service (for example Google in Chrome, Microsoft in Edge, Apple in Safari), which hears what you say. I only get the text. When you finish speaking, or tap stop, your words go in the box for you to check and send.",
+  voiceNoticeServer: "This browser has no speech service of its own, so your recording goes to my server and on to Groq, or Cloudflare as a backup, to become text. I only use the text. When you finish speaking, or tap stop, your words go in the box for you to check and send.",
   micBlocked: "I can't hear you: microphone access is blocked. Allow it in your browser settings, or type instead.",
   voiceFailed: "Voice didn't work in this browser just now. Try again, or type instead.",
   voiceNetwork: "I can't reach your browser's speech service. Some browsers switch it off; voice works in Chrome, Edge and Safari. You can still type.",
   voiceBusy: 'Voice is busy right now. Try again shortly, or type instead.',
   voiceDown: "Voice isn't available right now. You can still type.",
   listening: 'Listening\u2026',
+  // Screen readers only: what a voice turn left in the box.
+  voiceReady: (text) => `In the box, ready to send: ${text}`,
   head: { ok: 'Aki \u00B7 Here to help', typing: 'Aki \u00B7 Typing\u2026', busy: 'Aki \u00B7 Busy', down: 'Aki \u00B7 Not connected' }
 };
 

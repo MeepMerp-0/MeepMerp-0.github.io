@@ -4,11 +4,16 @@ import { startSession, transcribe } from '../../services/akiClient.js';
 import { listen, VOICE_MODE } from '../../services/akiVoice.js';
 import { toVoiceResult } from './outcomes.js';
 
-// One voice turn at a time. finish() ends it and sends what was heard; cancel() ends it and sends nothing.
+// A turn that ends itself puts Send where the stop button was and turns stop back into the mic; a press meant for stop
+// that lands in this window does nothing (settling()).
+const SETTLE_MS = 600;
+
+// One voice turn at a time. finish() ends it and hands what was heard to onSpoken; cancel() ends it and drops it.
 export function useVoiceInput({ turnstileRef, micRef, discardRef, say, onText, onSpoken, onError }) {
   const [listening, setListening] = useState(false);
   const turn = useRef(null);
   const noticed = useRef(false);
+  const settleUntil = useRef(0);
   const latestHandlers = useRef({ onText, onSpoken, onError });
 
   // Voice callbacks fire long after the tap; they must reach the latest handlers, not the ones from the tap's render.
@@ -36,11 +41,11 @@ export function useVoiceInput({ turnstileRef, micRef, discardRef, say, onText, o
       transcribe: (blob, signal) => transcribe({ blob, container: turnstileRef.current, signal }).then(toVoiceResult),
       onText: (words) => latestHandlers.current.onText(join(words)),
       onDone: (words) => {
-        ended();
+        ended(true);
         if (words) latestHandlers.current.onSpoken(join(words));
       },
       onError: (code) => {
-        ended();
+        ended(true);
         // The mic stays: a failure may be passing (network), and the code helps tell which browser refuses.
         console.warn('Aki voice:', code);
         latestHandlers.current.onError(code);
@@ -58,11 +63,14 @@ export function useVoiceInput({ turnstileRef, micRef, discardRef, say, onText, o
   }
 
   // However a turn ends, the trash button goes with it: focus on it moves to the mic, which stays.
-  function ended() {
+  function ended(itself) {
     turn.current = null;
+    if (itself) settleUntil.current = performance.now() + SETTLE_MS;
     if (discardRef.current && document.activeElement === discardRef.current) micRef.current?.focus();
     setListening(false);
   }
 
-  return { listening, start, finish, cancel, level };
+  const settling = () => performance.now() < settleUntil.current;
+
+  return { listening, start, finish, cancel, level, settling };
 }

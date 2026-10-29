@@ -1285,8 +1285,10 @@ async function runAkiSmoke() {
       const DISCARD = '.aki-discard[aria-label="Discard voice message"]';
       const voice = () => evaluate('(() => { const el = document.getElementById("aki-input"), mic = document.querySelector(".aki-mic");'
         + 'return { discard: Boolean(document.querySelector(' + q(DISCARD) + ')), wave: Boolean(document.querySelector(".aki-wave")),'
+        + 'send: Boolean(document.querySelector(".aki-send")),'
         + 'box: getComputedStyle(el).display !== "none", value: el.value, mic: mic.getAttribute("aria-label"), micFocused: document.activeElement === mic,'
-        + 'speech: window.__speech?.calls.join(), you: [...document.querySelectorAll(".aki-row-user")].map((r) => r.textContent) }; })()');
+        + 'speech: window.__speech?.calls.join(), you: [...document.querySelectorAll(".aki-row-user")].map((r) => r.textContent),'
+        + 'status: document.querySelector(".aki-chat > p.sr-only[role=status]").textContent }; })()');
       await akiPage();
       await openChat();
       await evaluate('(() => { const el = document.getElementById("aki-input");'
@@ -1295,20 +1297,21 @@ async function runAkiSmoke() {
       await until('!document.querySelector(".aki-form button[type=submit]").disabled', 'Send enabled');
       await click('.aki-mic');
       let v = await voice();
-      check(v.discard && v.wave && !v.box && v.mic === 'Stop and send' && v.speech === 'start', 'listening ' + JSON.stringify(v));
+      check(v.discard && v.wave && !v.box && !v.send && v.mic === 'Stop listening' && v.speech === 'start', 'listening ' + JSON.stringify(v));
       await evaluate('window.__speech.emit("his projects")');
       await until('document.querySelector(".aki-row-user p")?.textContent === "Tell me about his projects"', 'the live bubble to read "Tell me about his projects"');
       // A pointer click focuses the trash button, which then unmounts; element.click() does not, so focus it first.
       await evaluate('document.querySelector(' + q(DISCARD) + ').focus()');
       await click(DISCARD);
       v = await voice();
-      check(!v.discard && !v.wave && v.box && v.value === 'Tell me about' && v.micFocused, 'after discard ' + JSON.stringify(v));
+      check(!v.discard && !v.wave && v.box && v.send && v.value === 'Tell me about' && v.micFocused, 'after discard ' + JSON.stringify(v));
       check(v.speech === 'start,abort' && !v.you.length && !chatCalls().length,
         'discard left a turn or a message ' + JSON.stringify(v) + ', chat calls ' + chatCalls().length);
-      // A turn still running would have sent by the end of the longest end-of-turn wait.
+      // A turn still running would have put its words in the box by the end of the longest end-of-turn wait.
       await delay(Math.max(...Object.values(END_MS)) + 500);
       v = await voice();
-      check(v.speech === 'start,abort' && !chatCalls().length, 'after the end-of-turn wait ' + JSON.stringify(v) + ', chat calls ' + chatCalls().length);
+      check(v.speech === 'start,abort' && v.value === 'Tell me about' && !v.status && !chatCalls().length,
+        'after the end-of-turn wait ' + JSON.stringify(v) + ', chat calls ' + chatCalls().length);
       // A turn that ends by itself (here Chrome's no-speech) takes the trash button with it; its focus goes to the mic.
       await click('.aki-mic');
       await until('document.querySelector(' + q(DISCARD) + ')', 'second turn listening');
@@ -1317,6 +1320,75 @@ async function runAkiSmoke() {
       await until('!document.querySelector(' + q(DISCARD) + ')', 'silent turn ended');
       v = await voice();
       check(v.micFocused && v.box && v.value === 'Tell me about' && !chatCalls().length, 'after a silent turn ' + JSON.stringify(v));
+    });
+
+    await step('voice review: a finished turn waits in the box until Send or Enter', async () => {
+      const said = 'Tell me about his projects.';
+      const both = said + ' And his clients';
+      const asked = 'What about his clients?';
+      const voice = () => evaluate('(() => { const el = document.getElementById("aki-input"), send = document.querySelector(".aki-send");'
+        + 'return { wave: Boolean(document.querySelector(".aki-wave")), box: getComputedStyle(el).display !== "none", value: el.value,'
+        + 'send: Boolean(send && !send.disabled), micFocused: document.activeElement === document.querySelector(".aki-mic"),'
+        + 'speech: window.__speech?.calls.join(), status: document.querySelector(".aki-chat > p.sr-only[role=status]").textContent }; })()');
+      const type = (value) => evaluate('(() => { const el = document.getElementById("aki-input");'
+        + 'Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, ' + q(value) + ');'
+        + 'el.dispatchEvent(new Event("input", { bubbles: true })); })()');
+      // Held, so the box is seen locked while Aki answers.
+      await akiPage({ chat: (b) => ({ body: aiReply(b, 'ok'), holdMs: 400 }) });
+      await openChat();
+      await click('.aki-mic');
+      check(!(await exists('.aki-send')), 'Send shown while listening');
+      // A finished sentence ends the turn after a short pause, and nothing goes out. Presses meant for the stop button
+      // that land as the turn ends (Send now sits where stop was, and stop is the mic again) do nothing.
+      const late = await evaluate('new Promise((done) => { const mo = new MutationObserver(() => {'
+        + 'if (document.querySelector(".aki-wave")) return; mo.disconnect();'
+        + 'document.querySelector(".aki-send").click(); document.querySelector(".aki-mic").click(); done("pressed"); });'
+        + 'mo.observe(document.querySelector(".aki-compose"), { childList: true, subtree: true });'
+        + 'setTimeout(() => done("the turn never ended"), ' + (END_MS.done + 3000) + '); window.__speech.emit(' + q(said) + '); })');
+      check(late === 'pressed', late);
+      let v = await voice();
+      check(!v.wave && v.box && v.value === said && v.send && v.micFocused && v.speech === 'start,stop'
+        && v.status === AKI_MESSAGES.voiceReady(said) && !chatCalls().length, 'after the turn ' + JSON.stringify(v));
+      await delay(700);
+      check(!chatCalls().length, 'a finished turn sent itself');
+      // Stop ends the next turn at once, long before its pause would; its words follow the ones already in the box.
+      await click('.aki-mic');
+      await until('document.querySelector(".aki-wave")', 'second turn listening');
+      await evaluate('window.__speech.emit("And his clients")');
+      const stopAt = Date.now();
+      await click('.aki-mic');
+      await until('!document.querySelector(".aki-wave")', 'stop to end the turn');
+      check(Date.now() - stopAt < END_MS.plain / 2, 'stop waited ' + (Date.now() - stopAt) + ' ms, as if for the pause');
+      v = await voice();
+      check(v.value === both && v.speech === 'start,stop' && v.status === AKI_MESSAGES.voiceReady(both) && !chatCalls().length,
+        'after stop ' + JSON.stringify(v));
+      // Checked in the box, then sent with Send as the mic left it: after the reply focus goes to the mic, not the box, so
+      // phones keep the keyboard down. Focus stays in the box, as Safari leaves it on a click (element.click() does too).
+      await delay(700);
+      await evaluate('document.getElementById("aki-input").focus()');
+      await click('.aki-send');
+      await until('document.activeElement === document.querySelector(".aki-mic")', 'focus on the mic after the reply', 6000);
+      v = await voice();
+      check(chatCalls().length === 1 && chatCalls()[0].body.message === both && v.status === '',
+        'after the reply ' + JSON.stringify({ sent: chatCalls().map((c) => c.body.message), v }));
+      // An edit ends the review: the line goes, and stays gone when the words are typed back. Enter sends from the box,
+      // and focus comes back to the box.
+      await click('.aki-mic');
+      await until('document.querySelector(".aki-wave")', 'third turn listening');
+      await evaluate('window.__speech.emit(' + q(asked) + ')');
+      await until('!document.querySelector(".aki-wave")', 'the third turn to end by itself', END_MS.done + 3000);
+      check((await voice()).status === AKI_MESSAGES.voiceReady(asked), 'third turn status');
+      await type(asked.slice(0, -1));
+      check((await voice()).status === '', 'status after an edit');
+      await type(asked);
+      v = await voice();
+      check(v.value === asked && v.status === '', 'status after the edit is undone ' + JSON.stringify(v));
+      await delay(700);
+      await evaluate('(() => { const el = document.getElementById("aki-input"); el.focus();'
+        + 'el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); })()');
+      await until('document.getElementById("aki-input").disabled', 'the box to lock while Aki answers');
+      await until('!document.getElementById("aki-input").disabled && document.activeElement?.id === "aki-input"', 'focus back in the box after the reply', 6000);
+      check(chatCalls().length === 2 && chatCalls()[1].body.message === asked, 'sent ' + JSON.stringify(chatCalls().map((c) => c.body.message)));
     });
 
     await step('groq_busy holds the composer for retryAfter; narrow panels get the compact Turnstile', async () => {

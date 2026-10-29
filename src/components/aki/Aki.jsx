@@ -23,6 +23,8 @@ function AkiWidget() {
   const [greeted, setGreeted] = useState(false);
   const [greeting] = useState(() => pickGreeting());
   const [draft, setDraft] = useState('');
+  // What the last voice turn put in the box. While the box still holds exactly that, it is waiting to be checked.
+  const [spoken, setSpoken] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const launcherRef = useRef(null);
   const panelRef = useRef(null);
@@ -40,7 +42,7 @@ function AkiWidget() {
   const conversation = useConversation({ turnstileRef, onOutcome: applyOutcome });
   const consent = useConsent({ turnstileRef });
   const voice = useVoiceInput({
-    turnstileRef, micRef, discardRef, say: conversation.say, onText: onVoiceText, onSpoken: send, onError: onVoiceError,
+    turnstileRef, micRef, discardRef, say: conversation.say, onText: onVoiceText, onSpoken: onVoiceDone, onError: onVoiceError,
   });
 
   const { connection, cooldown, quickOnly, mood, health } = status;
@@ -60,11 +62,16 @@ function AkiWidget() {
   const showSuggestions = !answering && !listening
     && ((!hasAsked && akiSaid < 2) || quickOnly || connection === 'down');
   const heard = listening ? draft.trim() : '';
+  // Only while the box is on screen and can send: quick-answers-only mode and a wait have their own lines.
+  const reviewing = !listening && !quickOnly && !cooldown && Boolean(spoken) && draft === spoken;
+  // The live bubble is hidden from screen readers, so they hear the words once they are in the box.
+  let voiceStatus = '';
+  if (reviewing) voiceStatus = codePoints(spoken) > MAX_CHARS ? MSG.tooLong : MSG.voiceReady(spoken);
   const statusLabel = health === 'ok' && answering ? MSG.head.typing : MSG.head[health];
   const feed = [
     { id: 'greet', role: 'assistant', greet: true },
     ...log,
-    // What the mic hears shows live in the visitor's bubble (kept from screen readers until it is sent).
+    // What the mic hears shows live in the visitor's bubble (kept from screen readers: voiceStatus).
     ...(pending || heard ? [{ id: 'pending', role: 'user', text: pending || heard, live: !pending }] : []),
     ...(answering ? [{ id: 'typing', role: 'assistant', typing: true }] : []),
     // The visitor's own typing dots, mirroring Aki's, while they compose a message.
@@ -109,14 +116,13 @@ function AkiWidget() {
     setInputFocused(false);
   }
 
-  function send(text = draft) {
-    const message = text.trim();
-    // Not the composer's count: a voice turn passes text the draft may not hold yet.
-    if (!message || codePoints(message) > MAX_CHARS || answering || cooldown) return;
-    // Enter or Send while listening sends the box as it is.
-    voice.cancel();
+  // viaButton: Send, not Enter in the box.
+  function send(viaButton = false) {
+    const message = draft.trim();
+    // Enter goes around the Send button, so its limits are checked here too.
+    if (!message || codePoints(message) > MAX_CHARS || answering || cooldown || voice.settling()) return;
     setDraft('');
-    returnFocus.rememberComposer();
+    returnFocus.rememberComposer(reviewing && viaButton);
     conversation.send(message);
   }
 
@@ -157,12 +163,14 @@ function AkiWidget() {
     focus.focusComposerOrPanel();
   }
 
-  // One tap starts listening; the stop button it turns into sends what was heard.
+  // One tap starts listening; the stop button it turns into ends the turn without waiting for a pause.
   function toggleVoice() {
     if (listening) {
       voice.finish();
       return;
     }
+    // A late press meant for the stop button of a turn that just ended itself (useVoiceInput).
+    if (voice.settling()) return;
     draftBeforeVoice.current = draft;
     voice.start(draft.trim());
   }
@@ -174,10 +182,25 @@ function AkiWidget() {
     setDraft(draftBeforeVoice.current);
   }
 
+  // Nothing is sent: the words stay in the box to check, change or send.
+  function onVoiceDone(text) {
+    setDraft(text);
+    setSpoken(text);
+  }
+
+  // Any edit by the visitor ends the review: the box no longer holds just what the mic heard.
+  function editDraft(value) {
+    setDraft(value);
+    setSpoken('');
+  }
+
   function onVoiceText(text) {
     setDraft(text);
     // Over the limit: stop, and leave the text in the box for the visitor to shorten.
-    if (codePoints(text) > MAX_CHARS) voice.cancel();
+    if (codePoints(text) > MAX_CHARS) {
+      voice.cancel();
+      setSpoken(text);
+    }
   }
 
   function onVoiceError(code) {
@@ -222,6 +245,7 @@ function AkiWidget() {
               onAsk={askFaq}
               answering={answering}
               listening={listening}
+              voiceStatus={voiceStatus}
               cooldown={cooldown}
               composer={!quickOnly && (
                 <Composer
@@ -229,7 +253,7 @@ function AkiWidget() {
                   micRef={micRef}
                   discardRef={discardRef}
                   draft={draft}
-                  onDraftChange={setDraft}
+                  onDraftChange={editDraft}
                   onFocusChange={setInputFocused}
                   requesting={requesting}
                   answering={answering}

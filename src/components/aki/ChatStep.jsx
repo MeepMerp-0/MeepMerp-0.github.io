@@ -20,12 +20,13 @@ function goToSection(e, { close, reduceMotion }) {
 }
 
 export function ChatStep({
-  logRef, feed, showSuggestions, onAsk, answering, listening, cooldown, composer, turnstileRef, reduceMotion,
+  logRef, feed, showSuggestions, onAsk, answering, listening, voiceStatus, cooldown, composer, turnstileRef, reduceMotion,
   onClose, onClear, onConsentSettings,
 }) {
   let liveStatus = '';
   if (answering) liveStatus = MSG.typing;
   else if (listening) liveStatus = MSG.listening;
+  else if (voiceStatus) liveStatus = voiceStatus;
   return (
     <div className="aki-body aki-chat">
       <div ref={logRef} className="aki-log" onClick={(e) => goToSection(e, { close: onClose, reduceMotion })}>
