@@ -1,4 +1,4 @@
-// endDelay and the mode under Node, then the record backend on fakes. Speech mode needs a real browser recognizer.
+// endDelay and the mode under Node, then the record backend on fakes. akiVoice.speech.test.js covers speech mode.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { END_MS, VOICE_MODE, VOICE_SUPPORTED, endDelay } from './akiVoice.js';
