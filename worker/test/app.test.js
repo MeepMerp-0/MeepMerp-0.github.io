@@ -3,8 +3,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { handle, signReply, signatureOk, readConfig } from '../src/app.js';
-import { createLimiter, memoryStore, OPS, EEA_UK_CH, AI_BLOCKED, REPLY_MAX_AGE_MS } from '../src/limiter.js';
+import { handle } from '../src/app.js';
+import { readConfig } from '../src/config.js';
+import { signReply, signatureOk, REPLY_MAX_AGE_MS } from '../src/history.js';
+import { createLimiter, memoryStore, OPS } from '../src/limiter.js';
+import { EEA_UK_CH, AI_BLOCKED } from '../src/regions.js';
 import { GROQ_PACK } from '../src/knowledge.js';
 import { PROJECTS } from '../../src/data/portfolioData.js';
 

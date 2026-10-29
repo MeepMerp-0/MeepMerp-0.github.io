@@ -2,9 +2,13 @@ import { AKI_CONSENT_VERSION } from '../../src/data/akiFaq.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { handle, signReply, signatureOk, readConfig } from '../src/app.js';
-import { filterHistory } from '../src/gemini.js';
-import { createLimiter, memoryStore, OPS, EEA_UK_CH, AI_BLOCKED, REPLY_MAX_AGE_MS, nextPacificMidnight } from '../src/limiter.js';
+import { handle } from '../src/app.js';
+import { readConfig } from '../src/config.js';
+import { signReply, signatureOk, REPLY_MAX_AGE_MS } from '../src/history.js';
+import { filterHistory } from '../src/providers/google.js';
+import { createLimiter, memoryStore, OPS } from '../src/limiter.js';
+import { EEA_UK_CH, AI_BLOCKED } from '../src/regions.js';
+import { nextPacificMidnight } from '../src/time.js';
 import { GEMINI_PACK, GEMINI_SYSTEM_PROMPT, GROQ_PACK, matchesContactPattern } from '../src/knowledge.js';
 import { ABOUT_STORY, AVAILABILITY } from '../../src/data/portfolioData.js';
 

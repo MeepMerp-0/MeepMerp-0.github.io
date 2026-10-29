@@ -1,10 +1,11 @@
 import { AKI_CONSENT_VERSION } from '../../src/data/akiFaq.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  AI_BLOCKED, EEA_UK_CH, SLOT_GUARD_MS, REPLY_MAX_AGE_MS, OPS,
-  createLimiter, memoryStore, pauseMs, pacificDay, nextPacificMidnight, ipPrefix, reserve,
-} from '../src/limiter.js';
+import { SLOT_GUARD_MS, OPS, createLimiter, memoryStore, pauseMs, reserve } from '../src/limiter.js';
+import { AI_BLOCKED, EEA_UK_CH } from '../src/regions.js';
+import { pacificDay, nextPacificMidnight } from '../src/time.js';
+import { REPLY_MAX_AGE_MS } from '../src/history.js';
+import { ipPrefix } from '../src/auth.js';
 
 const S = 1000;
 const H = 3_600_000;

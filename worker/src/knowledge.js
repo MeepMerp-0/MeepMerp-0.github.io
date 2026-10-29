@@ -3,14 +3,14 @@ import { EXPERIENCE } from './experience.js';
 
 const { name, title, github, website } = PERSONAL;
 
-// Substring patterns, lowercase; whole-word and digit patterns are handled by contactMatch.
+// Contact and location details, matched anywhere in the text and ignoring case.
 const SUBSTRINGS = [PERSONAL.email, 'gmail', 'Reem', 'Abu Dhabi', 'United Arab Emirates', ...EXPERIENCE.flatMap(({ location }) => location.split(', '))];
 const PHONE_DIGITS = PERSONAL.phone.replace(/\D/g, '').slice(-9);
 
-export const CONTACT_PATTERNS = [
+const CONTACT_PATTERNS = [
   ...SUBSTRINGS.map((s) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')),
   /\bUAE\b/i,
-  // Applied to digits-only text: callers must pass text.replace(/\D/g, '') to this entry.
+  // Tested against the text's digits alone, so any spacing or punctuation in a phone number still matches.
   { digitsOnly: true, test: (digits) => digits.includes(PHONE_DIGITS) },
 ];
 
@@ -44,14 +44,14 @@ export const GROQ_PACK = pack(
   EXPERIENCE,
   {
     aboutStory: ABOUT_STORY,
-    contactInfo: CONTACT_INFO.map(({ label, value }) => ({ label, value })),
+    contactInfo: CONTACT_INFO,
   },
 );
 
 export const GEMINI_PACK = pack(
-    { name, title, github, website },
-    EXPERIENCE.map(({ company, role, period, highlights }) => ({ company, role, period, highlights })),
-    { aboutStory: withoutContact(ABOUT_STORY) },
+  { name, title, github, website },
+  EXPERIENCE.map(({ company, role, period, highlights }) => ({ company, role, period, highlights })),
+  { aboutStory: withoutContact(ABOUT_STORY) },
 );
 
 const RULES = `You are Aki, the AI assistant on ${name}'s portfolio website. You are an AI, not ${name}; never claim to be ${name} or speak as them.

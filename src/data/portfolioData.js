@@ -271,9 +271,10 @@ export const PROJECTS = [
   },
 ];
 
+// Only Aki's Groq prompt reads these (worker/src/knowledge.js).
 export const CONTACT_INFO = [
-  { icon: 'mail', label: 'Email', value: 'jason.selerio@gmail.com', href: 'mailto:jason.selerio@gmail.com' },
-  { icon: 'phone', label: 'Phone', value: '+971 50 448 2694', href: 'tel:+971504482694' },
-  { icon: 'website', label: 'Website', value: 'meepmerp-0.github.io', href: 'https://meepmerp-0.github.io' },
-  { icon: 'github', label: 'GitHub', value: 'github.com/MeepMerp-0', href: 'https://github.com/MeepMerp-0' },
+  { label: 'Email', value: 'jason.selerio@gmail.com' },
+  { label: 'Phone', value: '+971 50 448 2694' },
+  { label: 'Website', value: 'meepmerp-0.github.io' },
+  { label: 'GitHub', value: 'github.com/MeepMerp-0' },
 ];

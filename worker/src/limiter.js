@@ -45,7 +45,7 @@
  *   {type:'go', waitMs}                       claim (Groq only).
  *   {type:'go', provider:'groq'|'workers_ai', waitMs:0}  transcribe: call that Whisper now.
  *   null                                      cancel, end and consent.
- *   otherwise a B4 body without turnId (app.js adds it):
+ *   otherwise a B4 body without turnId (the chat route adds it to provider_unavailable):
  *     rate_limited{scope, retryAfter}, quota_exhausted{scope, resetsAt}, provider_unavailable{reason, retryAfter?},
  *     invalid_request{error: 'turn_reused'}.
  *
@@ -53,30 +53,19 @@
  * and return {result} plus only the records to write (g, v, t, c). Refusals write nothing.
  */
 
-export const EEA_UK_CH = Object.freeze([
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU',
-  'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
-  'IS', 'LI', 'NO', 'GB', 'CH',
-  'GF', 'GP', 'MQ', 'RE', 'YT', 'MF', 'AX', 'SJ',
-  'GI', 'JE', 'GG', 'IM',
-]);
-export const AI_BLOCKED = Object.freeze(['CU', 'IR', 'KP', 'SY', 'T1']);
+import { DAY, HOUR, MINUTE, nextPacificMidnight, pacificDay, utcDay } from './time.js';
 
-const MINUTE = 60_000;
-const HOUR = 3_600_000;
-const DAY = 86_400_000;
 export const SLOT_GUARD_MS = 3_000;
-export const REPLY_MAX_AGE_MS = DAY;
-export const COOLDOWN_MS = 4_000;
-export const GROQ_LEASE_MS = 15_000;
-export const GEMINI_LEASE_MS = 20_000;
-export const WORKERS_AI_LEASE_MS = 12_000;
-export const HOP_WAIT_MAX_MS = 15_000;
-export const DONE_MS = 10 * MINUTE;
-export const DEFAULT_PAUSE_MS = 20_000;
-export const MAX_PAUSE_MS = DAY;
-export const CONSENT_TTL_MS = DAY;
-export const RECORD_TTL_MS = 47 * HOUR;
+const COOLDOWN_MS = 4_000;
+const GROQ_LEASE_MS = 15_000;
+const GEMINI_LEASE_MS = 20_000;
+const WORKERS_AI_LEASE_MS = 12_000;
+const HOP_WAIT_MAX_MS = 15_000;
+const DONE_MS = 10 * MINUTE;
+const DEFAULT_PAUSE_MS = 20_000;
+const MAX_PAUSE_MS = DAY;
+const CONSENT_TTL_MS = DAY;
+const RECORD_TTL_MS = 47 * HOUR;
 export const CLEANUP_INTERVAL_MS = HOUR;
 
 // Per visitor, whichever provider answers; the Groq site rate is limited separately (site_minute).
@@ -86,44 +75,6 @@ const VISITOR_LIMITS = [['minute', MINUTE, 4], ['hour', HOUR, 15], ['day', DAY, 
 // more than 30 s into the 1 MiB body cap; budget seconds from the container's duration if that is ever abused.
 const STT_VISITOR_LIMITS = [['stt_minute', MINUTE, 10], ['stt_day', DAY, 80]];
 
-const PT = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Los_Angeles', hourCycle: 'h23',
-  year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
-});
-
-function pacificParts(ms) {
-  const p = Object.fromEntries(PT.formatToParts(ms).map(({ type, value }) => [type, Number(value)]));
-  const wall = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) + (ms % 1000 + 1000) % 1000;
-  return { ...p, offset: wall - ms };
-}
-
-/** Pacific calendar day of `ms` as 'YYYY-MM-DD' (D9). */
-export function pacificDay(ms) {
-  const { year, month, day } = pacificParts(ms);
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-/** The next Pacific midnight after `ms`, in ms. DST changes at 02:00, so the offset near midnight is exact. */
-export function nextPacificMidnight(ms) {
-  const { year, month, day, offset } = pacificParts(ms);
-  const wallMidnight = Date.UTC(year, month - 1, day + 1);
-  return wallMidnight - pacificParts(wallMidnight - offset).offset;
-}
-
-/** IPv4 as is; IPv6 reduced to its /64 prefix, so one IPv6 customer network is one visitor (B2). */
-export function ipPrefix(ip) {
-  const s = String(ip).trim().toLowerCase().split('%')[0];
-  if (!s.includes(':')) return s;
-  const mapped = s.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (mapped) return mapped[1];
-  const [head, tail] = s.split('::');
-  const groups = (x) => (x ? x.split(':').flatMap((g) => (g.includes('.') ? ['0', '0'] : [g])) : []);
-  const h = groups(head);
-  const t = groups(tail);
-  const all = tail === undefined ? h : [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t];
-  return `${all.slice(0, 4).map((g) => (parseInt(g, 16) || 0).toString(16)).join(':')}::/64`;
-}
-
 /** Groq or Gemini pause after a 429: retry-after seconds capped at 24 h; 20 s if missing or not a number (B2, R4-28). */
 export function pauseMs(retryAfter) {
   const n = typeof retryAfter === 'number' ? retryAfter
@@ -132,7 +83,7 @@ export function pauseMs(retryAfter) {
 }
 
 /** Earliest Groq slot: ≤ cap per rolling 60 s with a 3 s guard, never before a pause ends, strict FIFO (B2, R4-3). */
-export function nextSlot(S, now, groqBlockedUntil, cap) {
+function nextSlot(S, now, groqBlockedUntil, cap) {
   const n = S.length;
   return Math.max(
     now,
@@ -142,8 +93,6 @@ export function nextSlot(S, now, groqBlockedUntil, cap) {
   );
 }
 
-// --- results ---
-
 const secs = (ms) => Math.max(1, Math.ceil(ms / 1000));
 const go = (waitMs, provider) => ({ type: 'go', ...(provider && { provider }), waitMs });
 const limited = (scope, ms) => ({ type: 'rate_limited', scope, retryAfter: secs(ms) });
@@ -152,8 +101,6 @@ const invalid = (error) => ({ type: 'invalid_request', error });
 const exhausted = (scope, now) => ({
   type: 'quota_exhausted', scope, resetsAt: new Date(nextPacificMidnight(now)).toISOString(),
 });
-
-// --- helpers on the working slice ---
 
 const keyOf = (sid, turnId) => `${sid}:${turnId}`;
 const doneTurn = (now) => ({ state: 'DONE', exp: now + DONE_MS });
@@ -249,8 +196,6 @@ function step(slice, now, fn) {
   if (s.c) out.c = s.c;
   return out;
 }
-
-// --- ops ---
 
 export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
   checkCfg(cfg);
@@ -420,7 +365,7 @@ export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', 
       g.gemma = used + 1;
     } else {
       // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (not on the Pacific day).
-      const utc = new Date(now).toISOString().slice(0, 10);
+      const utc = utcDay(now);
       const used = g.backupDay === utc ? g.backup ?? 0 : 0;
       if (!(used < (Number.isInteger(cfg?.backupDailyCap) ? cfg.backupDailyCap : 0))) return unavailable('backup_daily');
       g.backupDay = utc;
@@ -469,7 +414,7 @@ export function transcribe(slice, now, cfg, { fallback: failed }) {
     // The one write a refused fallback still makes.
     if (failed?.status === 429) g.sttBlockedUntil = Math.max(g.sttBlockedUntil ?? 0, now + pauseMs(failed.retryAfter));
     // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (as the chat backup's).
-    const utc = new Date(now).toISOString().slice(0, 10);
+    const utc = utcDay(now);
     const backupUsed = g.sttBackupDay === utc ? g.sttBackup ?? 0 : 0;
     const backupOk = backupUsed < cap('sttBackupDailyCap');
     const takeBackup = () => {
@@ -507,9 +452,7 @@ export function transcribe(slice, now, cfg, { fallback: failed }) {
 
 export const OPS = { reserve, claim, cancel, end, fallback, backup, consent, transcribe };
 
-// --- storage glue (shared by the DO and the tests) ---
-
-export function storageKeys(ipKey, sid, turnId) {
+function storageKeys(ipKey, sid, turnId) {
   return { g: 'g', v: `v:${ipKey}`, t: `t:${sid}:${turnId}`, c: `c:${sid}` };
 }
 
@@ -522,7 +465,7 @@ export function applyOp(store, now, op, req) {
 }
 
 /** Hourly cleanup (R5-17): consent records at 24 h after confirmedAt, visitors and turns at 47 h since their last write. */
-export function isStale(key, rec, now) {
+function isStale(key, rec, now) {
   if (key.startsWith('c:')) return now - rec.confirmedAt >= CONSENT_TTL_MS;
   return /^[vt]:/.test(key) && now - rec.at >= RECORD_TTL_MS;
 }
