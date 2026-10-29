@@ -26,8 +26,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Test the Aki Worker
-        run: npm run aki:test
+      - name: Run the unit tests
+        run: npm test
 
       - name: Lint the JavaScript/JSX changed in this pull request
         shell: bash

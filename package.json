@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist --no-history",
+    "test": "node --test 'worker/test/*.test.js' 'src/**/*.test.js'",
     "aki:test": "node --test 'worker/test/*.test.js'",
     "aki:dev": "worker/node_modules/.bin/wrangler dev --config worker/wrangler.toml --env dev --local",
     "aki:deploy": "worker/node_modules/.bin/wrangler deploy --config worker/wrangler.toml"
