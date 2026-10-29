@@ -65,4 +65,3 @@
   .portfolio-workflow__detail { padding: 28px 18px; }
   .portfolio-workflow__footer { padding: 16px 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .portfolio-workflow__step { transition: none; } }

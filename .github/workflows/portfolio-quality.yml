@@ -35,8 +35,8 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           if [ -z "$BASE_SHA" ]; then
-            echo "Manual run: linting the redesigned entry points."
-            npx eslint src/App.jsx src/components/PortfolioWorkflow.jsx src/hooks/useContactForm.js
+            echo "Manual run: linting the whole project."
+            npx eslint .
             exit 0
           fi
 

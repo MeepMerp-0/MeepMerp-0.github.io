@@ -9,11 +9,20 @@ Personal portfolio built with React and Vite, with Aki, a chat assistant running
 ```bash
 npm ci
 npm run dev   # http://localhost:8888
+npm test      # unit tests for the site and the Aki Worker
 ```
 
 ## Editing content
 
-All content lives in `src/data/portfolioData.js`.
+Content lives in `src/data/`:
+
+- `portfolioData.js`: profile, experience, projects, skills and contact details
+- `workflowStages.js`: the stages in the Process section
+- `akiFaq.js`: Aki's quick answers, messages and consent copy
+- `akiGreetings.js`: Aki's greetings
+
+Aki's Worker builds its prompt in `worker/src/knowledge.js` from `portfolioData.js` and the full work history in
+`worker/src/experience.js`.
 
 ## Deploy
 

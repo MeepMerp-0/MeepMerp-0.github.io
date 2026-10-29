@@ -4,7 +4,6 @@
   color-scheme: dark;
   --bg: #101718;
   --bg2: #192122;
-  --bg3: #242e2d;
   --text: #f0f0e9;
   --muted: #acb9b2;
   --border: #364340;
@@ -15,7 +14,6 @@
   --nav-active-bg: #263a2f;
   --nav-hover-bg: #22302c;
   --accent-border: #3b5844;
-  --shadow: none;
   --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-display: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
@@ -24,7 +22,6 @@
   color-scheme: light;
   --bg: #f5f3eb;
   --bg2: #eeece3;
-  --bg3: #e3e5da;
   --text: #172422;
   --muted: #4b5b56;
   --border: #c7cfc5;
@@ -99,8 +96,6 @@ section[id] { scroll-margin-top: 0; }
 .hero-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 48px; padding: 12px 18px; border: 1px solid transparent; text-decoration: none; font-size: 13px; font-weight: 700; line-height: 1.2; text-align: center; }
 .button-solid { background: var(--signal); color: var(--signal-ink); }
-.button-text { padding-left: 0; color: var(--text); text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--border); }
-.button-text:hover, .inline-link:hover { color: var(--signal); }
 .hero-notes { align-self: center; border: 1px solid var(--border); border-top: 3px solid var(--signal); padding: 26px 27px 0; background: var(--bg2); }
 .notes-heading { display: flex; justify-content: space-between; gap: 14px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .1em; color: var(--signal); }
 .notes-heading span:last-child { color: var(--muted); }
@@ -158,7 +153,6 @@ section[id] { scroll-margin-top: 0; }
 .about-card-links a:hover { color: var(--signal); text-decoration-color: var(--signal); }
 .about-story h3 { margin: 0 0 26px; font: 400 clamp(28px,3vw,41px)/1.18 var(--font-display); letter-spacing: -.04em; }
 .about-story p { max-width: 560px; color: var(--muted); font-size: 15px; line-height: 1.85; margin: 0 0 17px; }
-.inline-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 11px; font-size: 13px; font-weight: 750; color: var(--text); text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--border); }
 .capabilities { margin-top: clamp(55px,7vw,95px); border-top: 1px solid var(--border); }
 .capabilities-lead { display: flex; justify-content: space-between; gap: 20px; padding-top: 18px; font: 700 11px/1.5 var(--font-mono); color: var(--signal); letter-spacing: .09em; }
 .capabilities-lead span { color: var(--muted); font-weight: 400; }
@@ -315,7 +309,6 @@ section[id] { scroll-margin-top: 0; }
   .button-solid svg,
   .header-cta svg,
   .project-link svg,
-  .inline-link svg,
   .section-outro a svg,
   .project-samples a svg {
     transition: transform 180ms ease;
@@ -328,8 +321,6 @@ section[id] { scroll-margin-top: 0; }
   }
   .project-link:hover svg,
   .project-link:focus-visible svg,
-  .inline-link:hover svg,
-  .inline-link:focus-visible svg,
   .section-outro a:hover svg,
   .section-outro a:focus-visible svg,
   .project-samples a:hover svg,
@@ -421,6 +412,7 @@ section[id] { scroll-margin-top: 0; }
 @keyframes aki-bubble-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .aki-bubble { animation: none; } }
 @media (max-width: 360px) { .aki-bubble { display: none; } }
+/* The 18px radius is repeated as PANEL_RADIUS_PX in src/components/aki/Panel.jsx, which clips the opening animation. */
 .aki-panel { position: fixed; right: 24px; bottom: 108px; display: flex; flex-direction: column; width: min(360px, calc(100vw - 48px)); max-height: calc(100dvh - 132px); background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: 18px; outline: none; }
 .aki-head { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 8px 6px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); border-radius: 17px 17px 0 0; color: var(--text); }
 .aki-head > div { flex: 1; min-width: 0; }
@@ -484,9 +476,8 @@ section[id] { scroll-margin-top: 0; }
 .aki-msg .aki-links { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 4px; white-space: normal; font-weight: 700; font-size: 13px; }
 .aki-who { margin-bottom: 2px; padding: 0 4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
 .aki-status { margin: 0; font-size: 13px; color: var(--muted); }
-.aki-status p { margin: 0 0 6px; }
 .aki-msg p a { color: var(--signal); text-underline-offset: 3px; }
-.aki-try { margin: 0 0 -4px; font: 700 10px/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.aki-try { font: 700 10px/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .aki-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .aki-chip { min-height: 32px; padding: 6px 12px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600; text-align: left; }
 .aki-chip:hover { background: var(--nav-hover-bg); border-color: var(--accent-border); }
@@ -507,6 +498,7 @@ section[id] { scroll-margin-top: 0; }
 .aki-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 8px; }
 .aki-foot nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0 3px; font-size: 11px; color: var(--muted); }
 .aki-link { padding: 0; background: none; border: 0; color: var(--signal); font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+/* Same breakpoint as PHONE_QUERY in src/components/aki/ChatStep.jsx, where a section link in a reply closes the panel first. */
 @media (max-width: 559px) {
   .aki { right: 16px; bottom: 16px; }
   .aki-panel { inset: auto 16px 16px; width: auto; max-height: 80dvh; }
