@@ -1,15 +1,15 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, Mic, ShieldCheck, X } from 'lucide-react';
+import { ArrowRight, Mic, ShieldCheck, Square, X } from 'lucide-react';
 import { RobotHead } from 'robot-heads';
 import { pickGreeting } from '../data/akiGreetings.js';
 import { WHATSAPP_URL } from '../data/portfolioData.js';
 import { AKI_FAQ, AKI_MESSAGES as MSG, AKI_WELCOME_COPY as W } from '../data/akiFaq.js';
 import {
   AKI_ENABLED, AKI_CAN_CHAT, appendPair, clearGate, clearHistory, codePoints, fetchRegion,
-  loadHistory, newId, readGate, sendTurn, writeGate,
+  loadHistory, newId, readGate, sendTurn, startSession, transcribe, writeGate,
 } from '../services/akiClient.js';
-import { listen, VOICE_SUPPORTED } from '../services/akiVoice.js';
+import { listen, VOICE_MODE } from '../services/akiVoice.js';
 
 const MAX_CHARS = 500;
 const SLOW_MS = 3000;
@@ -106,7 +106,7 @@ function Message({ item, first }) {
   const mine = item.role === 'user';
   const who = mine ? 'You' : 'Aki';
   return (
-    <div className={`aki-row aki-row-${item.role}${first ? ' aki-first' : ''}`} aria-hidden={item.typing || undefined}>
+    <div className={`aki-row aki-row-${item.role}${first ? ' aki-first' : ''}`} aria-hidden={item.typing || item.live || undefined}>
       {first && <span className="aki-who" aria-hidden="true">{who}</span>}
       <div className={`aki-msg aki-msg-${item.role}`}>
         <span className="sr-only">{who} said: </span>
@@ -127,19 +127,56 @@ function Message({ item, first }) {
   );
 }
 
+// While the mic is on the box becomes a line that swells with the visitor's voice, so they can see it hears them.
+function Wave({ source }) {
+  const ref = useRef(null);
+  const reduceMotion = useReducedMotion();
+  useEffect(() => {
+    const c = ref.current;
+    const g = c.getContext('2d');
+    let amp = 0;
+    let phase = 0;
+    let raf;
+    const draw = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.round(c.clientWidth * dpr);
+      const h = Math.round(c.clientHeight * dpr);
+      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+      // Eased toward the live level, so the line swells and settles instead of jumping.
+      amp += ((source.current?.level() ?? 0) - amp) * 0.25;
+      if (!reduceMotion) phase += 0.2;
+      g.clearRect(0, 0, w, h);
+      g.beginPath();
+      for (let x = 0; x <= w; x += 2) {
+        // Tapered to the ends, three waves across.
+        const y = Math.sin(Math.PI * x / w) * Math.sin(6 * Math.PI * x / w - phase) * amp * (h / 2 - 3 * dpr);
+        g.lineTo(x, h / 2 + y);
+      }
+      // Read each frame: the theme can change mid-turn.
+      g.strokeStyle = getComputedStyle(c).color;
+      g.lineWidth = 2 * dpr;
+      g.stroke();
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, [source, reduceMotion]);
+  return <canvas ref={ref} className="aki-wave" aria-hidden="true" />;
+}
+
 const REGION_DEFAULT = { memory: 'opt_in', gemini: 'ineligible' };
 
-function Card({ checked, onChange, title, body, required }) {
+function Card({ checked, onChange, title, body, required, disabled }) {
   return (
     <label className="aki-card">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} required={required} />
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} required={required} disabled={disabled} />
       <span><strong>{title}</strong><small>{body}</small></span>
     </label>
   );
 }
 
 // Untouched boxes follow the region answer; touched boxes keep what the visitor set.
-function Welcome({ region, initial, onContinue, onClose }) {
+function Welcome({ region, initial, verifying, turnstileRef, onContinue, onClose }) {
   const [accepted, setAccepted] = useState(Boolean(initial));
   const [pick, setPick] = useState({});
   const offered = region.gemini === 'eligible';
@@ -156,10 +193,11 @@ function Welcome({ region, initial, onContinue, onClose }) {
       <Card
         checked={accepted}
         onChange={setAccepted}
+        disabled={verifying}
         title={<>{beforeLink}<a href="aki-legal.html#terms" target="_blank" rel="noopener noreferrer">{W.accept.link}</a>{afterLink}</>}
         body={W.accept.body}
       />
-      {offered && <Card checked={gemini} onChange={(v) => setPick((p) => ({ ...p, gemini: v }))} title={W.gemini.title} body={W.gemini.body} />}
+      {offered && <Card checked={gemini} onChange={(v) => setPick((p) => ({ ...p, gemini: v }))} title={W.gemini.title} body={W.gemini.body} disabled={verifying} />}
       <p className="aki-note">{W.storage[region.consentVersion ? region.memory : 'unknown']}</p>
       <p className="aki-note">{offered ? W.noteGemini : W.noteGroq}</p>
       <div className="aki-actions">
@@ -167,13 +205,18 @@ function Welcome({ region, initial, onContinue, onClose }) {
           type="button"
           className="button button-solid"
           disabled={!accepted}
+          // Not disabled while the check runs: a disabled button would drop the visitor's focus.
+          aria-disabled={verifying || undefined}
           aria-describedby={accepted ? undefined : 'aki-terms-hint'}
-          onClick={() => onContinue({ gemini: offered && gemini, memory: region.memory === 'default_on' })}
+          onClick={() => { if (!verifying) onContinue({ gemini: offered && gemini, memory: region.memory === 'default_on' }); }}
         >
           {W.continueLabel}
         </button>
         <button type="button" className="button" onClick={onClose}>{W.notNow}</button>
       </div>
+      {/* Cloudflare's bot check shows here on Continue, so the chat box never has it. */}
+      <div ref={turnstileRef} className="aki-turnstile" />
+      {verifying && <p className="aki-note" role="status">{W.verifying}</p>}
       {!accepted && <p id="aki-terms-hint" className="aki-note">{W.hint}</p>}
       <p className="aki-foot-links">
         <a href="aki-legal.html#privacy" target="_blank" rel="noopener noreferrer">{W.privacy}</a>
@@ -186,6 +229,16 @@ function Welcome({ region, initial, onContinue, onClose }) {
 
 const toLog = (h) => (h ? h.messages.map((m, i, all) => ({ id: `s${i}`, role: m.role, text: m.content,
   ...(m.role === 'assistant' && all[i - 1]?.role === 'user' ? { links: sectionLinks(all[i - 1].content, m.content) } : {}) })) : []);
+
+// A transcription as listen() takes it: the text, or a code that onError turns into a note.
+const VOICE_ERROR = { consent: 'consent', faq: 'region', updated: 'updated', rate: 'busy' };
+const toVoice = (res) => (res.kind === 'transcript' ? { text: res.text }
+  : { error: VOICE_ERROR[res.kind] ?? (res.reason === 'stt_busy' ? 'busy' : 'unavailable') });
+// 'network' only comes from the browser's own speech service; record-mode network failures arrive as 'unavailable'.
+const VOICE_NOTE = {
+  'not-allowed': MSG.micBlocked, network: MSG.voiceNetwork, region: MSG.region, updated: MSG.updated,
+  busy: MSG.voiceBusy, unavailable: MSG.voiceDown,
+};
 
 function AkiWidget() {
   const reduceMotion = useReducedMotion();
@@ -208,8 +261,6 @@ function AkiWidget() {
   const [quotaUntil, setQuotaUntil] = useState(null);
   const [typing, setTyping] = useState(false);
   const [listening, setListening] = useState(false);
-  // False hides the mic for this page load.
-  const [voiceOk, setVoiceOk] = useState(VOICE_SUPPORTED);
   const [mood, setMood] = useState(null);
   const [link, setLink] = useState('ok');
   const [, bump] = useReducer((n) => n + 1, 0);
@@ -229,14 +280,21 @@ function AkiWidget() {
   const sendRef = useRef(null);
   const focusInput = useRef(false);
   const turnstileRef = useRef(null);
+  const [verifying, setVerifying] = useState(false);
+  const verifyRef = useRef(null);
   const wasOpen = useRef(false);
   const regionDown = useRef(false);
 
   const busy = Boolean(pending);
   const isTyping = busy || replying;
   const youTyping = !isTyping && typing && Boolean(input.trim());
-  const showTry = !isTyping && (!usedTry || quickOnly || link === 'down');
+  // Suggestions are for an opening: gone once Aki has said two things (the greeting counts), unless quick answers
+  // are all that works.
+  const akiSaid = 1 + log.filter((m) => m.role === 'assistant').length;
+  // Hidden while the mic is on: a chip tapped mid-turn would drop the voice message and strand focus.
+  const showTry = !isTyping && !listening && ((!usedTry && akiSaid < 2) || quickOnly || link === 'down');
   const count = codePoints(input.trim());
+  const heard = listening ? input.trim() : '';
   let head = 'idle';
   if (open) {
     if (wait) head = 'sleeping';
@@ -250,7 +308,8 @@ function AkiWidget() {
   const feed = [
     { id: 'greet', role: 'assistant', greet: true },
     ...log,
-    ...(pending ? [{ id: 'pending', role: 'user', text: pending }] : []),
+    // What the mic hears shows live in the visitor's bubble (kept from screen readers until it is sent).
+    ...(pending || heard ? [{ id: 'pending', role: 'user', text: pending || heard, live: !pending }] : []),
     ...(isTyping ? [{ id: 'typing', role: 'assistant', typing: true }] : []),
     // The visitor's own typing dots, mirroring Aki's, while they compose a message.
     ...(youTyping ? [{ id: 'you-typing', role: 'user', typing: true }] : []),
@@ -272,7 +331,13 @@ function AkiWidget() {
       const was = regionDown.current;
       regionDown.current = !r.consentVersion;
       setLink((l) => (!r.consentVersion ? 'down' : was ? 'ok' : l));
-      if (!readGate()) setStep('welcome');
+      if (!readGate()) {
+        // The welcome screen has no mic: end a voice turn the region change interrupted.
+        voiceRef.current?.abort();
+        voiceRef.current = null;
+        setListening(false);
+        setStep('welcome');
+      }
     });
     return () => { live = false; };
   }, [open]);
@@ -283,17 +348,24 @@ function AkiWidget() {
     panelRef.current?.querySelector(AKI_CAN_CHAT ? '#aki-input' : '.aki-chip')?.focus();
   }, [step]);
 
+  // A voice error or an answer can remove the focused control (the welcome step, quick answers only): keep focus in
+  // the panel, where Escape still closes it.
   useEffect(() => {
-    const el = logRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [log, pending, replying, slow, wait, open, step, youTyping]);
+    if (open && document.activeElement === document.body) panelRef.current?.focus();
+  }, [open, step, quickOnly]);
 
+  // Before the scroll below: the box regrows first, so the log scrolls against its final height.
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
-  }, [input, step, open]);
+  }, [input, step, open, listening]);
+
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log, pending, heard, replying, slow, wait, open, step, youTyping]);
 
   // The box and mic are disabled while Aki answers, which drops focus; give it back to the one the visitor used.
   // After a voice turn that is the mic, so phones don't pop the keyboard (the box if a wait still disables the mic).
@@ -329,6 +401,7 @@ function AkiWidget() {
   useEffect(() => () => {
     abortRef.current?.abort();
     voiceRef.current?.abort();
+    verifyRef.current?.abort();
     clearTimeout(slowTimer.current);
     clearTimeout(faqTimer.current);
     clearTimeout(holdTimer.current);
@@ -346,6 +419,15 @@ function AkiWidget() {
   const flushFaq = () => { const done = faqDone.current; stopFaq(); done?.(); };
 
   const stopVoice = () => { voiceRef.current?.abort(); voiceRef.current = null; setListening(false); };
+
+  // Closing during the bot check leaves consent unfinished: the welcome shows again next time.
+  const stopVerify = () => {
+    if (!verifyRef.current) return;
+    verifyRef.current.abort();
+    verifyRef.current = null;
+    clearGate();
+    setVerifying(false);
+  };
 
   const cancel = () => {
     clearTimeout(holdTimer.current);
@@ -409,9 +491,20 @@ function AkiWidget() {
     }
   };
 
-  const onContinue = ({ gemini, memory }) => {
+  const onContinue = async ({ gemini, memory }) => {
     writeGate({ gemini, memory });
     setQuickOnly(!AKI_CAN_CHAT);
+    // The bot check runs here, on the welcome step, not in the chat box. Skipped while the Worker is unreachable; a
+    // check that fails is tried again at the first send, where the chat explains the failure.
+    if (AKI_CAN_CHAT && region.consentVersion) {
+      const ctrl = new AbortController();
+      verifyRef.current = ctrl;
+      setVerifying(true);
+      await startSession(turnstileRef.current, ctrl.signal);
+      if (verifyRef.current !== ctrl) return;
+      verifyRef.current = null;
+      setVerifying(false);
+    }
     focusInput.current = true;
     setStep('chat');
     bump();
@@ -470,17 +563,21 @@ function AkiWidget() {
     (panelRef.current?.querySelector('#aki-input') ?? panelRef.current)?.focus();
   };
 
-  // First tap shows where the audio goes; the next one starts listening. Tapping while listening sends now.
+  // One tap starts listening; the stop button it turns into sends what was heard.
   const toggleVoice = () => {
     if (listening) { voiceRef.current?.stop(); return; }
-    if (!voiceNoticed.current) { voiceNoticed.current = true; note('assistant', MSG.voiceNotice); return; }
+    // Where the audio goes: said once per page load, as listening starts.
+    if (!voiceNoticed.current) { voiceNoticed.current = true; note('assistant', VOICE_MODE === 'record' ? MSG.voiceNoticeServer : MSG.voiceNotice); }
     // Words already typed stay in front of what is said.
     const before = input.trim();
     const join = (words) => (before && words ? `${before} ${words}` : before || words);
     setListening(true);
+    if (VOICE_MODE === 'record') startSession(turnstileRef.current);
     // Safari never focuses a tapped button; without this the reply would hand focus to the box (phone keyboard).
     micRef.current?.focus();
     voiceRef.current = listen({
+      // Record mode only: the recording goes to the Worker on the same session as chat.
+      transcribe: (blob, signal) => transcribe({ blob, container: turnstileRef.current, signal }).then(toVoice),
       onText: (words) => {
         setInput(join(words));
         // Over the limit: stop, and leave the text in the box for the visitor to shorten.
@@ -494,18 +591,17 @@ function AkiWidget() {
       onError: (code) => {
         voiceRef.current = null;
         setListening(false);
-        if (code === 'not-allowed') note('assistant', MSG.micBlocked);
-        else {
-          // The mic is going away: move focus to the box first so it isn't lost with it.
-          if (document.activeElement === micRef.current) inputRef.current?.focus();
-          setVoiceOk(false);
-          note('assistant', MSG.voiceFailed);
-        }
+        // The mic stays: a failure may be passing (network), and the code helps tell which browser refuses.
+        console.warn('Aki voice:', code);
+        // Not handle(): a failed transcription must not put chat into its quota, wait or down states.
+        if (code === 'consent') { setWelcomeInit(null); setStep('welcome'); return; }
+        if (code === 'region') setQuickOnly(true);
+        note('assistant', VOICE_NOTE[code] ?? MSG.voiceFailed);
       },
     });
   };
 
-  const close = () => { flushFaq(); stopVoice(); setOpen(false); setTyping(false); };
+  const close = () => { flushFaq(); stopVoice(); stopVerify(); setOpen(false); setTyping(false); };
 
   // Section links in replies scroll the page; on phones the panel closes first so the section is visible.
   const onLogClick = (e) => {
@@ -534,7 +630,7 @@ function AkiWidget() {
         aria-label="Ask Aki, AI assistant"
         aria-expanded={open}
         aria-controls="aki-panel"
-        onClick={() => { if (open) { flushFaq(); stopVoice(); } setOpen((o) => !o); setGreeted(true); setTyping(false); }}
+        onClick={() => { if (open) { flushFaq(); stopVoice(); stopVerify(); } setOpen((o) => !o); setGreeted(true); setTyping(false); }}
       >
         <RobotHead size={68} state={head} color="#7a4a2a" trimColor="#c8a27a" aria-hidden="true" />
       </button>
@@ -580,6 +676,8 @@ function AkiWidget() {
             <Welcome
               region={region}
               initial={welcomeInit}
+              verifying={verifying}
+              turnstileRef={turnstileRef}
               onContinue={onContinue}
               onClose={close}
             />
@@ -614,21 +712,22 @@ function AkiWidget() {
                 <form className="aki-form" onSubmit={(e) => { e.preventDefault(); send(); }}>
                   <label className="sr-only" htmlFor="aki-input">Ask about Jason's work</label>
                   <div className="aki-compose">
+                    {listening && <Wave source={voiceRef} />}
                     <textarea
                       id="aki-input"
                       ref={inputRef}
                       rows={1}
-                      placeholder={listening ? MSG.listening : "Ask me about Jason's work..."}
+                      placeholder="Ask me about Jason's work..."
                       value={input}
                       disabled={busy}
-                      readOnly={listening}
+                      hidden={listening}
                       aria-describedby={count >= 400 ? 'aki-count' : undefined}
                       onChange={(e) => setInput(e.target.value)}
                       onFocus={() => setTyping(true)}
                       onBlur={() => setTyping(false)}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); send(); } }}
                     />
-                    {voiceOk && (
+                    {VOICE_MODE && (
                       <button
                         ref={micRef}
                         type="button"
@@ -638,7 +737,7 @@ function AkiWidget() {
                         disabled={!listening && (isTyping || Boolean(wait))}
                         onClick={toggleVoice}
                       >
-                        <Mic size={20} aria-hidden="true" />
+                        {listening ? <Square size={16} fill="currentColor" aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
                       </button>
                     )}
                     <button

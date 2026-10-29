@@ -653,6 +653,14 @@ test('a session agreed under the previous notice never reaches Gemma or Workers 
   assert.equal(app.aiCalls.length, 0, 'old-notice session reached Workers AI');
 });
 
+test('a session agreed under 2026-10-21.1, which named the backups, still reaches them after a later bump', async () => {
+  const app = withAi(makeApp({ geminiAck: false, env: { ...AI_ENV, CONSENT_VERSION: `${CV},2026-10-21.1` } }));
+  const r = await app.send('/v1/session', { turnstileToken: 'tok', ackTerms: true, geminiAck: false, consentVersion: '2026-10-21.1' });
+  app.token = r.json.sessionToken;
+  app.groq = status(500);
+  assert.equal((await app.chat()).json.provider, 'workers_ai');
+});
+
 test('a queued Groq turn that lapsed before its claim still gets the Workers AI backup', async () => {
   const app = withAi(makeApp({ geminiAck: false, env: { ...AI_ENV, MAX_QUEUE_WAIT: '25' } }));
   app.groq = status(429, { 'retry-after': '10' });

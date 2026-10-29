@@ -656,9 +656,10 @@ async function runAkiSmoke() {
       await click('.aki-chip');
       await delay(150);
       s = await snap();
-      check(!Object.keys(s.local).length && Object.keys(s.session).join() === 'aki:v1:gate'
-        && stub.log.every((e) => e.path === '/v1/region'),
-      '5: chip use should write no history and call only /v1/region ' + JSON.stringify(s));
+      // Continue's bot check starts the session; the chip itself must stay local.
+      check(!Object.keys(s.local).length && Object.keys(s.session).sort().join() === 'aki:v1:gate,aki:v1:session'
+        && !chatCalls().length && sessionCalls().length === 1,
+      '5: chip use should write no history and call no chat ' + JSON.stringify(s));
       // D25: default_on prunes pairs older than 7 days on reload; fresh pairs stay.
       const old = Date.now() - 8 * 24 * 3600 * 1000;
       const fresh = JSON.parse(seedHistory(1, 'mid-fresh'));
@@ -1017,9 +1018,10 @@ async function runAkiSmoke() {
       await akiPage({ regionVersion: 'v-from-region' });
       await openChat({ gemini: true });
       check(await evaluate('document.activeElement.id') === 'aki-input', 'Continue: focus is on ' + await evaluate('document.activeElement.id'));
-      check(!sessionCalls().length && !chatCalls().length, 'Continue made a network call before the first send');
+      // The bot check and the session run on Continue, so the chat box never shows Turnstile.
+      check(sessionCalls().length === 1 && !chatCalls().length, 'Continue: ' + JSON.stringify(stub.log.map((e) => e.path)));
       const s0 = await snap();
-      check(!Object.keys(s0.local).length && Object.keys(s0.session).join() === 'aki:v1:gate', 'Continue storage ' + JSON.stringify(s0));
+      check(!Object.keys(s0.local).length && Object.keys(s0.session).sort().join() === 'aki:v1:gate,aki:v1:session', 'Continue storage ' + JSON.stringify(s0));
       const chips = await texts('.aki-chip');
       check(chips.length === AKI_FAQ.length && AKI_FAQ.every((f, i) => chips[i].includes(f.label)), 'chips ' + JSON.stringify(chips));
       await sendAndWait('hello');
@@ -1049,11 +1051,14 @@ async function runAkiSmoke() {
       check(sessionCalls()[0].body.geminiAck === false, 'D21: geminiAck was not false');
     });
 
-    await step('no Remember UI; no session before the first send', async () => {
+    await step('no Remember UI; one session from Continue, none from opening', async () => {
       await akiPage({ memory: 'default_on' });
-      await openChat();
+      await openPanel();
+      await regionSettled();
+      check(stub.sessions === 0, 'opening Aki created a session');
+      await passGate();
       check(!(await exists('.aki-memory')) && !(await exists('#aki-memory-status')), 'Remember UI still exists');
-      check(stub.sessions === 0, 'a session was created before the first send');
+      check(stub.sessions === 1, 'Continue created ' + stub.sessions + ' sessions');
     });
 
     await step('chat panel keeps one height as messages arrive', async () => {
@@ -1244,7 +1249,8 @@ async function runAkiSmoke() {
       check((await texts('.aki-row:not(:first-child) > .aki-msg-assistant:not(:has(.aki-typing)) p')).includes(AKI_MESSAGES.updated), 'updated line missing');
       check(await evaluate('document.getElementById("aki-input").value') === 'keep this text', 'typed text lost');
       await delay(200);
-      check(!chatCalls().length && sessionCalls().length === 1, 'calls after bad_consent: ' + JSON.stringify(stub.log.map((e) => e.path)));
+      // One session try on Continue, one at the send.
+      check(!chatCalls().length && sessionCalls().length === 2, 'calls after bad_consent: ' + JSON.stringify(stub.log.map((e) => e.path)));
     });
 
     await step('old gate: no new session, welcome again', async () => {

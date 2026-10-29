@@ -3,13 +3,20 @@
  * and Response.
  *
  *   handle(request, env, deps) → Promise<Response>
- *     routes  POST /v1/session, /v1/chat, /v1/region (everything else 404)
- *     deps = {limiter, fetch, sleep(ms, signal), signal, waitUntil(promise), country, ip, now()}
- *       limiter  object with reserve/claim/cancel/end/fallback/consent (see limiter.js); methods may be async (DO stub)
+ *     routes  POST /v1/session, /v1/chat, /v1/region, /v1/transcribe (everything else 404)
+ *     deps = {limiter, fetch, sleep(ms, signal), signal, waitUntil(promise), country, ip, now(), ai}
+ *       limiter  object with the limiter.js OPS (reserve ... transcribe); methods may be async (DO stub)
  *       country  request.cf?.country as is; ip  the cf-connecting-ip header value or null; now  Worker clock (ms)
+ *       ai  the Workers AI binding (env.AI) or undefined
  *   A route handler gets `req` and returns a Response:
  *     req = {config, deps, origin, body, respond(body) → Response, path}
- *   handle() has already done, in this order: 404/405, body cap (413), readConfig (misconfigured), origin (403), JSON parse.
+ *   handle() has already done, in this order: 404/405, body cap (413: 1 MiB for /v1/transcribe, else 32 KB),
+ *   readConfig (misconfigured), origin (403), JSON parse (/v1/transcribe: multipart, so body is a FormData).
+ *
+ * /v1/transcribe (multipart: sessionToken, file = a WebM, Ogg or MP4 audio clip), in this order: form (400), session
+ * (401), cv === the current notice, not the rollout list (401 consent), STT off or SITE_DAILY_CAP 0 (disabled), no ip
+ * (misconfigured), AI_BLOCKED (faq), aborted (499), limiter.transcribe, Groq Whisper, then Workers AI Whisper once if
+ * Groq failed → {type:'transcript', text, provider}. Never quota_exhausted: the client would close chat for the day.
  *
  * The Terms gate (addendum §2): /v1/session mints a token only for {ackTerms:true, geminiAck:boolean,
  * consentVersion === CONSENT_VERSION}, signed over {sid, exp, cv, g}; g = geminiAck && the country is eligible.
@@ -17,8 +24,9 @@
  *
  * Exports:
  *   readConfig(env) → {ok:false} | {ok:true, ..., consentVersion, limits (the cfg object for limiter.js),
- *                      gemini: {on, dailyCap, countries, model, apiKey}}. `gemini.on` is false unless
- *                      GEMINI_ENABLED === "true" and every Gemini var is valid (plan B1 "off vs ineligible").
+ *                      gemini: {on, dailyCap, countries, model, apiKey}, stt: {on, model, backupOn, backupModel}}.
+ *                      `gemini.on` is false unless GEMINI_ENABLED === "true" and every Gemini var is valid (plan B1
+ *                      "off vs ineligible"). The STT vars are optional the same way: invalid means voice off, not misconfigured.
  *   geminiSwitch(config, country) → 'off' | 'ineligible' | 'eligible'  (pure; latch and caps are checked in the DO)
  *   prepareChat(req) → {response} | {ctx}. /v1/chat shape, message and history validation, session and consent
  *       version, cap=0, cf-connecting-ip. ctx = {sid, turnId, mid, prevSig, message (trimmed), history (verified,
@@ -34,12 +42,19 @@ import { GROQ_SYSTEM_PROMPT } from './knowledge.js';
 import { callGemini, filterHistory } from './gemini.js';
 
 const MAX_BODY = 32 * 1024;
+// 30 s of Opus fits even at an ignored 128 kbps bitrate hint.
+const MAX_AUDIO_BODY = 1024 * 1024;
+// The first notices that named the chat backups (Workers AI, Gemma) and audio reaching Aki's server. Versions are
+// dates, so they compare as text: a session agreed under an older notice never reaches what it was not told about.
+const BACKUP_NOTICE = '2026-10-21.1';
+const VOICE_NOTICE = '2026-10-28.1';
 const MAX_MESSAGE = 500;
 const MAX_HISTORY_ENTRIES = 6;
 const MAX_HISTORY_CP = 3000;
 const CLIP_CP = 1500;
 const SESSION_TTL_MS = 24 * 3_600_000;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_STT_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -131,6 +146,19 @@ function readBackup(env, ai) {
     : { on: false, model: '', dailyCap: 0 };
 }
 
+/** Voice transcription: Groq Whisper, then Workers AI Whisper (env.AI) as its backup. Invalid or unset = off. */
+function readStt(env, ai) {
+  const perMin = intIn(env.STT_SITE_PER_MIN, 1, 20);
+  const dailyCap = intIn(env.STT_DAILY_CAP, 1, 2000);
+  const backupCap = intIn(env.STT_BACKUP_DAILY_CAP, 1, 1000);
+  const on = nonEmpty(env.STT_MODEL) && perMin !== null && dailyCap !== null;
+  const backupOn = typeof ai?.run === 'function' && nonEmpty(env.STT_BACKUP_MODEL) && backupCap !== null;
+  return {
+    stt: { on, model: on ? env.STT_MODEL.trim() : '', backupOn, backupModel: backupOn ? env.STT_BACKUP_MODEL.trim() : '' },
+    limits: { sttSitePerMin: on ? perMin : 0, sttDailyCap: on ? dailyCap : 0, sttBackupDailyCap: backupOn ? backupCap : 0 },
+  };
+}
+
 export function readConfig(env, ai) {
   const e = env ?? {};
   const origins = list(e.ALLOWED_ORIGINS);
@@ -149,12 +177,15 @@ export function readConfig(env, ai) {
   if (!ok) return { ok: false };
   const gemini = readGemini(e);
   const backup = readBackup(e, ai);
+  // Not in the required list above: a missing STT var turns voice off, never chat.
+  const stt = readStt(e, ai);
   return {
     ok: true,
     groqApiKey: e.GROQ_API_KEY.trim(),
     sessionSecret: e.SESSION_HMAC_SECRET.trim(),
     ipSecret: e.IP_HASH_SECRET.trim(),
     turnstileSecret: e.TURNSTILE_SECRET.trim(),
+    turnstileTestKeys: e.TURNSTILE_TEST_KEYS === 'true',
     groqModel: e.GROQ_MODEL.trim(),
     // Current version first; while a new notice rolls out the previous one may follow a comma, so the
     // live site keeps working until its new bundle deploys. Remove it once the site is updated.
@@ -166,9 +197,10 @@ export function readConfig(env, ai) {
     siteDailyCap,
     maxTokens,
     limits: { siteDailyCap, groqDailyCap, groqSitePerMin, maxQueueWait, maxQueueDepth, geminiDailyCap: gemini.dailyCap,
-      gemmaDailyCap: gemini.gemmaDailyCap, backupDailyCap: backup.dailyCap },
+      gemmaDailyCap: gemini.gemmaDailyCap, backupDailyCap: backup.dailyCap, ...stt.limits },
     gemini,
     backup,
+    stt: stt.stt,
   };
 }
 
@@ -286,8 +318,7 @@ export async function prepareChat(req) {
       ipKey: await hmac(config.ipSecret, ipPrefix(deps.ip)),
       country: deps.country,
       gemini: session.g && geminiSwitch(config, deps.country) === 'eligible',
-      // Gemma and Workers AI were added in the current notice: a session agreed under an older one never reaches them.
-      currentNotice: session.cv === config.consentVersion,
+      backups: session.cv >= BACKUP_NOTICE,
     },
   };
 }
@@ -414,11 +445,11 @@ async function chat(req) {
     { role: 'user', content: message },
   ];
   // After Groq, when it has no capacity or fails: Workers AI, then Google's Gemma as the last resort (only for
-  // sessions that allowed Gemini), each once per turn, before the client's quick answers. Both were added in the
-  // current notice, so a session agreed under an older one never reaches them.
+  // sessions that allowed Gemini), each once per turn, before the client's quick answers. Only for sessions agreed
+  // under a notice that names both.
   const useGemma = Boolean(config.gemini.gemmaModel) && ctx.gemini;
   const backupOr = async (refusal, { closed = false, closeReq = key } = {}) => {
-    if (!(config.backup.on || useGemma) || !ctx.currentNotice || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
+    if (!(config.backup.on || useGemma) || !ctx.backups || deps.signal?.aborted || !noGroqCapacity(refusal)) return out(refusal);
     // A claim can report groq_failed for a lapsed IN_FLIGHT turn: close it first.
     // A retry after a failed close sends the same payload, so a Groq 429 pause is still recorded.
     if (refusal.reason === 'groq_failed' && !closed) await Promise.resolve().then(() => limiter.end(closeReq)).catch(() => {});
@@ -497,7 +528,10 @@ async function siteverify(config, deps, token) {
     });
     if (!res.ok) return false;
     const j = await res.json();
-    return j?.success === true && config.hostnames.includes(j.hostname) && config.actions.includes(j.action);
+    if (j?.success !== true) return false;
+    // Cloudflare's test secret answers for example.com with no action; only a dev config (TURNSTILE_TEST_KEYS) accepts that.
+    if (config.turnstileTestKeys && j.metadata?.result_with_testing_key === true) return true;
+    return config.hostnames.includes(j.hostname) && config.actions.includes(j.action);
   } catch {
     return false;
   }
@@ -542,12 +576,103 @@ function region(req) {
   });
 }
 
+// --- /v1/transcribe: voice clips from browsers without a speech service ---
+
+// Groq picks the decoder from the file name's extension: take it from the checked type, never the client's name.
+const audioExt = (file) => /^audio\/(webm|ogg|mp4)$/.exec(file.type.split(';')[0].trim().toLowerCase())?.[1];
+
+async function callWhisper(config, deps, file) {
+  const { fetch } = deps;
+  const form = new FormData();
+  form.append('file', file, `voice.${audioExt(file)}`);
+  form.append('model', config.stt.model);
+  form.append('response_format', 'json');
+  form.append('temperature', '0');
+  // No language or prompt: a wrong hint or a prompt makes Whisper invent text.
+  try {
+    const res = await fetch(GROQ_STT_URL, {
+      method: 'POST',
+      headers: new Headers({ authorization: `Bearer ${config.groqApiKey}` }),
+      body: form,
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (res.status !== 200) return { ok: false, status: res.status, retryAfter: res.headers.get('retry-after') };
+    const text = (await res.json())?.text;
+    return typeof text === 'string' ? { ok: true, text } : { ok: false, status: 200, retryAfter: null };
+  } catch {
+    return { ok: false, status: 0, retryAfter: null };
+  }
+}
+
+// String.fromCharCode takes the bytes as arguments; a whole clip in one call overflows the stack.
+const BASE64_CHUNK_BYTES = 0x8000;
+
+// Whisper takes the clip as base64. Uint8Array#toBase64 would do this natively, but Node only has it from 25 and
+// CI runs the tests on 22.
+function toBase64(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK_BYTES) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK_BYTES));
+  }
+  return btoa(binary);
+}
+
+async function callWorkersWhisper(config, deps, file) {
+  let timer;
+  try {
+    const audio = toBase64(new Uint8Array(await file.arrayBuffer()));
+    const out = await Promise.race([
+      deps.ai.run(config.stt.backupModel, { audio }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), WORKERS_AI_TIMEOUT_MS); }),
+    ]);
+    return typeof out?.text === 'string' ? { ok: true, text: out.text } : { ok: false };
+  } catch {
+    return { ok: false };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function transcribe(req) {
+  const { config, deps, body, respond } = req;
+  const { limiter } = deps;
+  const token = body.get('sessionToken');
+  const file = body.get('file');
+  if (typeof token !== 'string' || !(file instanceof Blob) || !file.size || !audioExt(file)) return respond(bad('bad_request'));
+  const session = await verifySession(config.sessionSecret, token, deps.now());
+  if (!session) return respond({ type: 'session_required' });
+  // A session agreed under an older notice (still valid for chat during a rollout) must agree again first. Not the
+  // exact current one: a bundle a bump behind already told its visitors, and could only ever mint its own version.
+  if (!(session.cv >= VOICE_NOTICE)) return respond({ type: 'session_required', reason: 'consent' });
+  if (!config.stt.on || config.siteDailyCap === 0) return respond({ type: 'provider_unavailable', reason: 'disabled' });
+  if (!deps.ip) return respond({ type: 'provider_unavailable', reason: 'misconfigured' });
+  if (AI_BLOCKED.includes(deps.country)) return respond({ type: 'faq', reason: 'region' });
+  if (deps.signal?.aborted) return new Response(null, { status: 499 });
+  const key = { cfg: config.limits, ipKey: await hmac(config.ipSecret, ipPrefix(deps.ip)), sid: session.sid };
+  let r = await limiter.transcribe(key);
+  if (r.type !== 'go') return respond(r);
+  const failed = { type: 'provider_unavailable', reason: 'stt_failed' };
+  if (r.provider === 'groq') {
+    const w = await callWhisper(config, deps, file);
+    if (w.ok) return respond({ type: 'transcript', text: w.text.trim(), provider: 'groq' });
+    console.log(JSON.stringify({ stt_failed: w.status }));
+    // One DO call records a 429 pause (Whisper's own; chat's Groq is untouched) and claims the backup.
+    const fallback = { status: w.status, retryAfter: w.retryAfter };
+    r = await Promise.resolve().then(() => limiter.transcribe({ ...key, fallback })).catch(() => null);
+    if (r?.type !== 'go') return respond(failed);
+  }
+  const b = await callWorkersWhisper(config, deps, file);
+  if (b.ok) return respond({ type: 'transcript', text: b.text.trim(), provider: 'workers_ai' });
+  console.log(JSON.stringify({ stt_backup_failed: true }));
+  return respond(failed);
+}
+
 // --- entry ---
 
-// Reads at most MAX_BODY bytes: a chunked body with no content-length is cut off, not buffered whole.
-async function readBody(request) {
-  if (Number(request.headers.get('content-length')) > MAX_BODY) return null;
-  if (!request.body) return '';
+// Reads at most `max` bytes: a chunked body with no content-length is cut off, not buffered whole.
+async function readBody(request, max) {
+  if (Number(request.headers.get('content-length')) > max) return null;
+  if (!request.body) return new Uint8Array(0);
   const reader = request.body.getReader();
   const chunks = [];
   let size = 0;
@@ -555,27 +680,28 @@ async function readBody(request) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > MAX_BODY) { await reader.cancel(); return null; }
+    if (size > max) { await reader.cancel(); return null; }
     chunks.push(value);
   }
   const all = new Uint8Array(size);
   let at = 0;
   for (const c of chunks) { all.set(c, at); at += c.byteLength; }
-  return new TextDecoder().decode(all);
+  return all;
 }
 
-const ROUTES = { '/v1/session': session, '/v1/chat': chat, '/v1/region': region };
+const ROUTES = { '/v1/session': session, '/v1/chat': chat, '/v1/region': region, '/v1/transcribe': transcribe };
 
 export async function handle(request, env, deps) {
   const path = new URL(request.url).pathname;
   const route = ROUTES[path];
   if (!route) return new Response(null, { status: 404 });
   if (request.method !== 'POST' && request.method !== 'OPTIONS') return new Response(null, { status: 405 });
+  const audio = path === '/v1/transcribe';
   try {
-    let text = '';
+    let bytes;
     if (request.method === 'POST') {
-      text = await readBody(request);
-      if (text === null) return makeResponse(bad('body_too_large'), null);
+      bytes = await readBody(request, audio ? MAX_AUDIO_BODY : MAX_BODY);
+      if (!bytes) return makeResponse(bad('body_too_large'), null);
     }
     const config = readConfig(env, deps?.ai);
     if (!config.ok) return makeResponse({ type: 'provider_unavailable', reason: 'misconfigured' }, null);
@@ -596,7 +722,10 @@ export async function handle(request, env, deps) {
     const respond = (b) => makeResponse(b, origin);
     let body;
     try {
-      body = JSON.parse(text);
+      // The audio route's bytes go to the multipart parser as they are: decoding them as text would corrupt the clip.
+      body = audio
+        ? await new Response(bytes, { headers: { 'content-type': request.headers.get('content-type') ?? '' } }).formData()
+        : JSON.parse(new TextDecoder().decode(bytes));
     } catch {
       return respond(bad('bad_request'));
     }

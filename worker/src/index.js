@@ -22,6 +22,7 @@ export class Limiter extends DurableObject {
   fallback(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'fallback', req); }
   backup(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'backup', req); }
   consent(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'consent', req); }
+  transcribe(req) { return applyOp(this.ctx.storage.kv, Date.now(), 'transcribe', req); }
 
   // Hourly cleanup (R5-17). Rescheduled first so a failed sweep still leaves the next alarm set.
   async alarm() {

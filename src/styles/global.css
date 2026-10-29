@@ -498,9 +498,9 @@ section[id] { scroll-margin-top: 0; }
 /* Outline twin of the textarea; focus ring comes from the global button:focus-visible rule. */
 .aki-mic { border-color: var(--border); background: var(--bg); color: var(--text); }
 .aki-mic:not(:disabled):hover { background: var(--nav-hover-bg); }
-.aki-mic[data-listening] { border-color: var(--signal); color: var(--signal); animation: aki-listen 1.6s ease-out infinite; }
-@keyframes aki-listen { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 40%, transparent); } to { box-shadow: 0 0 0 6px transparent; } }
-@media (prefers-reduced-motion: reduce) { .aki-mic[data-listening] { animation: none; } }
+.aki-mic[data-listening] { border-color: var(--signal); color: var(--signal); }
+/* Takes the box's place while the mic listens; the canvas strokes in its own text colour. */
+.aki-wave { flex: 1; min-width: 0; height: 40px; border: 1px solid var(--signal); border-radius: 10px; background: var(--bg); color: var(--signal); }
 #aki-count { font-size: 11px; color: var(--muted); }
 .aki-over { color: var(--text); font-weight: 700; }
 .aki-turnstile:empty { display: none; }

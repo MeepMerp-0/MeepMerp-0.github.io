@@ -39,11 +39,21 @@ GEMMA_DAILY_CAP = "5000"
 # a day (reset 00:00 UTC)
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast"
 WORKERS_AI_DAILY_CAP = "200"
+# Voice for browsers without a speech service: Groq Whisper first. Its free tier: 20 RPM, 2K RPD, 7.2K audio-s/h,
+# 28.8K audio-s/day, and each request is billed at least 10 s, so 12 a minute stay under the hourly audio limit
+# (12 x 10 s x 60 = 7.2K; longer clips can reach it, then Groq's 429 pauses it and the backup answers). Unset = off.
+STT_MODEL = "whisper-large-v3-turbo"
+STT_SITE_PER_MIN = "12"
+STT_DAILY_CAP = "1500"
+# Workers AI Whisper as its backup, from the same 10,000 free neurons as the chat backup: 46.63 neurons an audio
+# minute, so 60 clips of up to 30 s use at most ~1.4K
+STT_BACKUP_MODEL = "@cf/openai/whisper-large-v3-turbo"
+STT_BACKUP_DAILY_CAP = "60"
 # Launch checklist (A2): replace with Google's available regions minus EEA_UK_CH, XX and AI_BLOCKED
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
 # First entry must equal the version of public/aki-legal.html. When bumping it, keep the old one
 # after a comma ("new,old") until the site has deployed, then remove it.
-CONSENT_VERSION = "2026-10-21.1"
+CONSENT_VERSION = "2026-10-28.1,2026-10-21.1"
 
 # wrangler does not inherit vars or bindings into environments: restate all of them
 [env.dev]
@@ -74,7 +84,9 @@ MAX_QUEUE_DEPTH = "4"
 ALLOWED_ORIGINS = "https://meepmerp-0.github.io,http://localhost:8888,http://127.0.0.1:4173"
 # Cloudflare always-pass test secret
 TURNSTILE_SECRET = "1x0000000000000000000000000000000AA"
-# Cloudflare's test keys report the page's real hostname
+# The test secret answers for example.com with no action, whatever the page: accept test-key results (dev only)
+TURNSTILE_TEST_KEYS = "true"
+# Checked for real keys only
 TURNSTILE_HOSTNAMES = "localhost,127.0.0.1"
 TURNSTILE_ACTIONS = "aki_session"
 GEMINI_ENABLED = "true"
@@ -84,5 +96,10 @@ GEMMA_MODEL = "gemma-4-26b-a4b-it"
 GEMMA_DAILY_CAP = "5000"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast"
 WORKERS_AI_DAILY_CAP = "200"
+STT_MODEL = "whisper-large-v3-turbo"
+STT_SITE_PER_MIN = "12"
+STT_DAILY_CAP = "1500"
+STT_BACKUP_MODEL = "@cf/openai/whisper-large-v3-turbo"
+STT_BACKUP_DAILY_CAP = "60"
 GEMINI_ALLOWED_COUNTRIES = "US,CA,AU,JP,SG,IN,BR,MX,AE,PH"
-CONSENT_VERSION = "2026-10-21.1"
+CONSENT_VERSION = "2026-10-28.1"

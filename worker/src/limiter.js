@@ -4,9 +4,13 @@
  *
  * Storage, one record per key (the DO passes ctx.storage.kv; tests pass memoryStore()):
  *   g                 global  {day, groq, gemini, S, groqBlockedUntil, geminiBlockedUntil,
- *                             gemma?, gemmaBlockedUntil?, backup?, backupDay? (UTC)}  (optional fields appear on first use)
+ *                             gemma?, gemmaBlockedUntil?, backup?, backupDay? (UTC),
+ *                             sttS?, sttDay?, stt?, sttBackupDay? (UTC), sttBackup?, sttBlockedUntil?}
+ *                             (optional fields appear on first use)
  *                             S = [[slotAt, "sid:turnId"], ...] in ascending slotAt order (R5-32, R5-33)
- *   v:<ipKey>         visitor {w: accepted-turn times (24 h, ≤ 30), lastAt, lease: {turnId, exp} | null, at}
+ *                             sttS = Groq Whisper accept times (60 s); stt, sttBackup = Whisper day counts
+ *   v:<ipKey>         visitor {w: accepted-turn times (24 h, ≤ 30), lastAt, lease: {turnId, exp} | null, at,
+ *                             stt?: accepted transcription times (24 h, ≤ 80)}
  *                             lease.turnId holds the full turn key "sid:turnId"
  *   t:<sid>:<turnId>  turn    {state, exp, slotAt?, reservedAt?, day?, hop?, at}
  *                             state: GEMINI_IN_FLIGHT (model: 'gemma' when Gemma answers) | IN_FLIGHT (Groq; hop:true
@@ -14,7 +18,7 @@
  *                             uncounted:true when the refusal took no visitor window entry)
  *   c:<sid>           consent {sid, consentVersion, ackTerms, gemini, confirmedAt, country}  (audit trail, addendum §2)
  *
- * createLimiter(store, now) → {reserve, claim, cancel, end, fallback, consent, cleanup}.
+ * createLimiter(store, now) → {reserve, claim, cancel, end, fallback, backup, consent, transcribe, cleanup}.
  * Each method takes one request object and calls now() itself:
  *   reserve   {cfg, ipKey, sid, turnId, gemini}   gemini: true only if the session, config and country allow it
  *   claim     {cfg, ipKey, sid, turnId}
@@ -24,10 +28,14 @@
  *   backup    {cfg, ipKey, sid, turnId, provider?, gemini?}   once per turn and provider, after the Groq route had no
  *             capacity or failed: provider 'workers_ai' (default), then 'gemma' (only with gemini: true)
  *   consent   {sid, consentVersion, gemini, country}
+ *   transcribe {cfg, ipKey, fallback?: {status, retryAfter}}   one voice clip: Groq Whisper while it has room, else
+ *             Workers AI Whisper. fallback: Groq Whisper failed with that HTTP status (0 = network or timeout); a 429
+ *             pauses Groq Whisper, then the backup is claimed with no second visitor entry.
  *   cleanup   () → number of records deleted (hourly alarm, R5-17)
  * cfg = {siteDailyCap, groqDailyCap?, groqSitePerMin, maxQueueWait (seconds), maxQueueDepth, geminiDailyCap}, from readConfig.
  * groqDailyCap is Groq's own share of the day (missing = no extra limit). backupDailyCap and gemmaDailyCap
  * (missing or 0 = off) are the last two steps: Workers AI, then Gemma (Google's last resort, same consent as Gemini).
+ * sttSitePerMin, sttDailyCap (Groq Whisper) and sttBackupDailyCap (Workers AI Whisper): missing or 0 = that one is off.
  * The Gemini latch, pause and caps are checked here; a turn that may not use Gemini silently takes the Groq route.
  *
  * Results:
@@ -35,6 +43,7 @@
  *   {type:'go', provider:'workers_ai', waitMs:0}  backup: call Workers AI now.
  *   {type:'go', provider:'groq', waitMs}      reserve and fallback. waitMs > 0: sleep, then claim. 0: call Groq now.
  *   {type:'go', waitMs}                       claim (Groq only).
+ *   {type:'go', provider:'groq'|'workers_ai', waitMs:0}  transcribe: call that Whisper now.
  *   null                                      cancel, end and consent.
  *   otherwise a B4 body without turnId (app.js adds it):
  *     rate_limited{scope, retryAfter}, quota_exhausted{scope, resetsAt}, provider_unavailable{reason, retryAfter?},
@@ -72,6 +81,10 @@ export const CLEANUP_INTERVAL_MS = HOUR;
 
 // Per visitor, whichever provider answers; the Groq site rate is limited separately (site_minute).
 const VISITOR_LIMITS = [['minute', MINUTE, 4], ['hour', HOUR, 15], ['day', DAY, 30]];
+// Voice clips per visitor, apart from the chat windows: a voice turn takes a partial on each pause, then a chat turn.
+// ponytail: counts requests, not audio seconds (Groq and Workers AI bill seconds), so a low-bitrate clip packs far
+// more than 30 s into the 1 MiB body cap; budget seconds from the container's duration if that is ever abused.
+const STT_VISITOR_LIMITS = [['stt_minute', MINUTE, 10], ['stt_day', DAY, 80]];
 
 const PT = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Los_Angeles', hourCycle: 'h23',
@@ -186,9 +199,9 @@ function leaseCheck(v, now, key) {
   return v.lease && v.lease.exp > now && v.lease.turnId !== key ? limited('concurrent', v.lease.exp - now) : null;
 }
 
-function windowsCheck(v, now) {
-  for (const [scope, span, max] of VISITOR_LIMITS) {
-    const recent = v.w.filter((x) => x > now - span);
+function windowsCheck(times, now, limits = VISITOR_LIMITS) {
+  for (const [scope, span, max] of limits) {
+    const recent = times.filter((x) => x > now - span);
     if (!(recent.length < max)) return limited(scope, recent[recent.length - max] + span - now);
   }
   return null;
@@ -230,8 +243,9 @@ function step(slice, now, fn) {
   for (const k of ['g', 'v', 't']) {
     if (s[k] && JSON.stringify(s[k]) !== JSON.stringify(before[k])) out[k] = k === 'g' ? s[k] : { ...s[k], at: now };
   }
-  // A rewrite refreshes the cleanup age, so it must not carry turn times older than the rolling day.
+  // A rewrite refreshes the cleanup age, so it must not carry turn or clip times older than the rolling day.
   if (out.v) out.v.w = out.v.w.filter((x) => x > now - DAY);
+  if (out.v?.stt) out.v.stt = out.v.stt.filter((x) => x > now - DAY);
   if (s.c) out.c = s.c;
   return out;
 }
@@ -246,7 +260,7 @@ export function reserve(slice, now, cfg, { sid, turnId, gemini }) {
     if (t && !(t.state === 'DONE' && t.exp <= now)) {
       return t.state === 'IN_FLIGHT' && t.exp > now ? limited('concurrent', t.exp - now) : invalid('turn_reused');
     }
-    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v, now);
+    const refused = cooldownCheck(v, now) || leaseCheck(v, now) || windowsCheck(v.w, now);
     if (refused) return refused;
     const today = pacificDay(now);
     const c = dayCounts(g, today);
@@ -393,7 +407,7 @@ export function backup(slice, now, cfg, { sid, turnId, provider = 'workers_ai', 
     // A turn that already took a window entry (Groq or Gemini reserve, or the Workers AI step) is not counted or
     // window-checked again.
     const fresh = !t || (t.uncounted && !t.backup);
-    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now, key) || (fresh ? windowsCheck(v, now) : null);
+    const refused = (t ? null : cooldownCheck(v, now)) || leaseCheck(v, now, key) || (fresh ? windowsCheck(v.w, now) : null);
     if (refused) return refused;
     if (gemma) {
       // Google's last resort: same consent as Gemini, its own Pacific-day count, pause and the shared-key latch.
@@ -441,7 +455,57 @@ export function consent(slice, now, _cfg, { sid, consentVersion, gemini, country
   });
 }
 
-export const OPS = { reserve, claim, cancel, end, fallback, backup, consent };
+/**
+ * One voice clip: Groq Whisper while it has room, else the Workers AI Whisper backup. Only its own fields (v.stt and
+ * g.stt*): no turn record, lease, cooldown, chat window, S, chat count or chat pause, because the chat turn sent
+ * right after a voice turn would be refused. Whisper has its own Groq rate limits, so its 429 never pauses chat.
+ */
+export function transcribe(slice, now, cfg, { fallback: failed }) {
+  const cap = (k) => (Number.isInteger(cfg?.[k]) ? cfg[k] : 0);
+  const perMin = cap('sttSitePerMin');
+  const dayCap = cap('sttDailyCap');
+  return step(slice, now, (s) => {
+    const { g, v } = s;
+    // The one write a refused fallback still makes.
+    if (failed?.status === 429) g.sttBlockedUntil = Math.max(g.sttBlockedUntil ?? 0, now + pauseMs(failed.retryAfter));
+    // Cloudflare's free allocation resets at 00:00 UTC, so this count does too (as the chat backup's).
+    const utc = new Date(now).toISOString().slice(0, 10);
+    const backupUsed = g.sttBackupDay === utc ? g.sttBackup ?? 0 : 0;
+    const backupOk = backupUsed < cap('sttBackupDailyCap');
+    const takeBackup = () => {
+      g.sttBackupDay = utc;
+      g.sttBackup = backupUsed + 1;
+      return go(0, 'workers_ai');
+    };
+    // Groq was tried and failed: the clip already took its visitor entry.
+    if (failed) return backupOk ? takeBackup() : unavailable('stt_failed');
+    // Filtered into locals and assigned only on accept: step() would persist any change made before a refusal.
+    const mine = (v.stt ?? []).filter((x) => x > now - DAY);
+    const refused = windowsCheck(mine, now, STT_VISITOR_LIMITS);
+    if (refused) return refused;
+    const today = pacificDay(now);
+    const used = g.sttDay === today ? g.stt ?? 0 : 0;
+    const recent = (g.sttS ?? []).filter((x) => x > now - MINUTE);
+    const paused = (g.sttBlockedUntil ?? 0) > now;
+    if (!paused && recent.length < perMin && used < dayCap) {
+      v.stt = [...mine, now];
+      g.sttS = [...recent, now];
+      g.sttDay = today;
+      g.stt = used + 1;
+      return go(0, 'groq');
+    }
+    if (backupOk) {
+      v.stt = [...mine, now];
+      return takeBackup();
+    }
+    if (paused) return unavailable('stt_busy', { retryAfter: secs(g.sttBlockedUntil - now) });
+    if (!(perMin >= 1 && dayCap >= 1)) return unavailable('disabled');
+    if (!(recent.length < perMin)) return limited('stt_site_minute', recent[recent.length - perMin] + MINUTE - now);
+    return unavailable('stt_daily');
+  });
+}
+
+export const OPS = { reserve, claim, cancel, end, fallback, backup, consent, transcribe };
 
 // --- storage glue (shared by the DO and the tests) ---
 

@@ -8,6 +8,8 @@ const TIMEOUT_MS = 45000;
 // A chat turn may run Gemini, Groq, Workers AI and Gemma in turn (12 + 10 + 10 + 12 s at most), plus any
 // Groq queue or hop wait (MAX_QUEUE_WAIT: 0 s in production, 5 s in dev).
 const CHAT_TIMEOUT_MS = 60000;
+// The Worker tries Groq, then Workers AI (10 s each), plus the upload.
+const TRANSCRIBE_TIMEOUT_MS = 25000;
 const REGION_TIMEOUT_MS = 5000;
 const DAY = 24 * 3600 * 1000;
 const KEEP_MS = 7 * DAY;
@@ -259,11 +261,13 @@ async function post(path, body, signal, ms = TIMEOUT_MS) {
   if (signal?.aborted) abort();
   signal?.addEventListener('abort', abort);
   const timer = setTimeout(abort, ms);
+  // A form (voice audio) gets the browser's own multipart type and boundary; both stay CORS simple requests.
+  const form = body instanceof FormData;
   try {
     const res = await fetch(API + path, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body),
+      headers: form ? {} : { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: form ? body : JSON.stringify(body),
       signal: inner.signal,
     });
     return { status: res.status, body: await res.json().catch(() => null) };
@@ -295,6 +299,12 @@ export function fetchRegion() {
   return regionLoad;
 }
 
+// Shared while in flight: a voice upload and a chat turn may both need a session, and two Turnstile runs in one
+// container would race. A cancelled one is never joined: the caller after a cancel starts its own.
+// ponytail: a joiner shares the first caller's cancel; give the mint its own signal and a waiter count if two callers
+// ever overlap for real (today each cancels the last before it starts).
+let minting = null;
+
 // Any response other than 200 "session" means the rule is unknown.
 async function ensureSession(container, signal, force) {
   if (!force) {
@@ -303,6 +313,18 @@ async function ensureSession(container, signal, force) {
       if (s?.sessionToken && Date.parse(s.expiresAt) > Date.now() + 30000) return { ok: true, token: s.sessionToken };
     } catch { /* fetch a new one */ }
   }
+  if (minting && !minting.signal?.aborted) return minting.load;
+  const m = { signal };
+  m.load = mintSession(container, signal).finally(() => { if (minting === m) minting = null; });
+  minting = m;
+  return m.load;
+}
+
+// Runs the bot check and starts a session now rather than at the first send: on the welcome step's Continue, and at
+// a record-mode mic tap if that one failed or ran out. Resolves like ensureSession; the first send retries a failure.
+export const startSession = (container, signal) => ensureSession(container, signal);
+
+async function mintSession(container, signal) {
   drop('session', KEY.session);
   // A gate older than a day cannot mint sessions: the visitor must confirm again.
   const gate = readGate();
@@ -330,6 +352,7 @@ function interpret({ status, body }) {
   if (t === 'ai' && typeof body.reply === 'string' && typeof body.sig === 'string' && Number.isFinite(body.ts)) {
     return { kind: 'ai', reply: body.reply, sig: body.sig, ts: body.ts, prev: body.prevSig ?? '', provider: body.provider };
   }
+  if (t === 'transcript' && typeof body.text === 'string') return { kind: 'transcript', text: body.text.trim() };
   if (t === 'faq') return { kind: 'faq' };
   if (t === 'provider_unavailable') {
     const retryAfter = Math.ceil(Number(body.retryAfter));
@@ -344,22 +367,35 @@ function interpret({ status, body }) {
   return { kind: 'network' };
 }
 
+// One request that needs a session: a 401 re-runs the session once and calls again.
+async function withSession(container, signal, call) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const session = await ensureSession(container, signal, attempt > 0);
+    if (!session.ok) return { kind: session.kind };
+    applyRule();
+    const result = interpret(await call(session.token));
+    if (result.kind !== 'session_required') return result;
+    // The notice changed since the visitor confirmed: show the welcome again.
+    if (result.reason === 'consent') { clearGate(); return { kind: 'consent' }; }
+  }
+  return { kind: 'unavailable' };
+}
+
 // One user turn. Always uses a fresh turnId; a 401 re-runs the session once and resends with another new one.
 export async function sendTurn({ message, mid, stored, container, signal }) {
   const win = buildWindow(stored);
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const session = await ensureSession(container, signal, attempt > 0);
-    if (!session.ok) return { kind: session.kind, rule: getRule() };
-    applyRule();
-    const ctx = { sessionToken: session.token, turnId: newId(), mid, prevSig: win.prevSig, message, history: win.history };
-    const result = interpret(await post('/v1/chat', ctx, signal, CHAT_TIMEOUT_MS));
-    if (result.kind === 'session_required') {
-      // The notice changed since the visitor confirmed: show the welcome again.
-      if (result.reason === 'consent') { clearGate(); return { kind: 'consent', rule: getRule() }; }
-      if (attempt === 0) continue;
-      return { kind: 'unavailable', rule: getRule() };
-    }
-    return { ...result, rule: getRule() };
-  }
-  return { kind: 'unavailable', rule: getRule() };
+  const result = await withSession(container, signal, (sessionToken) => post('/v1/chat', {
+    sessionToken, turnId: newId(), mid, prevSig: win.prevSig, message, history: win.history,
+  }, signal, CHAT_TIMEOUT_MS));
+  return { ...result, rule: getRule() };
+}
+
+// One voice recording to text: sendTurn's result kinds, plus 'transcript'. The Worker names the file from its type.
+export async function transcribe({ blob, container, signal }) {
+  return withSession(container, signal, (sessionToken) => {
+    const form = new FormData();
+    form.append('sessionToken', sessionToken);
+    form.append('file', blob, `voice.${blob.type.split(/[/;]/)[1]}`);
+    return post('/v1/transcribe', form, signal, TRANSCRIBE_TIMEOUT_MS);
+  });
 }

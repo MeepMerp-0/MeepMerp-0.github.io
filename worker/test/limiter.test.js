@@ -799,7 +799,7 @@ test('consent writes c:<sid> and nothing else; a malformed request throws', () =
 });
 
 test('OPS names the RPC methods the Limiter DO must expose', () => {
-  assert.deepEqual(Object.keys(OPS), ['reserve', 'claim', 'cancel', 'end', 'fallback', 'backup', 'consent']);
+  assert.deepEqual(Object.keys(OPS), ['reserve', 'claim', 'cancel', 'end', 'fallback', 'backup', 'consent', 'transcribe']);
 });
 
 test('Pacific day: rollover resets the site counters; resetsAt is the next Pacific midnight across DST', () => {
@@ -1135,4 +1135,164 @@ test('the Workers AI step holds the visitor lease until end(); its own lease nev
   assert.equal(f.v('B').lease, null);
   f.at(5 * S);
   assert.equal(f.lim.reserve(f.req('B')).type, 'go');
+});
+
+// --- voice transcription ---
+
+const STT = { sttSitePerMin: 12, sttDailyCap: 1500, sttBackupDailyCap: 60 };
+const SGO = { type: 'go', provider: 'groq', waitMs: 0 };
+const BGO = { type: 'go', provider: 'workers_ai', waitMs: 0 };
+const pu = (reason, extra) => ({ type: 'provider_unavailable', reason, ...extra });
+// The route's request: no turnId, so no turn record is ever read for a write.
+const stt = (e, ip, fallback) => e.lim.transcribe({ cfg: e.cfg, ipKey: ip, sid: `sid-${ip}`, ...(fallback && { fallback }) });
+
+test('transcribe: 10 clips a minute and 80 a day per visitor, refused with no write', () => {
+  const e = setup(STT);
+  for (let i = 0; i < 10; i++) {
+    e.at(i * S);
+    assert.deepEqual(stt(e, 'A'), SGO);
+  }
+  e.at(10 * S);
+  const before = e.snapshot();
+  assert.deepEqual(stt(e, 'A'), rl('stt_minute', 50));
+  assert.equal(e.snapshot(), before);
+  assert.deepEqual(stt(e, 'B'), SGO, 'another visitor');
+  e.at(60 * S);
+  assert.deepEqual(stt(e, 'A'), SGO);
+
+  const d = setup(STT);
+  for (let i = 0; i < 80; i++) {
+    d.at(i * 120 * S);
+    assert.deepEqual(stt(d, 'A'), SGO, `clip ${i}`);
+  }
+  d.at(80 * 120 * S);
+  const snap = d.snapshot();
+  assert.deepEqual(stt(d, 'A'), rl('stt_day', DAY / S - 80 * 120));
+  assert.equal(d.snapshot(), snap);
+});
+
+test('transcribe: 12 Groq clips a minute site-wide, then Workers AI; without the backup stt_site_minute with no write', () => {
+  const e = setup(STT);
+  for (let i = 0; i < 12; i++) assert.deepEqual(stt(e, `ip${i}`), SGO);
+  assert.deepEqual(stt(e, 'X'), BGO);
+  assert.deepEqual([e.g().sttS.length, e.g().stt, e.g().sttBackup], [12, 12, 1]);
+  assert.deepEqual(e.v('X').stt, [T0], 'a backup clip counts for the visitor too');
+
+  const n = setup({ ...STT, sttBackupDailyCap: undefined });
+  for (let i = 0; i < 12; i++) {
+    n.at(i * S);
+    assert.deepEqual(stt(n, `ip${i}`), SGO);
+  }
+  n.at(20 * S);
+  const before = n.snapshot();
+  assert.deepEqual(stt(n, 'X'), rl('stt_site_minute', 40));
+  assert.equal(n.snapshot(), before);
+  n.at(60 * S);
+  assert.deepEqual(stt(n, 'X'), SGO);
+
+  // A full Groq day also hands over to the backup.
+  const day = setup({ ...STT, sttDailyCap: 1 });
+  assert.deepEqual(stt(day, 'A'), SGO);
+  assert.deepEqual(stt(day, 'B'), BGO);
+});
+
+test('transcribe: the Groq day count rolls over at Pacific midnight, the Workers AI count at 00:00 UTC', () => {
+  const late = Date.UTC(2026, 9, 17, 6, 59, 0); // 23:59 PDT
+  const e = setup({ ...STT, sttDailyCap: 1, sttBackupDailyCap: 0 }, late);
+  assert.deepEqual(stt(e, 'A'), SGO);
+  e.at(30 * S);
+  const before = e.snapshot();
+  assert.deepEqual(stt(e, 'B'), pu('stt_daily'));
+  assert.equal(e.snapshot(), before);
+  e.at(90 * S);
+  assert.deepEqual(stt(e, 'B'), SGO);
+  assert.deepEqual([e.g().sttDay, e.g().stt], ['2026-10-17', 1]);
+
+  const u = setup({ ...STT, sttBackupDailyCap: 1 }, Date.UTC(2026, 9, 17, 23, 59, 0));
+  assert.deepEqual(stt(u, 'A', { status: 500 }), BGO);
+  u.at(30 * S);
+  assert.deepEqual(stt(u, 'A', { status: 500 }), pu('stt_failed'));
+  u.at(2 * 60 * S);
+  assert.deepEqual(stt(u, 'A', { status: 500 }), BGO);
+  assert.deepEqual([u.g().sttBackupDay, u.g().sttBackup], ['2026-10-18', 1]);
+});
+
+test('transcribe fallback: a 429 pauses Groq Whisper (even when refused); later clips take Workers AI until it passes', () => {
+  const e = setup(STT);
+  assert.deepEqual(stt(e, 'A'), SGO);
+  assert.deepEqual(stt(e, 'A', { status: 429, retryAfter: '30' }), BGO);
+  assert.equal(e.g().sttBlockedUntil, T0 + 30 * S);
+  assert.deepEqual(e.v('A').stt, [T0], 'the fallback takes no second visitor entry');
+  e.at(10 * S);
+  assert.deepEqual(stt(e, 'B'), BGO);
+  assert.deepEqual(stt(e, 'C', { status: 429, retryAfter: '5' }), BGO);
+  assert.equal(e.g().sttBlockedUntil, T0 + 30 * S, 'a pause only extends');
+  e.at(30 * S);
+  assert.deepEqual(stt(e, 'B'), SGO);
+
+  // Any other failure pauses nothing.
+  const f = setup(STT);
+  stt(f, 'A');
+  assert.deepEqual(stt(f, 'A', { status: 500, retryAfter: '30' }), BGO);
+  assert.equal(f.g().sttBlockedUntil, undefined);
+  assert.deepEqual(stt(f, 'B'), SGO);
+
+  // No backup: the refused fallback writes only the pause, then clips get stt_busy with no write.
+  const n = setup({ ...STT, sttBackupDailyCap: 0 });
+  stt(n, 'A');
+  const g0 = n.g();
+  assert.deepEqual(stt(n, 'A', { status: 429, retryAfter: '30' }), pu('stt_failed'));
+  assert.deepEqual(n.g(), { ...g0, sttBlockedUntil: T0 + 30 * S });
+  const before = n.snapshot();
+  assert.deepEqual(stt(n, 'A', { status: 0, retryAfter: null }), pu('stt_failed'));
+  assert.equal(n.snapshot(), before, 'a refused fallback without a 429 writes nothing');
+  n.at(5 * S);
+  assert.deepEqual(stt(n, 'B'), pu('stt_busy', { retryAfter: 25 }));
+  assert.equal(n.snapshot(), before);
+});
+
+test('transcribe never touches turns, leases, cooldown, chat windows, S, chat counts or pauses; chat right after is not refused', () => {
+  const e = setup(STT);
+  const a = e.req('A');
+  assert.deepEqual(e.lim.reserve(a), go(0));
+  const g0 = e.g();
+  const v0 = e.v('A');
+  const keys = [...e.store.list()].map(([k]) => k);
+  const without = (rec, drop) => Object.fromEntries(Object.entries(rec).filter(([k]) => !drop.includes(k)));
+  e.at(S);
+  assert.deepEqual(stt(e, 'A'), SGO);
+  assert.deepEqual(stt(e, 'A', { status: 429, retryAfter: '60' }), BGO);
+  assert.deepEqual(without(e.g(), ['sttS', 'sttDay', 'stt', 'sttBackupDay', 'sttBackup', 'sttBlockedUntil']), g0);
+  assert.deepEqual(without(e.v('A'), ['stt', 'at']), without(v0, ['at']));
+  assert.deepEqual([...e.store.list()].map(([k]) => k), keys, 'no turn or consent record');
+
+  // A voice turn is followed at once by a chat turn from the same visitor.
+  const f = setup(STT);
+  assert.deepEqual(stt(f, 'B'), SGO);
+  f.at(500);
+  assert.deepEqual(f.lim.reserve(f.req('B')), go(0));
+  assert.deepEqual(f.v('B').w, [T0 + 500]);
+
+  // Clips spend none of the chat site budget.
+  const c = setup({ ...STT, siteDailyCap: 1, groqSitePerMin: 1 });
+  for (const ip of ['A', 'B', 'C']) assert.deepEqual(stt(c, ip), SGO);
+  assert.deepEqual(c.lim.reserve(c.req('D')), go(0));
+});
+
+test('a chat write drops clip times older than a day from the visitor record', () => {
+  const e = setup(STT);
+  stt(e, 'A');
+  e.at(DAY + H);
+  e.lim.reserve(e.req('A'));
+  assert.deepEqual(e.v('A').stt, []);
+});
+
+test('transcribe is off without its caps: disabled with no write; the backup cap alone still answers', () => {
+  const e = setup();
+  assert.deepEqual(stt(e, 'A'), pu('disabled'));
+  assert.equal(e.snapshot(), '[]');
+  for (const bad of [0, '12', 2.5, -1, undefined]) {
+    assert.deepEqual(stt(setup({ ...STT, sttSitePerMin: bad, sttBackupDailyCap: 0 }), 'A'), pu('disabled'), String(bad));
+  }
+  assert.deepEqual(stt(setup({ sttBackupDailyCap: 1 }), 'A'), BGO);
 });

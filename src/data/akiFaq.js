@@ -25,7 +25,7 @@ export const AKI_FAQ = [
 ];
 
 // Sent to /v1/session and compared with the legal page and the Worker; never copied from a Worker response.
-export const AKI_CONSENT_VERSION = '2026-10-21.1';
+export const AKI_CONSENT_VERSION = '2026-10-28.1';
 
 export const AKI_MESSAGES = {
   greetingHead: 'Hey there!',
@@ -42,9 +42,13 @@ export const AKI_MESSAGES = {
   noCrypto: 'Free-text chat needs a newer browser. Quick answers are still available.',
   tooLong: 'That message is too long. Please shorten it.',
   empty: 'Type a message first.',
-  voiceNotice: "Voice chat uses your browser's own speech service (for example Google in Chrome, Microsoft in Edge, Apple in Safari), which hears what you say. I only get the text. Tap the mic again to start, and I'll send your message when you finish speaking.",
+  voiceNotice: "Voice chat uses your browser's own speech service (for example Google in Chrome, Microsoft in Edge, Apple in Safari), which hears what you say. I only get the text. I'll send your message when you finish speaking, or tap stop to send it sooner.",
+  voiceNoticeServer: "This browser has no speech service of its own, so your recording goes to my server and on to Groq, or Cloudflare as a backup, to become text. I only use the text. I'll send your message when you finish speaking, or tap stop to send it sooner.",
   micBlocked: "I can't hear you: microphone access is blocked. Allow it in your browser settings, or type instead.",
-  voiceFailed: "Voice chat isn't available in this browser right now. You can still type.",
+  voiceFailed: "Voice didn't work in this browser just now. Try again, or type instead.",
+  voiceNetwork: "I can't reach your browser's speech service. Some browsers switch it off; voice works in Chrome, Edge and Safari. You can still type.",
+  voiceBusy: 'Voice is busy right now. Try again shortly, or type instead.',
+  voiceDown: "Voice isn't available right now. You can still type.",
   listening: 'Listening\u2026',
   head: { ok: 'Aki \u00B7 Here to help', typing: 'Aki \u00B7 Typing\u2026', busy: 'Aki \u00B7 Busy', down: 'Aki \u00B7 Not connected' }
 };
@@ -72,6 +76,7 @@ export const AKI_WELCOME_COPY = {
   continueLabel: 'Continue to Aki \u2192',
   notNow: 'Not now',
   hint: 'Accept the Terms of Use to continue.',
+  verifying: 'One moment: Cloudflare is checking this browser before the chat opens.',
   privacy: 'Privacy',
   terms: 'Terms of use',
 };

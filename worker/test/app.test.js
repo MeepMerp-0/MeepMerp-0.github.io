@@ -20,10 +20,14 @@ const BASE_ENV = {
   CONSENT_VERSION: CV,
 };
 const GEMINI_ENV = { GEMINI_ENABLED: 'true', GEMINI_MODEL: 'g', GEMINI_DAILY_CAP: '20', GEMINI_ALLOWED_COUNTRIES: 'US,CA', GEMINI_API_KEY: 'k' };
-const PATHS = ['/v1/session', '/v1/chat', '/v1/region'];
+const PATHS = ['/v1/session', '/v1/chat', '/v1/region', '/v1/transcribe'];
 const gate = (over = {}) => ({ turnstileToken: 'tok', ackTerms: true, geminiAck: false, consentVersion: CV, ...over });
 const ok200 = (content = 'Hello there', finish = 'stop') =>
   new Response(JSON.stringify({ choices: [{ message: { content }, finish_reason: finish }] }), { status: 200 });
+const STT_ENV = { STT_MODEL: 'wl', STT_SITE_PER_MIN: '12', STT_DAILY_CAP: '1500', STT_BACKUP_MODEL: '@cf/test/whisper', STT_BACKUP_DAILY_CAP: '60' };
+/** A recorded clip: `size` bytes of `type`, under the client's file name. */
+const audio = (type = 'audio/webm;codecs=opus', size = 2048, name = 'voice.webm') =>
+  new File([Uint8Array.from({ length: size }, (_, i) => i % 251)], name, { type });
 
 function makeApp(opts = {}) {
   const { env = {}, ip = '203.0.113.7', limiter: customLimiter } = opts;
@@ -41,6 +45,7 @@ function makeApp(opts = {}) {
     env: { ...BASE_ENV, ...env },
     verify: { success: true, hostname: 'meepmerp-0.github.io', action: 'aki_session' },
     groq: () => ok200(),
+    whisper: () => new Response(JSON.stringify({ text: ' Hello Aki. ', x_groq: { id: 'req_1' } }), { status: 200 }),
     mid: crypto.randomUUID(),
     token: null,
   };
@@ -50,21 +55,24 @@ function makeApp(opts = {}) {
       if (app.verify instanceof Error) throw app.verify;
       return new Response(JSON.stringify(app.verify), { status: 200 });
     }
+    if (String(url).includes('/audio/transcriptions')) return app.whisper();
     if (String(url).includes('groq.com')) return app.groq();
     throw new Error(`unexpected fetch ${url}`);
   };
-  app.groqCalls = () => app.fetchCalls.filter((c) => c.url.includes('groq.com'));
+  app.groqCalls = () => app.fetchCalls.filter((c) => c.url.includes('/chat/completions'));
+  app.whisperCalls = () => app.fetchCalls.filter((c) => c.url.includes('/audio/transcriptions'));
   app.lastGroq = () => JSON.parse(app.groqCalls().at(-1).init.body);
   app.history = () => app.lastGroq().messages.slice(1, -1);
   app.send = async (path, body, o = {}) => {
-    const headers = { origin: ORIGIN, 'content-type': 'text/plain;charset=utf-8', ...(o.headers ?? {}) };
+    // A FormData body sets its own multipart content-type, as the browser does.
+    const headers = { origin: ORIGIN, ...(o.form ? {} : { 'content-type': 'text/plain;charset=utf-8' }), ...(o.headers ?? {}) };
     if ('origin' in o) {
       if (o.origin === null) delete headers.origin;
       else headers.origin = o.origin;
     }
     const raw = o.raw ?? JSON.stringify(body);
     const request = new Request(`https://aki.example${path}`, { method: o.method ?? 'POST', headers,
-      body: o.stream ?? ((o.method ?? 'POST') === 'POST' ? raw : undefined), ...(o.stream ? { duplex: 'half' } : {}) });
+      body: o.form ?? o.stream ?? ((o.method ?? 'POST') === 'POST' ? raw : undefined), ...(o.stream ? { duplex: 'half' } : {}) });
     const res = await handle(request, o.env ?? app.env, {
       limiter: app.limiter,
       fetch: app.fetch,
@@ -74,6 +82,7 @@ function makeApp(opts = {}) {
       country: 'country' in o ? o.country : country,
       ip: 'ip' in o ? o.ip : ip,
       now,
+      ai: app.ai,
     });
     const text = await res.text();
     return { res, status: res.status, json: text ? JSON.parse(text) : null };
@@ -89,6 +98,13 @@ function makeApp(opts = {}) {
     return app.send('/v1/chat', {
       sessionToken: app.token, turnId: crypto.randomUUID(), mid: app.mid, prevSig: '', message: 'hi', history: [], ...over,
     }, o);
+  };
+  /** A multipart voice clip, as the browser's FormData sends it; a field set to undefined is left out. */
+  app.transcribe = async (fields = {}, o = {}) => {
+    if (!app.token) await app.session();
+    const form = new FormData();
+    for (const [k, v] of Object.entries({ sessionToken: app.token, file: audio(), ...fields })) if (v !== undefined) form.append(k, v);
+    return app.send('/v1/transcribe', null, { form, ...o });
   };
   app.tick = (ms = 5000) => { clock.t += ms; };
   return app;
@@ -565,6 +581,28 @@ test('siteverify failures give 403 session_denied', async () => {
   assert.ok(Date.parse(ok.json.expiresAt) === T0 + 24 * 3_600_000);
 });
 
+test('Cloudflare test-key results pass only with TURNSTILE_TEST_KEYS, which production never sets', async () => {
+  const testKey = { success: true, hostname: 'example.com', metadata: { result_with_testing_key: true } };
+  const run = async (env, verify) => {
+    const app = makeApp({ env });
+    app.verify = verify;
+    return app.send('/v1/session', gate());
+  };
+  assert.equal((await run({ TURNSTILE_TEST_KEYS: 'true' }, testKey)).json.type, 'session');
+  for (const [env, verify] of [
+    [{}, testKey],
+    [{ TURNSTILE_TEST_KEYS: 'yes' }, testKey],
+    [{ TURNSTILE_TEST_KEYS: 'true' }, { ...testKey, success: false }],
+    [{ TURNSTILE_TEST_KEYS: 'true' }, { success: true, hostname: 'evil.example', action: 'aki_session' }],
+  ]) {
+    const r = await run(env, verify);
+    assert.equal(r.status, 403, JSON.stringify({ env, verify }));
+    assert.deepEqual(r.json, { type: 'session_denied' });
+  }
+  const production = readFileSync(new URL('../wrangler.toml', import.meta.url), 'utf8').split(/^\[env\./m)[0];
+  assert.doesNotMatch(production, /TURNSTILE_TEST_KEYS/);
+});
+
 test('session memory rule: opt_in for every EEA_UK_CH code, XX, T1 and a missing country; default_on for AE, US, PH', async () => {
   assert.equal(EEA_UK_CH.length, 44);
   for (const country of [...EEA_UK_CH, 'XX', 'T1', undefined, null, 'us', 'USA']) {
@@ -892,4 +930,210 @@ test('version parity: AKI_CONSENT_VERSION, the legal page and both wrangler.toml
   assert.ok(client, 'AKI_CONSENT_VERSION found');
   assert.equal(legal, client);
   assert.deepEqual(toml, [client, client]);
+});
+
+// --- /v1/transcribe ---
+
+/** Gives the app a Workers AI binding that records its calls. */
+function withAI(app, reply = () => ({ text: ' From Workers AI ', word_count: 3 })) {
+  app.aiCalls = [];
+  app.ai = { run: async (model, input) => { app.aiCalls.push({ model, input }); return reply(); } };
+  return app;
+}
+const STT_FAILED = { type: 'provider_unavailable', reason: 'stt_failed' };
+
+test('/v1/transcribe via Groq: only authorization, the clip named from its checked type, the model, json, temperature 0', async () => {
+  for (const [type, ext] of [['audio/webm;codecs=opus', 'webm'], ['audio/ogg;codecs=opus', 'ogg'], ['audio/mp4', 'mp4']]) {
+    const app = makeApp({ env: STT_ENV });
+    const file = audio(type, 2048, 'evil.mp3');
+    const r = await app.transcribe({ file });
+    assert.deepEqual([r.status, r.json], [200, { type: 'transcript', text: 'Hello Aki.', provider: 'groq' }]);
+    assert.equal(r.res.headers.get('access-control-allow-origin'), ORIGIN);
+    const [call, ...more] = app.whisperCalls();
+    assert.equal(more.length, 0);
+    assert.equal(call.url, 'https://api.groq.com/openai/v1/audio/transcriptions');
+    assert.deepEqual([...call.init.headers], [['authorization', 'Bearer gk']]);
+    const form = call.init.body;
+    // No language or prompt: either makes Whisper invent text.
+    assert.deepEqual([...form.keys()].sort(), ['file', 'model', 'response_format', 'temperature']);
+    assert.deepEqual([form.get('model'), form.get('response_format'), form.get('temperature')], ['wl', 'json', '0']);
+    assert.equal(form.get('file').name, `voice.${ext}`);
+    assert.deepEqual(Buffer.from(await form.get('file').arrayBuffer()), Buffer.from(await file.arrayBuffer()));
+    assert.deepEqual(app.limiterCalls, ['transcribe']);
+    assert.equal(app.groqCalls().length, 0);
+  }
+});
+
+test('/v1/transcribe: a Groq failure falls back to Workers AI once, with the whole clip as base64, past the 32 KB chat cap', async () => {
+  const app = withAI(makeApp({ env: STT_ENV }));
+  app.whisper = () => new Response('', { status: 500 });
+  const file = audio('audio/ogg;codecs=opus', 300 * 1024);
+  const r = await app.transcribe({ file });
+  assert.deepEqual([r.status, r.json], [200, { type: 'transcript', text: 'From Workers AI', provider: 'workers_ai' }]);
+  assert.equal(app.whisperCalls().length, 1);
+  assert.deepEqual(app.limiterCalls, ['transcribe', 'transcribe']);
+  const [{ model, input }, ...more] = app.aiCalls;
+  assert.equal(more.length, 0);
+  assert.equal(model, '@cf/test/whisper');
+  assert.deepEqual(Object.keys(input), ['audio']);
+  assert.deepEqual(Buffer.from(input.audio, 'base64'), Buffer.from(await file.arrayBuffer()));
+});
+
+test('/v1/transcribe: a Whisper 429 pauses only Groq Whisper; Workers AI takes clips until retry-after, chat still reaches Groq', async () => {
+  const app = withAI(makeApp({ env: STT_ENV }));
+  app.whisper = () => new Response('', { status: 429, headers: { 'retry-after': '30' } });
+  assert.equal((await app.transcribe()).json.provider, 'workers_ai');
+  app.tick(10_000);
+  assert.equal((await app.transcribe()).json.provider, 'workers_ai');
+  assert.equal(app.whisperCalls().length, 1);
+  // Right after a clip, as a voice turn sends its text: no cooldown, lease or Groq pause from the clips.
+  assert.equal((await app.chat()).json.provider, 'groq');
+  app.whisper = () => new Response(JSON.stringify({ text: 'back' }), { status: 200 });
+  app.tick(20_000);
+  assert.deepEqual((await app.transcribe()).json, { type: 'transcript', text: 'back', provider: 'groq' });
+});
+
+test('/v1/transcribe without the backup: a Groq failure gives stt_failed; after a 429 the next clip gets stt_busy', async () => {
+  const app = makeApp({ env: STT_ENV });
+  app.whisper = () => new Response('', { status: 429, headers: { 'retry-after': '30' } });
+  assert.deepEqual((await app.transcribe()).json, STT_FAILED);
+  app.tick(10_000);
+  const r = await app.transcribe();
+  assert.deepEqual([r.status, r.json], [200, { type: 'provider_unavailable', reason: 'stt_busy', retryAfter: 20 }]);
+  assert.equal(app.whisperCalls().length, 1);
+});
+
+test('/v1/transcribe: both providers failing gives stt_failed; logs carry status codes only, never text, token or ip', async () => {
+  const logs = [];
+  const log = console.log;
+  console.log = (...a) => logs.push(a.join(' '));
+  try {
+    const app = withAI(makeApp({ env: STT_ENV }), () => { throw new Error('cannot decode'); });
+    app.whisper = () => new Response('', { status: 503 });
+    const r = await app.transcribe();
+    assert.deepEqual([r.status, r.json], [200, STT_FAILED]);
+    const timeout = withAI(makeApp({ env: STT_ENV }));
+    timeout.whisper = () => { throw new DOMException('timed out', 'TimeoutError'); };
+    assert.equal((await timeout.transcribe()).json.text, 'From Workers AI');
+    assert.equal((await makeApp({ env: STT_ENV }).transcribe()).json.text, 'Hello Aki.');
+    // A backup that answers with no text is a failure too.
+    const empty = withAI(makeApp({ env: STT_ENV }), () => ({ word_count: 0 }));
+    empty.whisper = () => new Response('', { status: 500 });
+    assert.deepEqual((await empty.transcribe()).json, STT_FAILED);
+  } finally {
+    console.log = log;
+  }
+  assert.deepEqual(logs, ['{"stt_failed":503}', '{"stt_backup_failed":true}', '{"stt_failed":0}', '{"stt_failed":500}', '{"stt_backup_failed":true}']);
+});
+
+test('/v1/transcribe: a bad or expired token gives 401; a session under a notice before voice gives 401 consent', async () => {
+  const app = makeApp({ env: { ...STT_ENV, CONSENT_VERSION: `${CV},2026-10-21.1` } });
+  await app.session({ gate: { consentVersion: '2026-10-21.1' } });
+  assert.equal((await app.chat()).json.type, 'ai', 'chat keeps the rollout session');
+  const consent = await app.transcribe();
+  assert.deepEqual([consent.status, consent.json], [401, { type: 'session_required', reason: 'consent' }]);
+  // A bundle one bump behind already told its visitors about voice, and can only mint its own version.
+  const behind = makeApp({ env: { ...STT_ENV, CONSENT_VERSION: `2099-01-01,${CV}` } });
+  await behind.session();
+  assert.equal((await behind.transcribe()).json.type, 'transcript');
+  for (const sessionToken of ['', 'garbage', `${app.token}x`, `${app.token.split('.')[0]}.${'A'.repeat(43)}`]) {
+    const r = await app.transcribe({ sessionToken });
+    assert.deepEqual([r.status, r.json], [401, { type: 'session_required' }]);
+  }
+  const fresh = makeApp({ env: STT_ENV });
+  await fresh.session();
+  fresh.clock.t += 24 * 3_600_000 + 1;
+  assert.deepEqual((await fresh.transcribe()).json, { type: 'session_required' });
+  assert.equal(app.whisperCalls().length + fresh.whisperCalls().length + fresh.limiterCalls.length, 0);
+  assert.deepEqual(app.limiterCalls, ['reserve', 'end'], 'only the chat turn');
+});
+
+test('/v1/transcribe: a missing field, another type, an empty file or a body that is not multipart gives 400 with no call', async () => {
+  const app = makeApp({ env: STT_ENV });
+  await app.session();
+  for (const [label, fields] of [
+    ['no file', { file: undefined }], ['no token', { sessionToken: undefined }], ['a string file', { file: 'x' }],
+    ['mp3', { file: audio('audio/mpeg') }], ['video', { file: audio('video/webm') }], ['no type', { file: audio('') }],
+    ['empty', { file: audio('audio/webm', 0) }],
+  ]) {
+    const r = await app.transcribe(fields);
+    assert.deepEqual([r.status, r.json], [400, { type: 'invalid_request', error: 'bad_request' }], label);
+  }
+  for (const raw of [JSON.stringify({ sessionToken: app.token, file: 'x' }), '']) {
+    const r = await app.send('/v1/transcribe', null, { raw });
+    assert.deepEqual([r.status, r.json], [400, { type: 'invalid_request', error: 'bad_request' }]);
+  }
+  assert.equal(app.whisperCalls().length + app.limiterCalls.length, 0);
+});
+
+test('/v1/transcribe: a body over 1 MiB gives 413 with no CORS header, declared or chunked', async () => {
+  const app = makeApp({ env: STT_ENV });
+  await app.session();
+  const form = new FormData();
+  form.append('sessionToken', app.token);
+  form.append('file', audio('audio/webm', 1024 * 1024));
+  // Serialized first, as a browser sends it: undici's own FormData stream rejects when the reader stops mid-way.
+  const wire = new Response(form);
+  const raw = new Uint8Array(await wire.arrayBuffer());
+  for (const length of [{ 'content-length': String(raw.length) }, {}]) {
+    const big = await app.send('/v1/transcribe', null, { raw, headers: { 'content-type': wire.headers.get('content-type'), ...length } });
+    assert.deepEqual([big.status, big.json], [413, { type: 'invalid_request', error: 'body_too_large' }]);
+    assert.equal(big.res.headers.get('access-control-allow-origin'), null);
+  }
+  let pulled = 0;
+  const endless = new ReadableStream({ pull(c) { pulled += 1; c.enqueue(new Uint8Array(1024).fill(32)); } });
+  assert.equal((await app.send('/v1/transcribe', null, { stream: endless })).status, 413);
+  assert.ok(pulled < 1100, `read ${pulled} KB before stopping`);
+  assert.equal(app.whisperCalls().length + app.limiterCalls.length, 0);
+});
+
+test('/v1/transcribe is disabled without valid STT vars or with SITE_DAILY_CAP=0; missing STT vars leave chat working', async () => {
+  const app = makeApp({ env: STT_ENV });
+  await app.session();
+  for (const [label, env] of [
+    ['no STT vars', BASE_ENV], ['blank model', { ...app.env, STT_MODEL: ' ' }], ['21 a minute', { ...app.env, STT_SITE_PER_MIN: '21' }],
+    ['cap 0', { ...app.env, STT_DAILY_CAP: '0' }], ['site cap 0', { ...app.env, SITE_DAILY_CAP: '0' }],
+  ]) {
+    const r = await app.transcribe({}, { env });
+    assert.deepEqual([r.status, r.json], [200, { type: 'provider_unavailable', reason: 'disabled' }], label);
+  }
+  assert.equal(app.whisperCalls().length + app.limiterCalls.length, 0);
+  assert.equal((await app.chat({}, { env: BASE_ENV })).json.type, 'ai');
+  assert.equal(readConfig({ ...BASE_ENV, STT_SITE_PER_MIN: 'x', STT_BACKUP_DAILY_CAP: '-1' }).ok, true);
+  const run = () => {};
+  const on = readConfig({ ...BASE_ENV, ...STT_ENV }, { run });
+  assert.deepEqual(on.stt, { on: true, model: 'wl', backupOn: true, backupModel: '@cf/test/whisper' });
+  assert.deepEqual([on.limits.sttSitePerMin, on.limits.sttDailyCap, on.limits.sttBackupDailyCap], [12, 1500, 60]);
+  // No AI binding, or no Groq model: that part is off and its caps are 0.
+  const noAI = readConfig({ ...BASE_ENV, ...STT_ENV });
+  assert.deepEqual([noAI.stt.on, noAI.stt.backupOn, noAI.limits.sttBackupDailyCap], [true, false, 0]);
+  const off = readConfig(BASE_ENV, { run });
+  assert.deepEqual(off.stt, { on: false, model: '', backupOn: false, backupModel: '' });
+  assert.deepEqual([off.limits.sttSitePerMin, off.limits.sttDailyCap, off.limits.sttBackupDailyCap], [0, 0, 0]);
+});
+
+test('/v1/transcribe: no ip gives misconfigured, a blocked country faq, an abort 499, each with no limiter call or fetch', async () => {
+  const app = makeApp({ env: STT_ENV });
+  await app.session();
+  const before = app.fetchCalls.length;
+  const noIp = await app.transcribe({}, { ip: null });
+  assert.deepEqual([noIp.status, noIp.json], [200, { type: 'provider_unavailable', reason: 'misconfigured' }]);
+  for (const country of AI_BLOCKED) {
+    const r = await app.transcribe({}, { country });
+    assert.deepEqual([r.status, r.json], [200, { type: 'faq', reason: 'region' }], country);
+  }
+  const ac = new AbortController();
+  ac.abort();
+  const aborted = await app.transcribe({}, { signal: ac.signal });
+  assert.deepEqual([aborted.status, aborted.json], [499, null]);
+  assert.equal(app.fetchCalls.length, before);
+  assert.equal(app.limiterCalls.length, 0);
+});
+
+test('/v1/transcribe: the eleventh clip in a minute gets 429 stt_minute; a chat turn right after a clip is not refused', async () => {
+  const app = makeApp({ env: STT_ENV });
+  for (let i = 0; i < 10; i++) assert.equal((await app.transcribe()).json.type, 'transcript', `clip ${i}`);
+  const r = await app.transcribe();
+  assert.deepEqual([r.status, r.json], [429, { type: 'rate_limited', scope: 'stt_minute', retryAfter: 60 }]);
+  assert.equal((await app.chat()).json.type, 'ai');
 });
