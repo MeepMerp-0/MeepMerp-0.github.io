@@ -1,12 +1,9 @@
-// ─── data/portfolioData.js ───
-
 // The header's "Let's talk" button and Aki's WhatsApp link both open this chat.
 export const WHATSAPP_URL = 'https://wa.me/971504482694?text=Hi%20Jason%2C%20I%20saw%20your%20portfolio%20and%20I%27d%20like%20to%20talk%20about%20a%20project%20or%20opportunity.';
 
 export const PERSONAL = {
   name: 'Jason Selerio',
   title: 'AI & Full-Stack Engineer',
-  tagline: 'AI & Full-Stack Engineer',
   headline:
     'I design agentic AI workflows and full-stack business applications—from LangGraph.js orchestration and API integrations to Next.js, TypeScript, and Supabase platforms.',
   email: 'jason.selerio@gmail.com',
@@ -15,6 +12,8 @@ export const PERSONAL = {
   website: 'https://meepmerp-0.github.io',
   location: 'Reem Island, Abu Dhabi, United Arab Emirates',
 };
+
+export const EMAIL_URL = `mailto:${PERSONAL.email}`;
 
 // Recruiter-facing role and responsibilities, aligned with the supplied CV.
 // Role names, dates, employment arrangement and outcomes must stay factual.
@@ -55,6 +54,9 @@ export const EXPERIENCE = [
   },
 ];
 
+// EXPERIENCE lists the newest role first.
+export const LATEST_ROLE = EXPERIENCE[0];
+
 // What Jason is open to next: the About card and Aki's quick answer read it, and the About story below uses fullTime.
 export const AVAILABILITY = {
   fullTime: 'AI / Automation Engineer',
@@ -67,7 +69,7 @@ export const AVAILABILITY = {
 export const ABOUT_STORY = [
   `Hi, I'm Jason, an ${PERSONAL.title} based in Abu Dhabi. I enjoy taking slow, manual processes and turning them into clear, dependable software that people actually like using.`,
   "These days I'm especially into agentic AI and automation: orchestrating multi-agent workflows, connecting tools with n8n and APIs, and building the guardrails that let AI take on real work while people stay in control of the decisions that matter.",
-  `My latest role is ${EXPERIENCE[0].role} at ${EXPERIENCE[0].company}, where I'm ${EXPERIENCE[0].summary.replace(/^Developing /, 'developing ')}`,
+  `My latest role is ${LATEST_ROLE.role} at ${LATEST_ROLE.company}, where I'm ${LATEST_ROLE.summary.replace(/^Developing /, 'developing ')}`,
   `I'm now looking for a full-time role as an ${AVAILABILITY.fullTime}, and I'm also open to well-scoped freelance engagements. If you have a workflow worth automating or a team that could use this kind of help, I'd love to hear from you.`,
 ];
 
@@ -153,7 +155,6 @@ export const PROJECTS = [
     title: 'Mobile Event Invitation Platform',
     desc: 'Created a mobile-friendly digital christening invitation that improved event information clarity and accessibility for guests.',
     tech: ['Canva'],
-    accent: 'var(--soft)',
     status: 'Completed',
     year: '2026',
     site: 'https://remy-and-zoey.my.canva.site/',
@@ -170,7 +171,6 @@ export const PROJECTS = [
     title: 'ERP-Style Admin Dashboard',
     desc: 'Designed and built an ERP-style admin interface with role-based access control, module-level permission gating, audit trails, and a filterable activity log for operational workflows.',
     tech: ['React', 'Laravel', 'Livewire', 'MySQL', 'RBAC', 'Docker', 'Documentation'],
-    accent: 'var(--electric)',
     status: 'Completed',
     year: '2026',
     metrics: [
@@ -191,7 +191,6 @@ export const PROJECTS = [
     title: 'AI & Workflow Automation',
     desc: 'Built an AI-assisted workflow automation system using n8n with webhook-triggered pipelines, approval routing, and API integrations to reduce repetitive manual work.',
     tech: ['n8n', 'ngrok', 'SQLite', 'Docker', 'APIs'],
-    accent: 'var(--soft)',
     status: 'Completed',
     year: '2026',
     metrics: [
@@ -214,7 +213,6 @@ export const PROJECTS = [
     title: 'Wedding Invitation & RSVP Platform',
     desc: 'Built a wedding website used by 50+ guests, centralizing event details, RSVPs, and coordination with a custom real-time RSVP system and photo gallery.',
     tech: ['React', 'Google Apps Script', 'Vercel'],
-    accent: 'var(--electric)',
     status: 'Completed',
     year: '2026',
     site: 'https://www.shesmydeamondhesmyjem.site/',
@@ -235,7 +233,6 @@ export const PROJECTS = [
     title: 'Web-Based Timekeeping and Payroll System with Mobile Solutions',
     desc: 'Engineered a full-stack web and mobile system for security guard attendance and payroll, cutting processing time from 5–10 days to instant generation.',
     tech: ['React', 'React Native', 'Node.js', 'PostgreSQL', 'SQLite'],
-    accent: 'var(--cyan)',
     status: 'Completed',
     year: '2025',
     site: 'https://asseroglobal-phil.com/',
@@ -258,7 +255,6 @@ export const PROJECTS = [
     title: 'Interactive 360° Property Tour',
     desc: 'Prototyped an interactive 360° property tour that improves property browsing convenience through an immersive virtual walkthrough.',
     tech: ['Pixel Camera', 'PhotoSphere', 'Panolens', 'JavaScript', 'HTML'],
-    accent: 'var(--azure)',
     status: 'Completed',
     year: '2024',
     site: 'https://appdev360.netlify.app/',
@@ -270,6 +266,15 @@ export const PROJECTS = [
     ],
   },
 ];
+
+// The Work section shows these projects in this order. PROJECTS keeps its own order for Aki's prompt.
+const SELECTED_PROJECT_IDS = [
+  'innercircle-operations', 'aki', 'futurohub-sites', 'thesis', 'erp-dashboard', 'workflow', 'wedding',
+  '360-property-tour', 'christening-invitation',
+];
+export const SELECTED_PROJECTS = SELECTED_PROJECT_IDS
+  .map((id) => PROJECTS.find((project) => project.id === id))
+  .filter(Boolean);
 
 // Only Aki's Groq prompt reads these (worker/src/knowledge.js).
 export const CONTACT_INFO = [
