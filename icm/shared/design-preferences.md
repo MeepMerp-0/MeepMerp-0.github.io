@@ -4,6 +4,8 @@
 
 The user selected **option D: Premium Cinematic** after reviewing four visual examples. This supersedes the earlier minimal editorial preference. The direction uses deep warm charcoal, warm ivory type, restrained gold, glass/chrome/black sculpture, and cinematic lighting. Selected sections should use scroll-driven 3D; one or more pinned sections should change the scene during scrolling. This is a target for the rework, not a description of the current site. No example image asset is committed here; the option-D description records the selection. Preserve existing accessibility and reduced-motion behavior under [model routing](model-routing.md#primary-implementation-workhorse).
 
+Use HTML/CSS/JavaScript or another suitable inspectable interface for design examples and comparisons. Do not generate images as examples.
+
 ## Aki preservation
 
 **Do not remove Aki.** Preserve a discoverable, functional launcher and chat during the rework. Preserve voice transcription as editable text for the visitor to review and explicitly send. Keep existing consent, privacy notice, session, and region behavior, plus keyboard access, focus behavior, screen-reader access, and mobile usability. Visual restyling is allowed only with functional parity. For detailed Aki security, provider, privacy, and verification authority, follow [model routing](model-routing.md#architecture-security-and-final-authority) and [Aki proof limits](proof-register.md#aki).
