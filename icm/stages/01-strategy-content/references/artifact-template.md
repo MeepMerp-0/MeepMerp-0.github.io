@@ -1,6 +1,6 @@
 # Strategy/content brief template
 
-Use `icm/stages/01-strategy-content/output/<run-id>-brief.md` only for an actual run. Apply [run identity, metadata, status, and checkpoints](../../../shared/run-contract.md#run-identity) and link the selected source revisions. Do not treat this template as a completed brief.
+Use `icm/stages/01-strategy-content/output/<run-id>-brief.md` only for an actual run. Apply [run identity, metadata, status, and checkpoints](../../../shared/run-contract.md#run-identity) and link selected public source revisions. For a demo, reference private inspection only through sanitized public evidence IDs; do not put private paths or revisions in the metadata. Do not treat this template as a completed brief.
 
 ## Visitor objective and audience
 
@@ -23,6 +23,10 @@ Describe the chosen atmosphere, selected 3D/pinned moments and their purpose, an
 | --- | --- | --- | --- |
 
 Keep INNERCIRCLE within its [public evidence boundary](../../../shared/proof-register.md#innercircle). Distinguish current Aki behavior from proposed behavior.
+
+## Demo brief, when selected
+
+Record the catalog alias, capability to illustrate, approved public facts with sanitized evidence IDs and public revision hashes, fictional behaviors and visitor label, proposed interaction, and claim limits. Keep exact private source locations, revisions, inspection notes, and raw scan results out of this public artifact. Cite the [demo boundary](../../../shared/demo-boundary.md#public-and-private-evidence) and selected [catalog entry](../../../shared/demo-catalog.md#source-aliases); leave unverified facts as open decisions.
 
 ## Creative checkpoint and open decisions
 

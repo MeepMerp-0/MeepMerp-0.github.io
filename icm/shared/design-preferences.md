@@ -6,9 +6,13 @@ The user selected **option D: Premium Cinematic** after reviewing four visual ex
 
 Use HTML/CSS/JavaScript or another suitable inspectable interface for design examples and comparisons. Do not generate images as examples.
 
+For demo presentations, use authored HTML/CSS/JavaScript examples, not generated images or private screenshots. Keep native scrolling with no scroll trap. Pinned or scroll-driven scenes must leave readable content outside the canvas, including on mobile and with reduced motion. See the [demo catalog](demo-catalog.md#presentation) for proposed project presentation.
+
 ## Aki preservation
 
 **Do not remove Aki.** Preserve a discoverable, functional launcher and chat during the rework. Preserve voice transcription as editable text for the visitor to review and explicitly send. Keep existing consent, privacy notice, session, and region behavior, plus keyboard access, focus behavior, screen-reader access, and mobile usability. Visual restyling is allowed only with functional parity. For detailed Aki security, provider, privacy, and verification authority, follow [model routing](model-routing.md#architecture-security-and-final-authority) and [Aki proof limits](proof-register.md#aki).
+
+Any fictional Aki UI walkthrough must be labeled and visually separate from the real, functional widget. Demo isolation applies to the new demos without blocking Aki's approved network and service behavior.
 
 ## Proposed defaults
 

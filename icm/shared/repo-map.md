@@ -16,6 +16,10 @@ This map was checked against `MeepMerp-0/MeepMerp-0.github.io` at commit [`2e124
 | Contact | [contact UI](../../src/components/contact/), [service](../../src/services/contactForm.js) |
 | Public notice and metadata | [Aki notice](../../public/aki-legal.html), [HTML entry](../../index.html) |
 
+## Demo source boundary
+
+The project aliases `payroll-web`, `payroll-mobile`, `innercircle`, `futurohub`, and `aki-portfolio` are listed in the [demo catalog](demo-catalog.md#source-aliases). They are routing labels, not public private-repository pointers. An operator may hold exact private mappings and provenance outside this public repository. Inspect only bounded, necessary, nonsecret material read-only under the [demo boundary](demo-boundary.md#source-inspection); do not run private code or copy it into the demo. Reinspect this public portfolio branch before selecting integration points.
+
 ## Existing design and constants
 
 The snapshot is a React/Vite JavaScript and JSX app with `motion` already listed in [package.json](../../package.json). The existing page and styling must be inspected in the active checkout before a cinematic redesign is specified in detail. The new selected direction is not implemented by this workspace. Preserve existing IDs, deep links, Aki behavior, and public contracts unless an approved spec explicitly changes them.

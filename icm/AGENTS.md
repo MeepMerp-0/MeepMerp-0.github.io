@@ -5,3 +5,5 @@ This file applies to work inside `icm/`. Read [CONTEXT.md](CONTEXT.md) to route 
 Use the [development model routing policy](shared/model-routing.md) for role authority, reasoning effort, security, verification, and release boundaries. The [run contract](shared/run-contract.md) defines evidence and status. Do not infer completion from a file's existence or claim a check that was not run.
 
 This workspace is Markdown guidance and reviewable artifacts. It does not execute stages, install tools, modify the portfolio, or authorize merge or deployment by itself. Stay within the task's granted scope and existing repository instructions.
+
+For demo requests, load [demo boundary](shared/demo-boundary.md) and [demo catalog](shared/demo-catalog.md) before handling source material. Apply their public/private evidence separation to every stage and release file. The [demo release checklist](references/demo-release-checklist.md) is a required review gate. Do not copy private source, assets, records, scans, or provenance into this public workspace; access to inspect does not authorize disclosure.

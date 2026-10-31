@@ -14,6 +14,7 @@ Review the integrated change, evidence, and remaining risk under final architect
 | Final policy | [architecture authority](../../shared/model-routing.md#architecture-security-and-final-authority), [verification and acceptance](../../shared/model-routing.md#verification-and-acceptance), [final review and release](../../shared/model-routing.md#final-review-and-release) | Named sections only | Assign final decision and preserve human release approval. |
 | Source context | [source snapshot](../../shared/repo-map.md#source-snapshot), [commands and release](../../shared/repo-map.md#commands-and-release), [evidence rules](../../shared/proof-register.md#evidence-rules) | Named sections only | Check branch reality, release impact, and public claims. |
 | Run rules | [artifact metadata](../../shared/run-contract.md#artifact-metadata), [human edits and stale inputs](../../shared/run-contract.md#human-edits-and-stale-inputs), [status](../../shared/run-contract.md#status), [checkpoints and authority](../../shared/run-contract.md#checkpoints-and-authority) | Named sections only | Keep final judgment tied to current inputs. |
+| Demo runs only | [public/private evidence](../../shared/demo-boundary.md#public-and-private-evidence), [claims and Aki](../../shared/demo-boundary.md#claims-and-aki), [release decision](../../shared/demo-boundary.md#release-decision), [public handoff](../../references/demo-release-checklist.md#public-handoff) | Named sections only | Judge the exact public package and safe visitor claims under final authority. |
 
 ## Process
 
@@ -23,6 +24,8 @@ Review the integrated change, evidence, and remaining risk under final architect
 4. Prepare a PR handoff using the repository's template: visitor problem, authorized scope, acceptance, review findings, evidence, and limits. State compatibility/release order when frontend and Worker both change.
 5. Apply [final review and release policy](../../shared/model-routing.md#final-review-and-release) to separate review readiness from merge/deploy authorization. Record the exact approval still required, or the earlier explicit approval that satisfies it; do not perform a release as part of this stage.
 6. Audit before saving the selected run's [review record](references/artifact-template.md). A blocked review must state the blocking criteria.
+
+For a demo run, final architecture authority reviews the exact proposed public file allowlist, target hash/revision, complete export, sanitized evidence outcomes, browser network results, and fictional visitor labels. Reject inflated metrics, security or legal claims, and private feature parity claims; retain INNERCIRCLE's existing public high-level limit. Keep raw private provenance and scan/HAR findings out of public review artifacts. State whether required export/network gates passed or remain `NOT TESTED`; a local-only failure may be documented privately while independent work continues, but publication readiness remains blocked until required evidence passes. Complete this public-boundary review before any public push or draft PR, then handle merge, main push, deployment, and messages under their applicable authority.
 
 ## Checkpoints
 
@@ -34,6 +37,7 @@ Review the integrated change, evidence, and remaining risk under final architect
 - **Pass** if failures, `NOT TESTED` items, and blockers appear in the handoff; **fail** if readiness implies they passed.
 - **Pass** if the PR description states visitor problem, scope, acceptance, and findings; **fail** if reviewers must reconstruct them from stage history.
 - **Pass** if merge/deploy authorization and actual release status are explicit; **fail** if review completion is treated as release permission.
+- **Demo runs:** Pass if final authority approves the exact reviewed public package and bounded claims on sanitized evidence before publication; fail if material changes, private evidence, or missing export/network gates are hidden by a readiness claim.
 
 ## Outputs
 

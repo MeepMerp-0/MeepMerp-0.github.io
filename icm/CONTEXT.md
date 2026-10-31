@@ -11,5 +11,6 @@ This is a documentation workspace for planning and reviewing a portfolio rework.
 | Implement an approved spec in repository code | [03 Implementation](stages/03-implementation/CONTEXT.md) |
 | Gather test and review evidence | [04 Verification](stages/04-verification/CONTEXT.md) |
 | Decide readiness and next action | [05 Review](stages/05-review/CONTEXT.md) |
+| Build portfolio demos | [demo catalog](shared/demo-catalog.md#source-aliases) and [demo boundary](shared/demo-boundary.md#scope-and-authority), then Stage 01 through Stage 05 for one run; apply the [demo release checklist](references/demo-release-checklist.md#evidence-handling) |
 
 Choose the earliest stage affected by a changed goal, design decision, public claim, or code contract. Follow the [human-edit and stale-input rule](shared/run-contract.md#human-edits-and-stale-inputs) before reusing downstream outputs. A stage artifact is a reviewable handoff, not proof that later work happened.

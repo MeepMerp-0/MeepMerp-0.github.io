@@ -21,6 +21,10 @@ List proposed copy/claims with their proof register citation and affected surfac
 
 State boundaries, data or UI contracts, compatibility requirements, and architectural decisions justified by the behavior. Name decisions needing architecture authority. Avoid selecting a library without a reason and decision.
 
+## Demo contract, when selected
+
+Record catalog aliases and sanitized public evidence IDs, fictional flow and visible label, synthetic fixture schema, local canned adapter boundary, reset/error states, and permission behavior. Identify the intended public file/export allowlist, target build, direct and embedded entry modes, network/CSP policy, navigation/storage/message rules, keyboard/mobile/reduced-motion acceptance, and required evidence for each. Keep exact private provenance outside this artifact. Keep real Aki separate, including transcript review before explicit send and consent/privacy/region behavior. Apply the [demo boundary](../../../shared/demo-boundary.md#runtime-isolation) and [release checklist](../../../references/demo-release-checklist.md#browser-and-interaction-review); leave unresolved architecture decisions blocked.
+
 ## Task plan
 
 | Task ID | Description | Priority | Risk | Model / effort | Dependencies | Owned files | Deliverable | Acceptance | Verification | Status |

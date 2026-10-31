@@ -8,6 +8,7 @@ Use this checklist on a stage handoff and again on the integrated change. Record
 - The artifact has the [required metadata](../shared/run-contract.md#artifact-metadata), accurate state, input revisions, open decisions, and exact evidence or `NOT TESTED` reasons.
 - A human edit to an earlier output has been compared with downstream work and stale items have been rechecked.
 - Links and anchors resolve in the active repository. Source claims cite a path and revision; proposals are labeled.
+- For demo work, private provenance stays in operator-held evidence; public handoffs contain only aliases, safe evidence IDs, and public revision hashes under the [demo boundary](../shared/demo-boundary.md#public-and-private-evidence). This overrides a generic source-path requirement above.
 
 ## Content and disclosure
 
@@ -15,9 +16,11 @@ Use this checklist on a stage handoff and again on the integrated change. Record
 - Project facts, availability, dates, role titles, and metrics come from verified records. INNERCIRCLE stays inside the [public disclosure ceiling](../shared/proof-register.md#innercircle).
 - Aki stays discoverable and functional. Voice transcript review-before-send, consent, privacy, session/region behavior, keyboard/focus/screen-reader access, and mobile usability have explicit acceptance and verification plans when affected.
 - A content change identifies affected site, Aki answer, Worker knowledge/experience, and SEO surfaces; it updates only relevant ones.
+- Demo copy identifies fictional workflows and synthetic data, distinguishes a separate Aki walkthrough from the live widget, and does not expand INNERCIRCLE beyond its existing public summary.
 
 ## Design, implementation, and release
 
 - The spec distinguishes the [confirmed cinematic direction](../shared/design-preferences.md#confirmed-direction) from proposed defaults and resolves exact placement, scene behavior, reduced motion, fallbacks, asset/library choices, and performance criteria before implementation.
 - Verification follows the [existing repository checks](../shared/model-routing.md#verification-and-acceptance) relevant to the change, records exact results, and does not equate a build with live service testing.
 - Final review identifies remaining risks, untested behavior, and release readiness. Merge and deployment follow the [release authority](../shared/model-routing.md#final-review-and-release).
+- Demo review applies the [release checklist](demo-release-checklist.md#evidence-handling) to the entire public changeset, build, and export. A `NOT TESTED` gate blocks public-export readiness.

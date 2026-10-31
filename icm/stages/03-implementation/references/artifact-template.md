@@ -15,7 +15,11 @@ Summarize the implemented journey, selected cinematic behavior and fallbacks, co
 
 ## Checkpoint and developer evidence
 
-Record the build checkpoint, steering, source revision, changed-file list or diff reference, and focused checks actually run with results. Follow [verification policy](../../../shared/model-routing.md#verification-and-acceptance); mark unrun checks `NOT TESTED` with reasons.
+Record the build checkpoint, steering, public target revision, changed-file list or diff reference, and focused checks actually run with results. Follow [verification policy](../../../shared/model-routing.md#verification-and-acceptance); mark unrun checks `NOT TESTED` with reasons.
+
+## Demo public-boundary handoff, when selected
+
+Record the independently authored staging scope, synthetic fixtures/local adapters, reviewed public export allowlist and file manifest, exact target hash/revision, and sanitized public evidence IDs. State the pre-publication source/build/export/history/log review result and whether any public push or draft PR occurred after that review. Keep private source paths, revisions, inspection notes, raw scans, and HAR files outside this artifact and the public checkout. List missing gates as `NOT TESTED` and describe their readiness effect under the [build/export boundary](../../../shared/demo-boundary.md#build-and-export-boundary).
 
 ## Audit and validation handoff
 

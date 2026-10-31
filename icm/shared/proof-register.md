@@ -8,9 +8,19 @@ The current [public portfolio record](../../src/data/portfolioData.js) presents 
 
 Aki is an on-site assistant and a public portfolio project. The [project record](../../src/data/portfolioData.js) and [public notice](../../public/aki-legal.html) are starting evidence for visitor-facing claims; the actual UI, Worker, and tests are required to verify current behavior before changing it. Do not turn configuration caps, listed providers, or a successful build into claims of live availability, cost guarantee, privacy compliance, or end-to-end provider testing.
 
+Keep the real Aki launcher, chat, and edited voice transcript with explicit send. A proposed interactive walkthrough may explain the UI, but must be clearly separate from the live widget and cannot replace or simulate it as proof. Preserve consent, privacy, session, region, keyboard, and mobile behavior under [architecture authority](model-routing.md#architecture-security-and-final-authority).
+
+## Payroll and attendance
+
+Use `payroll-web` and `payroll-mobile` as source aliases only. A proposed public demo is an independently authored fictional workflow with synthetic people, time entries, and amounts. Do not imply it processes actual payroll, calculates statutory obligations correctly, handles live payments, or proves a production system's behavior. A source-access grant does not permit copying source code, screenshots, assets, schemas, data, or private behavior into the portfolio. Follow the [demo boundary](demo-boundary.md#scope-and-authority) and [catalog](demo-catalog.md#payroll-and-attendance).
+
+## FuturoHub
+
+Use `futurohub` as the source alias. A proposed public demo may show a fictional web experience and illustrative local state. It must not submit a real lead, contact a production service, or claim conversion or business outcomes without public evidence. Source inspection informs only bounded design choices; independently author the presentation and content under the [demo boundary](demo-boundary.md#independent-authoring-and-synthetic-data).
+
 ## Evidence rules
 
-- Label a statement **confirmed by user**, **verified in repository**, **observed in test/browser**, **proposal**, or **unverified**. Cite the source path and revision, or record a test artifact and date.
+- Label a statement **confirmed by user**, **verified in repository**, **observed in test/browser**, **proposal**, or **unverified**. Cite a public source path and public revision, or record a safe test artifact and date. For private demo sources, use aliases and safe evidence IDs in public records; hold exact provenance privately under the [evidence tiers](demo-boundary.md#public-and-private-evidence).
 - Do not invent employers, roles, dates, availability, metrics, testimonials, project outcomes, or permission to disclose private work. A public record is the disclosure ceiling, not proof that an external system behaves as described today.
 - Check related surfaces when copy changes: [portfolio data](../../src/data/portfolioData.js), [Aki answers](../../src/data/akiFaq.js), [Worker experience](../../worker/src/experience.js), [Worker knowledge](../../worker/src/knowledge.js), and [SEO metadata](../../index.html). Update only the surfaces affected by the approved change.
 - Mark unexercised behavior `NOT TESTED` with a reason. Report exact checks and limitations under the [run contract](run-contract.md#artifact-metadata).

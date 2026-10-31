@@ -12,6 +12,7 @@ Implement the current authorized specification in bounded tasks and prepare a re
 | Source map | [source snapshot](../../shared/repo-map.md#source-snapshot), [application map](../../shared/repo-map.md#application-map), [commands and release](../../shared/repo-map.md#commands-and-release) | Named sections only | Recheck the active checkout and locate work. |
 | Development policy | [portfolio context](../../shared/model-routing.md#portfolio-context), [implementation role](../../shared/model-routing.md#primary-implementation-workhorse), [orchestration](../../shared/model-routing.md#development-orchestration), [architecture authority](../../shared/model-routing.md#architecture-security-and-final-authority) | Named sections only | Preserve role boundaries, shared-file ownership, and Aki contracts. |
 | Run rules | [artifact metadata](../../shared/run-contract.md#artifact-metadata), [task records](../../shared/run-contract.md#task-records), [human edits and stale inputs](../../shared/run-contract.md#human-edits-and-stale-inputs), [status](../../shared/run-contract.md#status), [checkpoints and authority](../../shared/run-contract.md#checkpoints-and-authority) | Named sections only | Track implementation against the current spec. |
+| Demo runs only | [source inspection](../../shared/demo-boundary.md#source-inspection), [independent authoring](../../shared/demo-boundary.md#independent-authoring-and-synthetic-data), [build/export boundary](../../shared/demo-boundary.md#build-and-export-boundary), [runtime isolation](../../shared/demo-boundary.md#runtime-isolation), [source/build checklist](../../references/demo-release-checklist.md#source-and-build-review) | Named sections only | Keep private inspection apart from public authoring and check the public boundary before publication. |
 
 ## Process
 
@@ -21,6 +22,8 @@ Implement the current authorized specification in bounded tasks and prepare a re
 4. Show a build checkpoint with the working path through the site, cinematic scenes and fallbacks, affected Aki flows, changed files, and gaps. Apply steering within authorized scope.
 5. Review the diff and run focused developer checks appropriate to changed behavior using [verification policy](../../shared/model-routing.md#verification-and-acceptance). Record only checks actually run; Stage 04 owns integrated validation.
 6. Audit before saving the selected run's [implementation handoff](references/artifact-template.md). Leave incomplete tasks draft/blocked with concrete reasons.
+
+For a demo run, inspect authorized sources only in their private context and keep exact provenance and raw findings there. Author anew in isolated staging outside private checkouts from the approved public spec, using synthetic fixtures and local canned adapters; do not clone a private UI and then redact it. Record a reviewed export allowlist, target revision/hash, and changed-file manifest. Review source, diff, build/export, maps, assets, metadata, licenses, history, and logs for private spill before any push or draft PR to a public destination; a public commit itself discloses content. Only the reviewed allowlist may move to that destination. Known local failures can stay in private records while independent work continues, but an unreviewed export or missing required network evidence cannot be called publication-ready.
 
 ## Checkpoints
 
@@ -32,6 +35,7 @@ Implement the current authorized specification in bounded tasks and prepare a re
 - **Pass** if implemented content is evidence-bound and Aki's required flows remain intact; **fail** if either is lost in the redesign.
 - **Pass** if actual revision, diff, and focused check results are recorded; **fail** for claimed but unrun checks or hidden incomplete work.
 - **Pass** if work is reviewable without a release action; **fail** if merge, deploy, or production activity is treated as implementation verification.
+- **Demo runs:** Pass if independently authored files and synthetic adapters match the reviewed manifest and the public-boundary check precedes any public push or draft PR; fail if private material is copied into public history or a gate is treated as passed without evidence.
 
 ## Outputs
 

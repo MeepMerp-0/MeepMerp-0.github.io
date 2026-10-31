@@ -11,10 +11,13 @@ Status: prefilled from confirmed user choices; update only when the user changes
 | Selected visual direction | Premium Cinematic (option D), with selected scroll-driven 3D and pinned scene changes | [Design](../shared/design-preferences.md#confirmed-direction) |
 | Protected capability | Keep Aki discoverable and functional, including privacy, voice review, and access | [Aki preservation](../shared/design-preferences.md#aki-preservation) |
 | Disclosure limit | INNERCIRCLE may use only its existing high-level public summary | [Proof register](../shared/proof-register.md#innercircle) |
+| Demo direction | Four projects are a recommended curation set, with exact order and interactions still proposals | [Demo catalog](../shared/demo-catalog.md#presentation) |
 
 ## Source pointers
 
 Read the [repository map](../shared/repo-map.md#source-snapshot) before asserting current code behavior. The [proof register](../shared/proof-register.md) governs project claims, and the [model routing policy](../shared/model-routing.md) governs development authority. The option D selection is recorded in text; this workspace commits no example image.
+
+Demo sources have a separate [inspection and evidence boundary](../shared/demo-boundary.md#public-and-private-evidence). Public setup records contain only aliases and safe evidence IDs; operator-held mappings and exact private provenance stay outside the public checkout.
 
 ## Remaining decisions
 

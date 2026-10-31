@@ -16,10 +16,12 @@ Recruiters and technical hiring managers need a rapid view of role fit, scope, c
 
 Lead with credible mid-level engineering fit and practical full-stack and AI/business-systems work. Make project summaries scannable for both technical and nontechnical visitors. Emphasize INNERCIRCLE and Aki as proof within their respective disclosure limits. Treat portfolio project technology as evidence of past work, not automatic dependencies for this site's implementation. Any new headline, availability wording, employment claim, or project metric must be checked against [public proof rules](proof-register.md#evidence-rules) and the active [content records](repo-map.md#application-map).
 
+The [four-project demo curation](demo-catalog.md#presentation) is a recommendation: Aki, INNERCIRCLE, payroll/attendance, and FuturoHub. The user requested demos, but project order, interaction details, and depth remain proposals until specified. Keep the primary recruiter path concise and the secondary client/partner paths visible. A fictional demo can illustrate interaction but cannot establish production performance, compliance, or outcomes.
+
 ## Success measures
 
 Use interview conversations as the primary outcome signal over the 90-day window. Useful supporting signals include qualified recruiter/hiring-manager contacts, relevant freelance or partnership inquiries, and whether visitors can find and understand the two lead examples and a contact route. Baselines, numeric targets, attribution, and tracking methods are open; do not invent them. A spec may propose measurable usability and performance acceptance criteria for approval.
 
 ## Open decisions
 
-Specify the exact headline and CTA copy, lead-project order and depth, which public evidence can be linked, and the measurement approach. Resolve any mismatch between this confirmed hiring target and current portfolio availability copy during the content stage, with the affected Aki and SEO surfaces identified. Get permission before widening INNERCIRCLE disclosure.
+Specify the exact headline and CTA copy, lead-project order and depth, which public evidence can be linked, and the measurement approach. Resolve any mismatch between this confirmed hiring target and current portfolio availability copy during the content stage, with the affected Aki and SEO surfaces identified. Get permission before widening INNERCIRCLE disclosure. Where no private mapping is available, propose an independently authored generic public demo and record its limits; do not guess a private source or make a new questionnaire a prerequisite.
