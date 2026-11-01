@@ -7,9 +7,9 @@ export const HERO_PINNED_QUERY = '(min-width: 360px) and (min-height: 560px)';
 // Same condition as the wide layout in global.css: the art is a column beside the copy.
 const WIDE_QUERY = '(min-width: 900px) and (orientation: landscape)';
 const MIN_ART = 180;
-// The stage's vertical padding and row gaps in global.css (40 px on both layouts, counting the cue row's gap on
-// phones), plus a little slack.
-const PADDING = 42;
+// The stage's vertical padding and row gaps in global.css: 48 px on both layouts (phones: 16 px of padding and four 8 px
+// gaps around the cue row; wide: 32 px of padding and two gaps).
+const PADDING = 48;
 const HYSTERESIS = 48;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

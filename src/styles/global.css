@@ -196,7 +196,8 @@ section[id] { scroll-margin-top: 0; }
 /* Wide stages: copy and art side by side, the label plate spanning both underneath. */
 @media (min-width: 900px) and (orientation: landscape) {
   .hero-stage { grid-template-columns: minmax(0, 44fr) minmax(0, 56fr); grid-template-areas: 'copy art' 'labels labels' 'foot foot'; column-gap: clamp(24px, 3vw, 56px); padding-block: clamp(40px, 6vw, 72px) 40px; }
-  .hero[data-mode='pinned'] .hero-stage { grid-template-areas: 'copy art' 'labels labels' 'foot foot'; grid-template-rows: minmax(0, 1fr) auto auto; padding-block: 12px; }
+  .hero[data-mode='pinned'] .hero-stage { grid-template-areas: 'copy art' 'labels labels' 'foot foot'; grid-template-rows: minmax(0, 1fr) auto auto; padding-block: 12px 20px; }
+  /* The pinned stage ends 8 px higher (the 20 px above) so the plate's text clears Aki's greeting bubble, which reaches 84 px up from the viewport's bottom. */
   /* Back to one foot row: the Skip link, then the cue. */
   .hero-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; min-height: 44px; padding-right: 110px; }
   .hero[data-mode='still'] .hero-cue { position: static; }
