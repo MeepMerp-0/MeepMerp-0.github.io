@@ -2,8 +2,8 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 04-verification
 state: READY
-revision: "verification r3; follow-ups tested at e52bd63, reference rebuild at 758f14d, earlier rows at f46c9b1"
-scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
+revision: "verification r5; second-round follow-ups tested at 12ca617, outside-Hero follow-ups at 9ded058, follow-ups at e52bd63, reference rebuild at 758f14d, earlier rows at f46c9b1"
+scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
@@ -109,3 +109,29 @@ Remaining limits:
 | Scripts turned off | Simulated fallback | PASS: visible at once |
 
 The 4 s reveal means that if the app script fails, a visitor waits up to 4 s before the static content shows.
+
+## Outside-Hero follow-up checks (r4)
+
+| Check | Kind | Result |
+| --- | --- | --- |
+| `npm test` (283), `eslint src scripts`, `npm run build` | Command | PASS |
+| Smoke suite | Command | First run FAILED at `9ded058`: a fresh `/#process` load (the deep-link pass) landed about 1980px too high. My own deep-link probe had passed only because it changed the hash in the same document. Fixed in `70cad0a`; rerun PASS. |
+| Aki assembly follows scroll, 1440 × 900 dark (pinned) and 390 × 844 light (strip) | Browser viewport | PASS. Frames at seven approach positions; the pieces land in order, eyes last. Holding still for 1.5 s draws nothing and the pixels do not change. Scrolling back up from INNERCIRCLE gives the same frames (largest difference 1 of 255). A `#work` link lands with the section top at the header and Aki fully assembled. No page errors. |
+| Still blocks at 1440 × 900 dark, 390 × 844 light and 1024 × 768 dark | Browser viewport | PASS. Both blocks pin; steps read 1, 2, 3, 4 going down and 4, 3, 2, 1 going up; the stage's top stays fixed (97 px desktop, 89 px phone). Clicking step 3 from step 1 lands on step 3 at its midpoint. |
+| Reduced motion | Simulated fallback | PASS: both blocks stay unpinned |
+| Deep links `/#process` and `/#contact` | Browser viewport | PASS: the section top lands exactly at the header |
+| Active menu link | Browser viewport | PASS: none in the Hero; Work, About, Process and Contact as each section is read; Contact at the page bottom |
+| Horizontal overflow | Browser viewport | PASS: none at these sizes |
+
+Not tested: real phones (address-bar behaviour was handled in code, with the 100svh probe, but not observed on a device), and resizing or rotating while a still block is above the screen (the page height then changes by about 220svh per block; Chrome's scroll anchoring keeps the reading position, browsers without it may jump).
+
+## Second-round follow-up checks (r5, at `12ca617`)
+
+| Check | Kind | Result |
+| --- | --- | --- |
+| `npm test` (283), `eslint src`, `npm run build` | Command | PASS |
+| Smoke suite | Command | PASS (all checks, including the deep-link pass and the 43 Aki steps) |
+| Responsive matrix: 1920 × 1080, 1440 × 900, 1366 × 657, 1280 × 720, 1024 × 768, 820 × 1180, 768 × 1024, 844 × 390, 412 × 915, 390 × 844, 375 × 667, 360 × 780 and 360 × 640, dark and light | Browser viewport | PASS. Both still blocks pin and step 1, 2, 3, 4 at every size except 844 × 390 (both stay unpinned: the screen is too short) and 360 × 640 (Process stays unpinned). Horizontal overflow 0 at the Hero, Work, both blocks and Contact. Aki's launcher right edge is 0px from the content edge at every size. Neither the launcher nor its greeting bubble covers any text of a pinned block. No page errors. |
+| Aki falls inside its pinned chapter, 1440 × 900 (pinned) and 390 × 844 (strip) | Browser viewport | PASS. The chapter is on screen with no pieces at s = -0.5; the pieces fall in order and have landed by s = -0.1. Scrolling back up gives the same frames (remaining differences only in the reading-progress bar and section text that animates in as it enters). |
+| Fresh `/#work` load | Browser viewport | PASS. The fallback picture never shows; the canvas takes over (`waiting` then `ready` with no fallback in any frame). |
+| Larger capabilities type and Process heading in its block | Browser viewport, reviewed by eye | PASS at 1440 × 900, 1024 × 768, 768 × 1024, 375 × 667 and 1920 × 1080 |

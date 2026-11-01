@@ -2,8 +2,8 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 03-implementation
 state: READY
-revision: "implementation r5; application code at e52bd63"
-scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
+revision: "implementation r7; application code at 12ca617"
+scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
@@ -93,3 +93,23 @@ The page structure, progress, modes, copy and label plate are unchanged.
 | `af489f6` | Sonnet 5.5 | Owner request outside the Hero scope: the Work scene's Aki chapter replays its falling assembly whenever it comes back into view (scrolling up into it from INNERCIRCLE, or down into it from the Hero). The intro resets only when the chapter is fully out of view, so a partly visible chapter never restarts or flashes. Aki's launcher, chat, services and Worker are unchanged. |
 | `7ef9ea7` | Opus 5.5 | The static no-JavaScript Hero in `index.html` painted, unstyled, for a moment on every refresh before React mounted. It is now hidden by CSS and revealed only if it is still in the page after 4 s (the app failed to mount); with scripts turned off a `<noscript>` style shows it at once. |
 | `e52bd63` | Opus 5.5 | A faint cut-off "INTELLIGENCE" label showed at p ≈ 0.6. Inactive labels now fade on the cube of their stage weight, and every label fades out as any corner reaches the canvas edge (from its projected corners, so it stays a pure function of progress and aspect). |
+
+## Owner follow-ups outside the Hero (r6)
+
+The owner asked for three more changes in this run. They sit outside the Hero scope and were made at the owner's request.
+
+| Commit | Model | Change |
+| --- | --- | --- |
+| `82d2bb6` | Sonnet 5.5, with fixes from the Opus 5.5 and Fable 5.1 reviews | **Aki in the Work scene is still, and its assembly follows scroll** ("aki should be a still 3d - scrolling down, the shapes should fall then vice versa when scrolling up"). The timer from `af489f6` is removed. The Work scene coordinate is lowered by up to 1 while the section scrolls in, measured from the section's top, so the pieces fall as Work rises and have landed when Work meets the header, where `#work` links arrive. Scrolling up lifts them out in reverse. Aki's appearance, launcher, chat, services and Worker are unchanged. |
+| `862a06d` | Sonnet 5.5 | **Active menu link.** `useActiveSection` picks the last section whose top has passed a reading line (the header plus 35 % of the rest of the screen), or Contact at the page bottom, and the header marks that link with `aria-current="location"` and its underline. No link is active in the Hero. |
+| `d2c9261` | Sonnet 5.5 | **"What I bring to a team" and Process are still blocks.** A shared `useScrollSteps` hook pins each block's stage under the header while the page scrolls through a track of about 55svh per step; scroll position alone picks step 1 to 4 and scrolling up reverses it. A click or arrow key scrolls to that step. Reduced motion, or a block too tall for the screen, keeps the plain layout with click-only steps. |
+| `9ded058` | Opus 5.5, from the Opus 5.5 and Fable 5.1 reviews | Mode decided in a layout effect so deep links land on the final layout; the screen measured with a 100svh probe so a phone's address bar cannot flip the mode; every step's panel laid out in one cell so the fit does not depend on the step; a second click replaces the first one's hold; arrow keys move from the focused tab; the process detail is not a live region while it follows scroll. The panel cross-fade is now a CSS transition. |
+
+## Owner follow-ups, second round (r7)
+
+| Commit | Model | Change |
+| --- | --- | --- |
+| `70cad0a` | Opus 5.5 | A still block's mode is also set on the element, because React runs pending effects (the initial `#hash` scroll) before it renders state set in a layout effect. A fresh `/#process` load had landed about 220svh too high. |
+| `858b344` | Opus 5.5 | Owner: "make the font larger in what i bring to a team", "process still section should be in here" (heading and steps on one screen), and "make this a still section before aki's shapes fall down". The capabilities type is larger; the Process heading is inside its still block; both blocks are centred under the header. Aki's chapter pins with no pieces showing and the pieces fall over the first part of the chapter (scene -0.5 to -0.1), replacing the fall on the way in from `82d2bb6`. |
+| `3fd35ef` | Opus 5.5, with fixes from the Opus 5.5 and Fable 5.1 reviews | Owner: "make sure that it is responsive for desktop, tablet, and mobile. aki the chatbot should be aligned as well". **Launcher alignment, an owner-approved change to its placement:** Aki's launcher and chat panel sit on the content edge (the `.shell` gutter) instead of 24px from the window edge. Their look, behaviour, chat and services are unchanged. **Fitting on smaller screens:** on tablets and phones a still block is centred above the launcher and counts it in the fit, so pinned text is never under the launcher. Phones get a compact Process (steps in a 2 × 2 grid without summaries), and short phones a tighter scale. The heading inside a still block is more compact, so Process still pins on 1366 × 657 and 1280 × 720 laptops. |
+| `12ca617` | Opus 5.5 | The Work fallback picture, which shows a finished Aki until the 3D scene's first frame, is hidden while Aki's pieces have not fallen yet, so a `#work` deep link no longer flashes a finished Aki that then disappears. |

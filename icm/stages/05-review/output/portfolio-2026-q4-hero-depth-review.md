@@ -2,8 +2,8 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 05-review
 state: READY
-revision: "review r3; reviewed code e52bd63"
-scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
+revision: "review r5; reviewed code 12ca617"
+scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
@@ -72,3 +72,29 @@ The architecture model reviewed the zoom-out, the Aki replay, the refresh fix an
 - **Label fragments:** fixed at the root (a frame-edge fade) rather than by tuning one progress value.
 
 No finding is open. The release handoff above still applies: human approval before merge, and real-device testing still open.
+
+## Outside-Hero follow-ups (r4)
+
+Opus 5.5 and Fable 5.1 reviewed each change independently.
+
+| Change | Findings | Outcome |
+| --- | --- | --- |
+| Scroll-driven Aki | Both: a `#work` link left Aki half-built, because the approach was measured from the chapter track rather than the section. Both: a one-frame jump at the strip-mode boundary on portrait tablets. | Fixed in `82d2bb6`: measured from the section top and subtracted rather than replaced, so the coordinate stays continuous. |
+| Still blocks | Both: the mode was decided after first paint, so deep links to Process and Contact could land in the wrong place. Opus: the phone address bar could pin and unpin a block. Both: the fit depended on which step's panel showed. Smaller: a stale first reading after a mode change, a second click ending the first hold early, arrow keys moving from the selected rather than the focused tab, live announcements on every scrolled step. | All fixed in `9ded058`. Not fixed: no scroll compensation when a block switches mode above the screen (recorded as a limit in Stage 04). |
+| Active menu link | None | — |
+
+No other finding is open.
+
+## Second-round follow-ups (r5)
+
+Opus 5.5 and Fable 5.1 reviewed `858b344` and `70cad0a` independently. The negative scene value only reaches Aki's assembly, the stick line and progress agree, and there is no mode flip.
+
+| Finding | Source | Outcome |
+| --- | --- | --- |
+| The Process heading made the block too tall for short laptops (1366 × 768 with browser bars, 1280 × 720), so it would no longer pin | Both | Fixed in `3fd35ef` (compact heading inside a still block); 1366 × 657 and 1280 × 720 pin |
+| On a `#work` deep link the fallback picture showed a finished Aki, which then disappeared before the fall | Both | Fixed in `12ca617` |
+| A `#work` landing shows the chapter empty until the visitor scrolls | Opus | Kept: this is the "still section before aki's shapes fall down" option the owner chose |
+| Larger capabilities type could stop the block pinning on short phones | Opus | Fixed in `3fd35ef` (phone and short-phone scales); 375 × 667 pins |
+| Launcher and greeting bubble over pinned text on small phones | Found by the responsive matrix | Fixed in `3fd35ef` (space reserved above the launcher) |
+
+No finding is open.
