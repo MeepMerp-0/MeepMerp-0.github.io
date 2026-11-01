@@ -19,25 +19,31 @@
   ];
 
   const RATES = [12, 15, 18]; // sample units per hour
-  const SITES = ['North Gate (fictional)', 'Depot Yard (fictional)', 'Annex Office (fictional)'];
+  const SITES = ['North Gate post (fictional)', 'Depot Yard post (fictional)', 'Annex Lobby post (fictional)'];
 
   const STAFF = [
-    { name: 'Mara', role: 'Site lead', shift: '07:00-15:00' },
-    { name: 'Teo', role: 'Technician', shift: '08:00-16:00' },
-    { name: 'Imani', role: 'Coordinator', shift: '09:00-17:00' },
-    { name: 'Bram', role: 'Technician', shift: '10:00-18:00' },
+    { name: 'Mara', role: 'Shift supervisor', shift: '07:00-15:00' },
+    { name: 'Teo', role: 'Security guard', shift: '07:00-15:00' },
+    { name: 'Imani', role: 'Security guard', shift: '08:00-16:00' },
+    { name: 'Bram', role: 'Security guard', shift: '08:00-16:00' },
   ];
 
+  // The phone flow fills in this day of the sample week (Friday).
+  const TODAY = 4;
+  const RING_M = 50;
+  const STEP_LABELS = ['In range of the post', 'Tap to clock in', 'Face check', 'Logged to the dashboard'];
+
   // Starting state indexes into STATES, one row per person, one column per day.
+  // Friday starts at Absent (0 h): nobody has clocked in yet, so a phone clock-in visibly raises the totals.
   const START_GRID = [
-    [0, 0, 1, 0, 0],
-    [0, 0, 0, 2, 0],
-    [0, 3, 3, 0, 0],
+    [0, 0, 1, 0, 2],
+    [0, 0, 0, 2, 2],
+    [0, 3, 3, 0, 2],
     [1, 0, 0, 0, 2],
   ];
 
-  // Fixed fictional clock: starts at 08:02 and advances by these minute steps per event.
-  const CLOCK_START = 8 * 60 + 2;
+  // Fixed fictional clock: starts at 06:52 and advances by these minute steps per event.
+  const CLOCK_START = 6 * 60 + 52;
   const CLOCK_STEPS = [13, 47, 22, 95, 31, 18];
   const MAX_LOG = 6;
 
@@ -58,14 +64,20 @@
       rate: 1,
       role: 'All',
       slip: 0,
-      checkedIn: false,
+      guard: 0,
       site: 0,
+      inRange: false,
+      clockedIn: false,
+      // 0 out of range, 1 waiting for a tap, 2 face check, 4 logged (every step done).
+      stage: 0,
+      fresh: null,
       events: 0,
       log: [],
     };
   }
 
   let state = freshState();
+  let timer = 0;
   const cells = []; // cells[person][day] -> button
   const rows = []; // rows[person] -> li
 
@@ -74,12 +86,16 @@
   const hoursOf = (p) => state.grid[p].reduce((sum, i) => sum + STATES[i].hours, 0);
   const totalOf = (p) => hoursOf(p) * RATES[state.rate];
 
-  function clockAt(n) {
+  function minutesAt(n) {
     let minutes = CLOCK_START;
     for (let i = 0; i < n; i++) minutes += CLOCK_STEPS[i % CLOCK_STEPS.length];
-    minutes %= 24 * 60;
-    return pad(Math.floor(minutes / 60)) + ':' + pad(minutes % 60);
+    return minutes % (24 * 60);
   }
+  const clockText = (minutes) => pad(Math.floor(minutes / 60)) + ':' + pad(minutes % 60);
+  const shiftStart = (p) => {
+    const [h, m] = STAFF[p].shift.split('-')[0].split(':').map(Number);
+    return h * 60 + m;
+  };
 
   /* ---------- build (once) ---------- */
 
@@ -158,20 +174,63 @@
       state.site = Number($('site').value);
     });
 
-    $('checkin-btn').addEventListener('click', () => {
-      const kind = state.checkedIn ? 'Check-out' : 'Check-in';
-      state.log.unshift({ time: clockAt(state.events), text: kind + ' — ' + SITES[state.site] });
-      state.log.length = Math.min(state.log.length, MAX_LOG);
-      state.events += 1;
-      state.checkedIn = !state.checkedIn;
+    STAFF.forEach((person, i) => {
+      const opt = el('option', '', person.name + ' — ' + person.role);
+      opt.value = String(i);
+      $('guard').appendChild(opt);
+    });
+    $('guard').addEventListener('change', () => {
+      state.guard = Number($('guard').value);
+    });
+
+    $('range-btn').addEventListener('click', () => {
+      state.inRange = !state.inRange;
+      state.stage = state.inRange ? 1 : 0;
       renderCheckin();
     });
 
+    // Tap, then a simulated face check, then the entry is logged and the dashboard updates with no further action.
+    $('tap-btn').addEventListener('click', () => {
+      state.stage = 2;
+      renderCheckin();
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      timer = window.setTimeout(logEntry, still ? 0 : 1200);
+    });
+
     $('reset').addEventListener('click', () => {
+      window.clearTimeout(timer);
       state = freshState();
       renderAll();
       $('live').textContent = 'Demo reset to the initial sample week.';
     });
+  }
+
+  function logEntry() {
+    const p = state.guard;
+    const minutes = minutesAt(state.events);
+    const time = clockText(minutes);
+    const name = STAFF[p].name;
+    const post = SITES[state.site];
+    state.events += 1;
+    let status;
+    if (state.clockedIn) {
+      state.log.unshift({ time, text: 'Clock-out, face matched — ' + name + ', ' + post });
+      status = 'Logged automatically at ' + time + ': ' + name + ' clocked out at ' + post + '.';
+    } else {
+      const st = minutes > shiftStart(p) ? 1 : 0;
+      state.grid[p][TODAY] = st;
+      state.fresh = p;
+      renderCell(p, TODAY);
+      renderSummary(false);
+      renderSlip();
+      state.log.unshift({ time, text: 'Clock-in, face matched — ' + name + ', ' + post });
+      status = 'Logged automatically at ' + time + ': ' + name + ' clocked in at ' + post + '. '
+        + DAYS[TODAY].long + ' marked ' + STATES[st].label + ' on the dashboard and the totals updated.';
+    }
+    state.log.length = Math.min(state.log.length, MAX_LOG);
+    state.clockedIn = !state.clockedIn;
+    state.stage = 4;
+    renderCheckin(status);
   }
 
   /* ---------- render ---------- */
@@ -183,6 +242,7 @@
     btn.setAttribute('aria-label', STAFF[p].name + ', ' + DAYS[d].long + ': ' + st.label + '. Change status');
     btn.querySelector('.cell-label').textContent = st.label;
     btn.querySelector('.cell-hours').textContent = st.hours + ' h';
+    btn.classList.toggle('fresh', d === TODAY && state.fresh === p);
   }
 
   function renderFilter() {
@@ -238,16 +298,41 @@
     });
   }
 
-  function renderCheckin() {
-    $('checkin-btn').textContent = state.checkedIn ? 'Simulate check-out' : 'Simulate check-in';
-    $('site').disabled = state.checkedIn; // site is fixed until the simulated check-out
-    $('checkin-status').textContent = state.checkedIn
-      ? 'Status: simulated check-in at ' + SITES[state.site] + '.'
-      : 'Status: not checked in (simulated).';
+  function renderCheckin(status) {
+    const scanning = state.stage === 2;
+    const action = state.clockedIn ? 'clock out' : 'clock in';
+    // Once logged, the steps describe the action just completed.
+    const stepAction = state.stage === 4 ? (state.clockedIn ? 'clock in' : 'clock out') : action;
+    $('phone').dataset.phase = scanning ? 'scanning' : state.stage === 4 ? 'matched' : state.inRange ? 'ready' : 'out';
+    $('distance').textContent = state.inRange
+      ? 'Distance to post: 18 m, inside the ' + RING_M + ' m ring (simulated)'
+      : 'Distance to post: 140 m, outside the ' + RING_M + ' m ring (simulated)';
+    $('phone-msg').textContent = scanning ? 'Checking face…'
+      : state.stage === 4 ? 'Face matched. Sent to the dashboard.'
+        : state.inRange ? 'In range. Tap to ' + action + '.' : 'Walk into range to ' + action + '.';
+    $('range-btn').textContent = state.inRange ? 'Walk out of range' : 'Walk into range';
+    $('range-btn').disabled = scanning;
+    $('tap-btn').textContent = 'Tap to ' + action;
+    $('tap-btn').disabled = !state.inRange || scanning;
+    // Guard and post stay fixed from the tap until that guard clocks out.
+    $('guard').disabled = scanning || state.clockedIn;
+    $('site').disabled = scanning || state.clockedIn;
+
+    $('steps').querySelectorAll('li').forEach((li, i) => {
+      const done = i < state.stage;
+      li.dataset.state = done ? 'done' : i === state.stage ? 'current' : 'todo';
+      if (i === state.stage) li.setAttribute('aria-current', 'step');
+      else li.removeAttribute('aria-current');
+      li.replaceChildren(i === 1 ? 'Tap to ' + stepAction : STEP_LABELS[i]);
+      if (done) li.append(el('span', 'sr', ' (done)'));
+    });
+
+    $('checkin-status').textContent = status || (scanning ? 'Face check in progress (simulated).'
+      : state.clockedIn ? STAFF[state.guard].name + ' is clocked in (simulated).' : 'Nobody is clocked in (simulated).');
     const log = $('log');
     log.replaceChildren();
     if (!state.log.length) {
-      log.appendChild(el('li', 'empty', 'No events yet. Use the button above.'));
+      log.appendChild(el('li', 'empty', 'No events yet. Walk into range and tap to clock in.'));
       return;
     }
     state.log.forEach((entry) => {
@@ -262,6 +347,7 @@
     $('rate').value = String(state.rate);
     $('slip-person').value = String(state.slip);
     $('site').value = String(state.site);
+    $('guard').value = String(state.guard);
     renderFilter();
     renderSummary(false);
     renderSlip();

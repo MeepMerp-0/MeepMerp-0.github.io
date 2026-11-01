@@ -28,6 +28,7 @@ const AKI = { shell: '#7a4a2a', trim: '#c8a27a', screen: '#17110c', led: '#e8f2f
 // 0 · Aki: the robot's TV head, assembled from pieces that fall into place as the chapter opens (scene -0.5 to 0).
 function buildAki() {
   const g = new Group();
+  g.userData.frame = [4.4, 3.6];
   const body = new Group();
   body.position.y = -0.35;
   g.add(body);
@@ -77,6 +78,7 @@ function buildAki() {
 // dashboard panels. Abstract: no product screens or data are depicted.
 function buildInnerCircle(m) {
   const g = new Group();
+  g.userData.frame = [5.8, 4.0];
   const glow = new MeshBasicMaterial();
   const holo = new MeshBasicMaterial({ transparent: true, opacity: 0.1, side: DoubleSide, depthWrite: false });
   const lines = new LineBasicMaterial({ transparent: true, opacity: 0.7 });
@@ -153,6 +155,7 @@ function buildInnerCircle(m) {
 // the attendance entry travels to the web dashboard by itself. Generic figures: no real person, screen or data.
 function buildTimekeeping(m) {
   const g = new Group();
+  g.userData.frame = [5.4, 2.8];
   // A wide composition: scaled and shifted so the dashboard stays in frame beside the copy.
   const rig = new Group();
   rig.scale.setScalar(0.78);
@@ -282,6 +285,7 @@ function buildTimekeeping(m) {
 // actions fire before the owner is told. Pulses run along the links in order as you scroll. Abstract nodes only.
 function buildWorkflow(m) {
   const g = new Group();
+  g.userData.frame = [5.6, 3.2];
   const glow = new MeshBasicMaterial();
   const graph = new Group();
   graph.rotation.x = -0.42;
@@ -375,7 +379,15 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
     const eased = base + travel;
     // The camera orbits a little as you scroll and dips during a hand-over, for parallax.
     const swing = (c - 1.5) * 0.18;
-    const distance = size.wide ? 10.5 : 12.5 / Math.min(1, Math.max(0.55, size.w / size.h)) ** 0.6;
+    // A wide stage keeps one distance. A narrow stage (phones, the strip band) moves in until the sculpture,
+    // blended between the two being travelled between, just fits, so it fills the band instead of sitting small.
+    const [aw, ah] = groups[base].userData.frame;
+    const [bw, bh] = groups[base + 1].userData.frame;
+    const fw = MathUtils.lerp(aw, bw, travel);
+    const fh = MathUtils.lerp(ah, bh, travel);
+    const tan = Math.tan(MathUtils.degToRad(camera.fov / 2));
+    const fit = 1.15 * Math.max(fh / 2 / tan, fw / 2 / (tan * camera.aspect));
+    const distance = size.wide ? 10.5 : Math.max(6, fit);
     camera.position.set(Math.sin(swing) * distance, 1.6 - Math.sin(travel * Math.PI) * 0.9, Math.cos(swing) * distance);
     camera.lookAt(target);
     // Light colour and strength cross-fade from one chapter's key to the next.
