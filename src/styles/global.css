@@ -150,17 +150,26 @@ section[id] { scroll-margin-top: 0; }
 /* The close-up crops the layers at the art box. A short fade at the box edges, not a scrim, keeps that crop from reading as a hard cut. */
 .hero[data-mode='pinned'] .hero-art { -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 96%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect; }
 .hero[data-art='canvas'] .hero-fallback { display: none; }
-.hero-fa-tile { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 1.5; }
-.hero-fa-request { fill: color-mix(in srgb, var(--hero-copper) 45%, var(--surface-2)); stroke: var(--hero-copper); }
-.hero-fa-rib { fill: var(--surface); stroke: var(--text); stroke-opacity: .55; stroke-width: 2; }
-.hero-fa-shell { fill: none; stroke: var(--hero-copper); stroke-width: 2; }
-.hero-fa-core { fill: var(--signal); }
-.hero-fa-panel { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
-.hero-fa-bar { fill: var(--surface-2); }
-.hero-fa-side, .hero-fa-card { fill: var(--surface-2); }
-.hero-fa-chart { fill: var(--hero-copper); }
-.hero-fa-route { fill: none; stroke: var(--hero-copper); stroke-width: 4; stroke-linecap: round; }
-.hero-fa-signal { fill: var(--signal); stroke: var(--bg); stroke-width: 3; }
+/* The flat art's palette, from the theme tokens: warm charcoal, bronze and champagne in the dark theme; stone, ink and bronze in the light one. */
+.hero { --hero-fa-tile: color-mix(in srgb, var(--text) 16%, var(--surface)); --hero-fa-bronze: color-mix(in srgb, var(--metal-mid) 72%, var(--surface)); --hero-fa-frame: color-mix(in srgb, var(--metal-mid) 80%, var(--text)); --hero-fa-face: color-mix(in srgb, var(--text) 18%, var(--surface)); --hero-fa-facetext: var(--text); --hero-fa-fin-lo: color-mix(in srgb, var(--metal-mid) 62%, var(--bg)); --hero-fa-fin-hi: color-mix(in srgb, var(--metal-hi) 80%, var(--metal-mid)); --hero-fa-line: color-mix(in srgb, var(--text) 78%, var(--surface)); --hero-fa-line-dim: color-mix(in srgb, var(--text) 32%, var(--surface)); }
+[data-theme='light'] .hero { --hero-fa-tile: color-mix(in srgb, var(--text) 62%, var(--surface)); --hero-fa-bronze: var(--metal-mid); --hero-fa-frame: var(--metal-mid); --hero-fa-face: color-mix(in srgb, var(--text) 78%, var(--surface)); --hero-fa-facetext: var(--surface); --hero-fa-fin-lo: var(--metal-mid); --hero-fa-fin-hi: var(--metal-lo); --hero-fa-line: color-mix(in srgb, var(--text) 70%, var(--surface)); --hero-fa-line-dim: color-mix(in srgb, var(--text) 28%, var(--surface)); }
+.hero-fa-stop-lo { stop-color: var(--hero-fa-fin-lo); }
+.hero-fa-stop-hi { stop-color: var(--hero-fa-fin-hi); }
+.hero-fa-stop-route { stop-color: var(--hero-copper); }
+.hero-fa-panel { fill: var(--surface); stroke: var(--hero-fa-frame); stroke-width: 1.5; }
+.hero-fa-tile { fill: var(--hero-fa-tile); }
+.hero-fa-request { fill: var(--hero-fa-bronze); }
+.hero-fa-fins { fill: none; stroke-width: 36; }
+.hero-fa-ring { fill: none; stroke: var(--hero-fa-frame); stroke-width: 1; }
+.hero-fa-spokes { fill: none; stroke: var(--hero-fa-frame); stroke-width: 1; stroke-opacity: .8; }
+.hero-fa-rim { fill: var(--hero-fa-bronze); stroke: var(--hero-fa-frame); stroke-width: 1; stroke-linejoin: round; }
+.hero-fa-face { fill: var(--hero-fa-face); }
+.hero-fa-ai { fill: var(--hero-fa-facetext); font: 800 31px/1 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+.hero-fa-text { fill: var(--muted); font: 700 9px/1 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: .1em; }
+.hero-fa-line { fill: none; stroke: var(--hero-fa-line); stroke-width: 2; }
+.hero-fa-line-dim { fill: none; stroke: var(--hero-fa-line-dim); stroke-width: 1.2; }
+.hero-fa-route { fill: none; stroke-width: 6; stroke-linecap: round; }
+.hero-fa-signal { fill: var(--signal); stroke: var(--hero-copper); stroke-width: 2; }
 /* Stage labels: a solid plate outside the canvas, so they stay readable over any frame. */
 .hero-labels { grid-area: labels; min-width: 0; padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
 .hero-labels-body { position: relative; padding-left: 22px; }
@@ -195,7 +204,7 @@ section[id] { scroll-margin-top: 0; }
 .hero[data-mode='still'] .hero-cue { position: absolute; }
 /* Wide stages: copy and art side by side, the label plate spanning both underneath. */
 @media (min-width: 900px) and (orientation: landscape) {
-  .hero-stage { grid-template-columns: minmax(0, 44fr) minmax(0, 56fr); grid-template-areas: 'copy art' 'labels labels' 'foot foot'; column-gap: clamp(24px, 3vw, 56px); padding-block: clamp(40px, 6vw, 72px) 40px; }
+  .hero-stage { grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); grid-template-areas: 'copy art' 'labels labels' 'foot foot'; column-gap: clamp(24px, 3vw, 56px); padding-block: clamp(40px, 6vw, 72px) 40px; }
   .hero[data-mode='pinned'] .hero-stage { grid-template-areas: 'copy art' 'labels labels' 'foot foot'; grid-template-rows: minmax(0, 1fr) auto auto; padding-block: 12px 20px; }
   /* The pinned stage ends 8 px higher (the 20 px above) so the plate's text clears Aki's greeting bubble, which reaches 84 px up from the viewport's bottom. */
   /* Back to one foot row: the Skip link, then the cue. */
