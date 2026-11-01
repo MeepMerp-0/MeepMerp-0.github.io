@@ -127,7 +127,7 @@ section[id] { scroll-margin-top: 0; }
 .hero-probe { position: fixed; top: 0; left: 0; width: 0; height: 100vh; height: 100svh; visibility: hidden; pointer-events: none; }
 .hero[data-mode='pinned'] .hero-track { height: 230vh; height: 230svh; }
 .hero-stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'art' 'labels' 'foot'; gap: 24px; padding-block: 32px 40px; }
-.hero[data-mode='pinned'] .hero-stage { position: sticky; top: var(--header-h, 72px); height: calc(100vh - var(--header-h, 72px)); height: calc(100svh - var(--header-h, 72px)); grid-template-rows: auto minmax(180px, 1fr) auto auto; gap: 10px; padding-block: 12px; }
+.hero[data-mode='pinned'] .hero-stage { position: sticky; top: var(--header-h, 72px); height: calc(100vh - var(--header-h, 72px)); height: calc(100svh - var(--header-h, 72px)); grid-template-rows: auto minmax(180px, 1fr) auto auto; gap: 8px; padding-block: 8px; }
 .hero-copy { grid-area: copy; align-self: start; min-width: 0; }
 .hero-eyebrow { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 22px; }
 .hero h1 { margin: 0; font: 400 clamp(38px, min(11.5vw, 7svh), 56px)/1.02 var(--font-display); letter-spacing: -.035em; transform: translateY(var(--hero-lift)); }
@@ -136,7 +136,10 @@ section[id] { scroll-margin-top: 0; }
 /* The accent line warms as progress rises: a wide gradient slid by --hero-accent. Every stop is readable as large type. */
 .hero h1 .hero-line-accent { width: fit-content; max-width: 100%; font-style: italic; background-image: linear-gradient(100deg, var(--metal-hi) 0%, var(--signal) 50%, var(--metal-mid) 100%); background-size: 200% 100%; background-position: calc(var(--hero-accent) * 100%) 50%; -webkit-background-clip: text; background-clip: text; color: transparent; }
 [data-theme='light'] .hero h1 .hero-line-accent { background-image: linear-gradient(100deg, var(--signal) 0%, var(--metal-lo) 60%, #5a3b12 100%); }
-.hero-lead { max-width: 520px; margin: 18px 0 22px; font-size: 16px; line-height: 1.55; color: var(--muted); }
+.hero-lead { max-width: 520px; margin: 18px 0 14px; font-size: 16px; line-height: 1.55; color: var(--muted); }
+.hero-focus { display: flex; flex-wrap: wrap; gap: 4px 16px; max-width: 520px; margin: 0 0 18px; padding: 0; list-style: none; font: 500 12px/1.45 var(--font-mono); letter-spacing: .01em; color: var(--muted); }
+.hero-focus li { display: inline-flex; align-items: baseline; gap: 7px; }
+.hero-focus li::before { content: ''; flex: none; width: 8px; height: 2px; transform: translateY(-3px); background: var(--hero-copper); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-availability { max-width: 480px; margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
 /* The art: the canvas and the inline art share the box, and data-art says which one shows. */
@@ -157,12 +160,14 @@ section[id] { scroll-margin-top: 0; }
 .hero-fa-route { fill: none; stroke: var(--hero-copper); stroke-width: 4; stroke-linecap: round; }
 .hero-fa-signal { fill: var(--signal); stroke: var(--bg); stroke-width: 3; }
 /* Stage labels: a solid plate outside the canvas, so they stay readable over any frame. */
-.hero-labels { grid-area: labels; min-width: 0; padding: 12px 104px 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+.hero-labels { grid-area: labels; min-width: 0; padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
 .hero-labels-body { position: relative; padding-left: 22px; }
 .hero-stages { display: grid; grid-auto-rows: 1fr; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .hero-stages li { --w: var(--hero-w0); display: grid; align-content: center; gap: 2px; min-width: 0; }
 .hero-stages li:nth-child(2) { --w: var(--hero-w1); }
 .hero-stages li:nth-child(3) { --w: var(--hero-w2); }
+/* Aki's fixed launcher covers the bottom-right 110 px, and only the last row reaches it, so only that row keeps clear. */
+.hero-stages li:last-child { padding-right: 100px; }
 .hero[data-mode='still'] .hero-stages li { --w: 1; }
 .hero-stage-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 22px; }
 .hero-stage-num { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; color: var(--muted); }
@@ -192,6 +197,8 @@ section[id] { scroll-margin-top: 0; }
   .hero-lead { font-size: clamp(16px, min(1.45vw, 2.6svh), 19px); }
   .hero[data-mode='still'] .hero-art { aspect-ratio: auto; max-height: none; min-height: 380px; }
   /* Three columns under a horizontal rail instead of three rows beside a vertical one. */
+  .hero-labels { padding: 12px 104px 12px 16px; }
+  .hero-stages li:last-child { padding-right: 0; }
   .hero-labels-body { padding: 20px 0 0; }
   .hero-stages { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-auto-rows: auto; gap: 24px; }
   .hero-rail { left: 16.667%; right: 16.667%; top: 0; bottom: auto; width: auto; height: 2px; }
@@ -203,9 +210,22 @@ section[id] { scroll-margin-top: 0; }
   .hero-labels { padding-right: 24px; }
 }
 @media (max-width: 560px) {
-  .hero-eyebrow { font-size: 11px; letter-spacing: .1em; margin-bottom: 16px; }
-  /* Natural-width buttons, stacked, so the fixed Aki launcher at bottom right never covers them. */
-  .hero-actions { flex-direction: column; align-items: flex-start; }
+  .hero-eyebrow { font-size: 11px; letter-spacing: .1em; margin-bottom: 10px; }
+  .hero h1 { font-size: clamp(34px, min(9.8vw, 6svh), 56px); }
+  .hero-lead { margin: 10px 0 10px; font-size: 15px; line-height: 1.45; }
+  /* The focus list runs on as wrapped text, with a copper slash between items, to save two lines. */
+  .hero-focus { display: block; margin: 0 0 12px; font-size: 11px; line-height: 1.5; }
+  .hero-focus li { display: inline; }
+  .hero-focus li::before { content: none; }
+  .hero-focus li:not(:last-child)::after { content: '/'; margin: 0 .6em; color: var(--hero-copper); }
+  .hero-availability { margin-top: 10px; font-size: 13px; line-height: 1.4; }
+  .hero-stage-desc { font-size: 12.5px; line-height: 1.35; }
+  .hero-stages { gap: 6px; }
+  .hero-stage-head { min-height: 20px; }
+  /* Skip link and cue share one row beside Aki's launcher: the row is 248 px wide at 390 px. */
+  .hero-foot { column-gap: 10px; }
+  .hero-skip { padding: 0; font-size: 13px; }
+  .hero-cue { gap: 6px; font-size: 10.5px; letter-spacing: .04em; }
 }
 
 /* Section framework */

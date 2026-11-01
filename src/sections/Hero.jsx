@@ -97,6 +97,9 @@ export function Hero({ theme }) {
               ))}
             </h1>
             <p className="hero-lead">{HERO.lead}</p>
+            <ul className="hero-focus" aria-label="What I build">
+              {HERO.focus.map((item) => <li key={item}>{item}</li>)}
+            </ul>
             <div className="hero-actions">
               <a className="button button-solid" href="#work">View Work <ArrowRight size={18} aria-hidden="true" /></a>
               <a className="button button-ghost" href="#contact">Contact</a>
