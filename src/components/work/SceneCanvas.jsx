@@ -30,8 +30,12 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
         unsubscribe = store.subscribe((value) => scene.setScene(value));
         resizeObserver = new ResizeObserver(() => scene.resize());
         resizeObserver.observe(canvas);
-        // Tells the scene when the canvas is really on screen, so Aki's one-time assembly plays where it is seen.
-        visibility = new IntersectionObserver(([entry]) => scene.setInView(entry.isIntersecting), { threshold: 0.4 });
+        // Tells the scene when the canvas is really on screen, so Aki's assembly plays where it is seen, and when
+        // it is fully off screen (ratio 0), so the assembly can reset out of sight and replay on return.
+        visibility = new IntersectionObserver(([entry]) => {
+          scene.setInView(entry.intersectionRatio >= 0.4);
+          if (entry.intersectionRatio === 0) scene.resetIntro();
+        }, { threshold: [0, 0.4] });
         visibility.observe(canvas);
         setStatus('ready');
       } catch {

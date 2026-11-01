@@ -478,7 +478,10 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
   let s = 0;
   let themeName = theme;
   let palette = studio.setTheme(theme);
-  // Aki's one-time assembly: starts the first time the canvas is on screen with Aki showing, then plays on a timer.
+  // Aki's assembly: starts when the canvas is on screen with Aki showing, then plays on a timer. It replays each
+  // time Aki has been fully out of view, either because the canvas left the screen (resetIntro) or because the
+  // scene coordinate moved past Aki so its group is hidden (the c check in render). Both reset while Aki cannot
+  // be seen, so the replay is the only thing a visitor notices. While Aki is visible nothing resets.
   const INTRO_MS = 1600;
   let inView = false;
   let introStart = null;
@@ -517,7 +520,8 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
     key.color.copy(keyColor);
     rim.intensity = palette.rimPower * (0.8 + 0.4 * Math.sin(f * Math.PI));
 
-    if (introStart === null && inView && c < 0.98) introStart = performance.now();
+    if (c >= 0.98) introStart = null;
+    else if (introStart === null && inView) introStart = performance.now();
     ctx.theme = themeName;
     ctx.intro = introStart === null ? 0 : Math.min(1, (performance.now() - introStart) / INTRO_MS);
     groups.forEach((group, i) => {
@@ -552,6 +556,8 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
     setScene(value) { if (value !== s) { s = value; request(); } },
     setTheme(name) { themeName = name; palette = studio.setTheme(name); request(); },
     setInView(value) { if (value !== inView) { inView = value; request(); } },
+    // Rewinds the assembly. It draws once so the pieces are already hidden when the canvas comes back into view.
+    resetIntro() { if (introStart !== null) { introStart = null; request(); } },
     resize,
     // Renders the current state now; the caller uses it to know the first frame has been drawn.
     renderNow: render,
