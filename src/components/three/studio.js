@@ -84,7 +84,8 @@ export function createStudio(canvas, { compact = false, onLost } = {}) {
     palette: () => palette,
     dispose() {
       canvas.removeEventListener('webglcontextlost', lost);
-      scene.traverse((o) => { o.geometry?.dispose(); });
+      // Scenes add their own materials beside the shared set, so dispose whatever the meshes use.
+      scene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
       Object.values(m).forEach((material) => material.dispose());
       scene.environment?.dispose();
       pmrem.dispose();
