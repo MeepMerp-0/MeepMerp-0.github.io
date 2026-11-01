@@ -11,7 +11,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createStudio, tones } from '../three/studio.js';
-import { CORE, HERO_FOV, ROUTE_CORE, SIGNAL, cameraAt, clamp01, ease, signalAt, stageWeights } from './heroMotion.js';
+import { CORE, HERO_FOV, ROUTE_CORE, SIGNAL, ZOOM_END, cameraAt, clamp01, ease, signalAt, stageWeights } from './heroMotion.js';
 
 // Fixed pseudo-random numbers in [0, 1), so a scroll position always draws the same frame.
 const hash = (i, k) => {
@@ -404,8 +404,9 @@ function build(studio, theme) {
       material.emissiveIntensity = base + gain * w[i];
     }));
     // All three labels read at the overview. Once the camera moves in, only the active stage's label stays, so labels
-    // of layers leaving the frame never show as cut-off fragments.
-    const away = ease(SIGNAL.start, 0.3, p);
+    // of layers leaving the frame never show as cut-off fragments. The closing zoom-out brings the full view back, so
+    // the others return while the camera pulls back and are all in place when it settles.
+    const away = ease(SIGNAL.start, 0.27, p) * (1 - ease(SIGNAL.end + 0.04, ZOOM_END, p));
     labels.forEach((label, i) => { label.material.opacity = (0.72 + 0.28 * w[i]) * (1 - away) + w[i] * away; });
     t.spoke.opacity = 0.7 + 0.3 * w[1];
     paint(current, w);
