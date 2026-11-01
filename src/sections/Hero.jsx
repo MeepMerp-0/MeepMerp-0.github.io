@@ -1,125 +1,139 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
+import { HeroFallbackArt } from '../components/hero/HeroFallbackArt.jsx';
 import { HERO } from '../data/siteCopy.js';
-import { EASE_OUT } from '../utils/motion.js';
-import { useMedia } from '../hooks/useWorkProgress.js';
+import { useHeroProgress } from '../hooks/useHeroProgress.js';
+import { webglAvailable } from '../hooks/useWorkProgress.js';
 
 // Three.js starts only after the page has loaded and the browser is idle, so it never delays the copy or actions.
+// Returns a function that cancels the wait.
 const whenIdle = (fn) => {
-  const go = () => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: 1500 }) : window.setTimeout(fn, 200));
-  if (document.readyState === 'complete') return go();
-  window.addEventListener('load', go, { once: true });
-  return undefined;
+  let cancel = () => {};
+  const go = () => {
+    if (window.requestIdleCallback) {
+      const id = window.requestIdleCallback(fn, { timeout: 1500 });
+      cancel = () => window.cancelIdleCallback(id);
+    } else {
+      const id = window.setTimeout(fn, 200);
+      cancel = () => window.clearTimeout(id);
+    }
+  };
+  if (document.readyState === 'complete') {
+    go();
+  } else {
+    window.addEventListener('load', go, { once: true });
+    cancel = () => window.removeEventListener('load', go);
+  }
+  return () => cancel();
 };
 
-// The sculpture is decorative. The CSS version is the placeholder until the Three.js frame is drawn, and stays
-// if WebGL is missing or fails. Scroll turns the 3D version slightly while the Hero is on screen; offscreen it
-// stops listening, and with reduced motion it draws one still frame.
-function HeroSculpture({ theme }) {
-  // Live, unlike motion's useReducedMotion, so switching the setting rebuilds the scene as a still frame.
-  const reduceMotion = useMedia('(prefers-reduced-motion: reduce)');
-  const boxRef = useRef(null);
+// One element tree in both modes: only data-mode and data-art change, so a mode flip never remounts the canvas.
+// Pinned: a tall track with a sticky stage whose scene, labels and type follow scroll progress. Still: ordinary flow
+// with one frame at progress 0. The inline art shows until the first WebGL frame and whenever WebGL fails or is lost.
+export function Hero({ theme }) {
+  const { heroRef, trackRef, stageRef, copyRef, labelsRef, footRef, probeRef, mode, active, store } = useHeroProgress();
+  const [art, setArt] = useState('svg');
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
-  const [status, setStatus] = useState('waiting');
 
+  // The scene is created once. Theme and progress reach it through setTheme and the store, never a remount.
   useEffect(() => {
-    const box = boxRef.current;
+    if (!webglAvailable()) return undefined;
     const canvas = canvasRef.current;
     let cancelled = false;
-    let frame = 0;
-    let visible = true;
+    let scene;
+    let unsubscribe;
     let resizeObserver;
-    let io;
 
-    const progress = () => {
-      frame = 0;
-      const hero = box.closest('.hero').getBoundingClientRect();
-      sceneRef.current?.setProgress(Math.min(1, Math.max(0, -hero.top / Math.max(1, hero.height))));
-    };
-    const onScroll = () => { if (visible && !frame) frame = requestAnimationFrame(progress); };
-
-    whenIdle(async () => {
+    const cancelIdle = whenIdle(async () => {
       try {
         const { createHeroScene } = await import('../components/hero/heroScene.js');
         if (cancelled) return;
-        const scene = createHeroScene(canvas, { theme: document.documentElement.dataset.theme, onLost: () => setStatus('failed') });
+        scene = createHeroScene(canvas, { theme: document.documentElement.dataset.theme, onLost: () => setArt('svg') });
         sceneRef.current = scene;
-        if (!reduceMotion) progress();
-        scene.renderNow();
+        scene.setProgress(store.get());
+        unsubscribe = store.subscribe(scene.setProgress);
         resizeObserver = new ResizeObserver(() => scene.resize());
         resizeObserver.observe(canvas);
-        if (!reduceMotion) {
-          io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) onScroll(); });
-          io.observe(box);
-          window.addEventListener('scroll', onScroll, { passive: true });
-        }
-        setStatus('ready');
+        scene.renderNow();
+        setArt('canvas');
       } catch {
-        if (!cancelled) setStatus('failed');
+        // Only the art changes. The layout mode stays, so a late failure cannot collapse the track under the visitor.
+        unsubscribe?.();
+        resizeObserver?.disconnect();
+        scene?.dispose();
+        sceneRef.current = null;
+        scene = undefined;
+        if (!cancelled) setArt('svg');
       }
     });
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', onScroll);
-      io?.disconnect();
+      cancelIdle();
+      unsubscribe?.();
       resizeObserver?.disconnect();
-      sceneRef.current?.dispose();
+      scene?.dispose();
       sceneRef.current = null;
     };
-  }, [reduceMotion]);
+  }, [store]);
 
   useEffect(() => { sceneRef.current?.setTheme(theme); }, [theme]);
 
-  return (
-    <div className="hero-art" aria-hidden="true" data-status={status} ref={boxRef}>
-      <div className="hero-art-rig">
-        <span className="hero-ring hero-ring-outer" />
-        <span className="hero-slab hero-slab-back" />
-        <span className="hero-slab hero-slab-front" />
-        <span className="hero-ring hero-ring-inner" />
-        <span className="hero-orb" />
-      </div>
-      <span className="hero-floor" />
-      <canvas ref={canvasRef} className="hero-canvas" hidden={status === 'failed'} />
-    </div>
-  );
-}
-
-export function Hero({ theme }) {
-  const reduceMotion = useReducedMotion();
-  const rise = (delay) => (reduceMotion ? {} : {
-    // Position only, never opacity: the copy is readable from the first frame.
-    initial: { y: 18 },
-    animate: { y: 0 },
-    transition: { duration: 0.7, delay, ease: EASE_OUT },
-  });
+  const pinned = mode === 'pinned';
 
   return (
-    <section className="hero" id="home" aria-labelledby="hero-title">
-      <div className="shell hero-grid">
-        <div className="hero-copy">
-          <p className="eyebrow hero-eyebrow"><span className="status-dot" aria-hidden="true" />{HERO.eyebrow} · {HERO.location}</p>
-          <motion.h1 id="hero-title" {...rise(0.05)}>
-            {HERO.headline.map((line, i) => <span key={line} className={i === 1 ? 'hero-line-accent' : undefined}>{line}</span>)}
-          </motion.h1>
-          <motion.p className="hero-lead" {...rise(0.15)}>{HERO.lead}</motion.p>
-          <motion.div className="hero-actions" {...rise(0.22)}>
-            <a className="button button-solid" href="#work">View Work <ArrowRight size={18} aria-hidden="true" /></a>
-            <a className="button button-ghost" href="#contact">Contact</a>
-          </motion.div>
-          <p className="hero-availability">{HERO.availability}</p>
+    <section ref={heroRef} className="hero" id="home" aria-labelledby="hero-title" data-mode={mode} data-art={art}>
+      <span ref={probeRef} className="hero-probe" aria-hidden="true" />
+      <div ref={trackRef} className="hero-track">
+        <div ref={stageRef} className="hero-stage shell">
+          <div ref={copyRef} className="hero-copy">
+            <p className="eyebrow hero-eyebrow">
+              <span className="status-dot" aria-hidden="true" />{HERO.eyebrow} · {HERO.location}
+            </p>
+            <h1 id="hero-title">
+              {HERO.headline.map((line, i) => (
+                <span key={line} className={i === 1 ? 'hero-line-accent' : undefined}>{line}</span>
+              ))}
+            </h1>
+            <p className="hero-lead">{HERO.lead}</p>
+            <div className="hero-actions">
+              <a className="button button-solid" href="#work">View Work <ArrowRight size={18} aria-hidden="true" /></a>
+              <a className="button button-ghost" href="#contact">Contact</a>
+            </div>
+            <p className="hero-availability">{HERO.availability}</p>
+          </div>
+          <div className="hero-art" aria-hidden="true">
+            <HeroFallbackArt />
+            <canvas ref={canvasRef} className="hero-canvas" />
+          </div>
+          <div ref={labelsRef} className="hero-labels">
+            <div className="hero-labels-body">
+              <div className="hero-rail" aria-hidden="true">
+                <span className="hero-rail-fill" />
+                <span className="hero-rail-mark" />
+              </div>
+              <ol className="hero-stages" aria-label="From inputs to impact">
+                {HERO.stages.map(({ name, description }, i) => (
+                  <li key={name} aria-current={pinned && i === active ? 'step' : undefined}>
+                    <span className="hero-stage-head">
+                      <span className="hero-stage-num">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="hero-stage-name">{name}</span>
+                      {pinned && i === active && (
+                        <span className="hero-now"><span className="hero-now-shape" aria-hidden="true" />Now</span>
+                      )}
+                    </span>
+                    <span className="hero-stage-desc">{description}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          <div ref={footRef} className="hero-foot">
+            <a className="hero-skip" href="#work">Skip to Work</a>
+            <span className="hero-cue"><ArrowDown size={14} aria-hidden="true" />Scroll to explore</span>
+          </div>
         </div>
-        <HeroSculpture theme={theme} />
-      </div>
-      <div className="shell hero-foot">
-        <ul className="hero-focus" aria-label="What I build">
-          {HERO.focus.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-        <a className="hero-scroll" href="#work">Selected work <ArrowDown size={16} aria-hidden="true" /></a>
       </div>
     </section>
   );
