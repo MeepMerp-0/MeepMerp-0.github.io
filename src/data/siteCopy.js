@@ -30,13 +30,13 @@ export const ABOUT = {
     {
       id: 'fullstack',
       label: 'Full-stack apps & MVPs',
-      body: 'Web and mobile applications from data model to interface: Next.js, React and React Native, Laravel and Livewire, with Supabase or SQL databases underneath.',
-      evidence: 'Timekeeping, Payroll & Attendance; FuturoHub; this portfolio',
+      body: 'Web and mobile applications from data model to interface: React and React Native with Node.js and PostgreSQL, Next.js with Supabase, and Laravel with Livewire and MySQL.',
+      evidence: 'Timekeeping, Payroll & Attendance; INNERCIRCLE (current work); ERP-style admin dashboard at CliqueHA',
     },
     {
       id: 'agents',
       label: 'AI agents & automation',
-      body: 'Multi-agent workflows with LangGraph.js and n8n, where the model can draft and route work but scoped access and human approval decide what happens.',
+      body: 'Multi-agent workflows with LangGraph.js and n8n, where the model can draft and route work but scoped access and human approval decide what happens. Aki adds a portfolio assistant on Cloudflare Workers with provider fallbacks.',
       evidence: 'INNERCIRCLE (current work); Aki',
     },
     {
