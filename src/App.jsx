@@ -22,7 +22,7 @@ export function App() {
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main id="content">
         <Hero />
-        <Work />
+        <Work theme={theme} />
         <About />
         <Process />
         <Contact />

@@ -1,26 +1,49 @@
-import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import { PortfolioWorkflow } from '../components/PortfolioWorkflow.jsx';
+import { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { SectionIntro } from '../components/SectionIntro.jsx';
+import { PROCESS_STEPS } from '../data/siteCopy.js';
+import { twoDigits } from '../utils/format.js';
+import { EASE_OUT } from '../utils/motion.js';
 
 export function Process() {
   const reduceMotion = useReducedMotion();
-  const processRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: processRef,
-    offset: ['start end', 'end start'],
-  });
-  const sectionProgress = useTransform(scrollYProgress, [0.15, 0.75], [0, 1]);
+  const [selected, setSelected] = useState(0);
+  const active = PROCESS_STEPS[selected];
 
   return (
-    <section ref={processRef} className="page-section process-section" id="process" aria-labelledby="process-title">
+    <section className="page-section process-section" id="process" aria-labelledby="process-title">
       <div className="shell">
-        <SectionIntro titleId="process-title" entrance="static" number="03" eyebrow="THE PROCESS" title="Small loops. Real evidence." subtitle="A repeatable approach to shipping improvements without introducing layers of unnecessary complexity." />
-        <div className="process-scroll-track" aria-hidden="true">
-          <motion.div className="process-scroll-fill" style={{ scaleX: reduceMotion ? 1 : sectionProgress }} />
+        <SectionIntro titleId="process-title" number="03" eyebrow="PROCESS" title="Four steps, written down."
+          subtitle="How I take work from a loose request to something a team can rely on. A working approach, not a guarantee." />
+        <div className="process">
+          <ol className="process-steps">
+            {PROCESS_STEPS.map((step, index) => (
+              <li key={step.id}>
+                <button type="button" className="process-step" aria-pressed={index === selected}
+                  aria-controls="process-detail" onClick={() => setSelected(index)}>
+                  <span className="process-num">{twoDigits(index + 1)}</span>
+                  <span className="process-label">{step.label}</span>
+                  <span className="process-summary">{step.summary}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <div className="process-detail" id="process-detail" aria-live="polite">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div key={active.id} className="process-detail-inner"
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}>
+                <h3>{twoDigits(selected + 1)} · {active.label}</h3>
+                <dl>
+                  <div><dt>Focus</dt><dd>{active.focus}</dd></div>
+                  <div><dt>Expected output</dt><dd>{active.output}</dd></div>
+                </dl>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-        <PortfolioWorkflow />
-        <p className="process-note">These are documented roles and checkpoints, not a claim that autonomous agents run in the background. The final decision stays with a person.</p>
       </div>
     </section>
   );

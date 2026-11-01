@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Opening the menu focuses its first link; Escape closes it and returns focus to the menu button.
+// Opening the menu focuses its first link; Escape closes it and returns focus to the menu button; a tap outside
+// the menu closes it without moving focus.
 export function useMobileMenu() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
@@ -16,8 +17,15 @@ export function useMobileMenu() {
         buttonRef.current?.focus();
       }
     };
+    const handleOutside = (event) => {
+      if (!navRef.current?.contains(event.target) && !buttonRef.current?.contains(event.target)) setOpen(false);
+    };
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    document.addEventListener('pointerdown', handleOutside);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('pointerdown', handleOutside);
+    };
   }, [open]);
 
   const toggle = () => setOpen((isOpen) => !isOpen);

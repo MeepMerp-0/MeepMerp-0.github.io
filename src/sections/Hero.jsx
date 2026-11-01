@@ -1,62 +1,55 @@
-import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import { ArrowDownRight, ArrowRight } from 'lucide-react';
-import { NoteEntries } from '../components/NoteEntries.jsx';
-import { FOCUS_AREAS, LATEST_ROLE, PERSONAL } from '../data/portfolioData.js';
-import { twoDigits } from '../utils/format.js';
+import { motion, useReducedMotion } from 'motion/react';
+import { ArrowDown, ArrowRight } from 'lucide-react';
+import { HERO } from '../data/siteCopy.js';
 import { EASE_OUT } from '../utils/motion.js';
+
+// The sculpture is CSS only and decorative: the copy and both actions render first and never wait on it.
+function HeroSculpture() {
+  return (
+    <div className="hero-art" aria-hidden="true">
+      <div className="hero-art-rig">
+        <span className="hero-ring hero-ring-outer" />
+        <span className="hero-slab hero-slab-back" />
+        <span className="hero-slab hero-slab-front" />
+        <span className="hero-ring hero-ring-inner" />
+        <span className="hero-orb" />
+      </div>
+      <span className="hero-floor" />
+    </div>
+  );
+}
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
+  const rise = (delay) => (reduceMotion ? {} : {
+    // Position only, never opacity: the copy is readable from the first frame.
+    initial: { y: 18 },
+    animate: { y: 0 },
+    transition: { duration: 0.7, delay, ease: EASE_OUT },
   });
-  const noteParallaxY = useTransform(scrollYProgress, [0, 1], [0, -16]);
 
   return (
-    <section ref={heroRef} className="hero shell" id="home" aria-labelledby="hero-title">
-      <div className="hero-topline">
-        <span><span className="status-dot" aria-hidden="true" /> {PERSONAL.title.toUpperCase()} / ABU DHABI, UAE</span>
-        <span>PORTFOLIO — 2026</span>
-      </div>
-      <div className="hero-grid">
+    <section className="hero" id="home" aria-labelledby="hero-title">
+      <div className="shell hero-grid">
         <div className="hero-copy">
-          <p className="eyebrow hero-eyebrow">HELLO, I'M JASON.</p>
-          <motion.h1
-            id="hero-title"
-            initial={reduceMotion ? false : { y: 16 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.65, delay: 0.08, ease: EASE_OUT }}
-          >I build<br /><em>AI systems</em> and<br />full-stack apps<span className="period">.</span></motion.h1>
-          <motion.p
-            className="hero-description"
-            initial={reduceMotion ? false : { y: 10 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.55, delay: 0.17, ease: EASE_OUT }}
-          >{PERSONAL.headline}</motion.p>
-          <div className="hero-actions">
-            <a className="button button-solid" href="#work">Explore selected work <ArrowRight size={18} aria-hidden="true" /></a>
-          </div>
+          <p className="eyebrow hero-eyebrow"><span className="status-dot" aria-hidden="true" />{HERO.eyebrow} · {HERO.location}</p>
+          <motion.h1 id="hero-title" {...rise(0.05)}>
+            {HERO.headline.map((line, i) => <span key={line} className={i === 1 ? 'hero-line-accent' : undefined}>{line}</span>)}
+          </motion.h1>
+          <motion.p className="hero-lead" {...rise(0.15)}>{HERO.lead}</motion.p>
+          <motion.div className="hero-actions" {...rise(0.22)}>
+            <a className="button button-solid" href="#work">View Work <ArrowRight size={18} aria-hidden="true" /></a>
+            <a className="button button-ghost" href="#contact">Start a conversation</a>
+          </motion.div>
+          <p className="hero-availability">{HERO.availability}</p>
         </div>
-        <motion.aside
-          className="hero-notes"
-          aria-label="Areas of work"
-          style={{ y: reduceMotion ? 0 : noteParallaxY }}
-        >
-          <div className="notes-heading"><span>FIELD NOTES</span><span>{twoDigits(FOCUS_AREAS.length)} NOTES</span></div>
-          <p className="notes-title">What I work on</p>
-          <NoteEntries entries={FOCUS_AREAS} />
-          <div className="notes-foot">
-            <span className="notes-foot-label">LATEST ROLE</span>
-            <span>{LATEST_ROLE.role} · {LATEST_ROLE.company}</span>
-          </div>
-        </motion.aside>
+        <HeroSculpture />
       </div>
-      <div className="hero-bottomline">
-        <span>SELECTED PROJECTS AND EXPERIENCE, NOT A TEMPLATE SHOWCASE</span>
-        <a href="#work">SCROLL TO WORK <ArrowDownRight size={17} aria-hidden="true" /></a>
+      <div className="shell hero-foot">
+        <ul className="hero-focus" aria-label="What I build">
+          {HERO.focus.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+        <a className="hero-scroll" href="#work">Selected work <ArrowDown size={16} aria-hidden="true" /></a>
       </div>
     </section>
   );

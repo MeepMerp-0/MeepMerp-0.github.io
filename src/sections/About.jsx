@@ -1,61 +1,87 @@
-import { motion } from 'motion/react';
-import { ArrowUpRight } from 'lucide-react';
-import { NoteEntries } from '../components/NoteEntries.jsx';
+import { useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Reveal } from '../components/Reveal.jsx';
 import { SectionIntro } from '../components/SectionIntro.jsx';
-import {
-  ABOUT_STORY, AVAILABILITY, EMAIL_URL, LATEST_ROLE, SKILL_GROUPS, WHATSAPP_URL,
-} from '../data/portfolioData.js';
+import { ABOUT } from '../data/siteCopy.js';
+import { EASE_OUT } from '../utils/motion.js';
 
-const AT_A_GLANCE = [
-  { title: 'Full-time role', description: AVAILABILITY.fullTime },
-  { title: 'Freelance', description: AVAILABILITY.freelance },
-  { title: 'Latest role', description: `${LATEST_ROLE.role} · ${LATEST_ROLE.company}` },
-  { title: 'Based in', description: 'Abu Dhabi, UAE' },
-];
+// Tabs with roving focus (arrow keys, Home, End). Every capability name stays visible, so the section reads
+// without interaction; selecting one only adds its detail.
+function Capabilities() {
+  const reduceMotion = useReducedMotion();
+  const [selected, setSelected] = useState(0);
+  const tabs = useRef([]);
+  const active = ABOUT.capabilities[selected];
+  const count = ABOUT.capabilities.length;
+
+  const onKeyDown = (event) => {
+    const moves = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+    let next;
+    if (event.key in moves) next = (selected + moves[event.key] + count) % count;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = count - 1;
+    else return;
+    event.preventDefault();
+    setSelected(next);
+    tabs.current[next]?.focus();
+  };
+
+  return (
+    <div className="capabilities">
+      <h3 className="capabilities-title">What I bring to a team</h3>
+      <div className="capabilities-tabs" role="tablist" aria-label="Capabilities" onKeyDown={onKeyDown}>
+        {ABOUT.capabilities.map((item, index) => (
+          <button key={item.id} ref={(el) => { tabs.current[index] = el; }} type="button" role="tab"
+            id={`cap-tab-${item.id}`} aria-controls="cap-panel" aria-selected={index === selected}
+            tabIndex={index === selected ? 0 : -1} className="capabilities-tab" onClick={() => setSelected(index)}>
+            <span className="capabilities-num" aria-hidden="true">0{index + 1}</span>{item.label}
+          </button>
+        ))}
+      </div>
+      <div className="capabilities-panel" id="cap-panel" role="tabpanel" aria-labelledby={`cap-tab-${active.id}`}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={active.id}
+            initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
+            transition={{ duration: 0.25, ease: EASE_OUT }}>
+            <p>{active.body}</p>
+            <p className="capabilities-evidence"><span>Evidence</span> {active.evidence}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
 
 export function About() {
   return (
-    <section className="page-section about-section-redesign" id="about" aria-labelledby="about-title">
+    <section className="page-section about-section" id="about" aria-labelledby="about-title">
       <div className="shell">
-        <SectionIntro titleId="about-title" entrance="rise" number="02" eyebrow="BACKGROUND" title="Engineer first. Tools second." subtitle="I work across the stack because most useful problems don't stop neatly at the frontend." />
+        <SectionIntro titleId="about-title" number="02" eyebrow="ABOUT" title={ABOUT.title} />
         <div className="about-layout">
-          <Reveal className="about-story" from={{ x: -18 }} amount={0.17} duration={0.58}>
-            <h3>A little about me.</h3>
-            {ABOUT_STORY.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          <Reveal className="about-story" from={{ y: 16 }} amount={0.2} duration={0.6}>
+            {ABOUT.intro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            <dl className="about-facts">
+              {ABOUT.arrangements.map((fact) => (
+                <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
+              ))}
+            </dl>
           </Reveal>
-          <Reveal
-            as={motion.aside}
-            className="hero-notes about-card"
-            aria-label="Availability at a glance"
-            from={{ x: 18 }}
-            amount={0.14}
-            duration={0.62}
-            delay={0.06}
-          >
-            <div className="notes-heading"><span>AT A GLANCE</span><span><span className="status-dot" aria-hidden="true" /> OPEN TO WORK</span></div>
-            <p className="notes-title">What I'm looking for</p>
-            <NoteEntries entries={AT_A_GLANCE} />
-            <div className="notes-foot">
-              <span className="notes-foot-label">LET'S TALK</span>
-              <span className="about-card-links">
-                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp (opens in a new tab)">WhatsApp <ArrowUpRight size={13} aria-hidden="true" /></a>
-                <a href={EMAIL_URL}>Email <ArrowUpRight size={13} aria-hidden="true" /></a>
-              </span>
-            </div>
+          <Reveal as={motion.aside} className="about-timeline" aria-labelledby="experience-title" from={{ y: 22 }} amount={0.15} duration={0.65} delay={0.05}>
+            <h3 id="experience-title">Experience</h3>
+            <ol>
+              {ABOUT.experience.map((item) => (
+                <li key={`${item.company}-${item.role}`}>
+                  <span className="about-period">{item.period}</span>
+                  <strong>{item.role}</strong>
+                  <span className="about-company">{item.company}</span>
+                </li>
+              ))}
+            </ol>
           </Reveal>
         </div>
-        <Reveal className="capabilities" from={{ y: 12 }} amount={0.16} duration={0.6}>
-          <div className="capabilities-lead">CURRENT TOOLKIT <span>SELECTED, NOT EXHAUSTIVE</span></div>
-          <div className="capabilities-grid">
-            {SKILL_GROUPS.map((group) => (
-              <div className="capabilities-group" key={group.label}>
-                <h4>{group.label}</h4>
-                <p>{group.items.join(' / ')}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+        <Capabilities />
       </div>
     </section>
   );

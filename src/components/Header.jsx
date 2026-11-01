@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ArrowUpRight, Menu, Moon, Sun, X } from 'lucide-react';
 import { PERSONAL, WHATSAPP_URL } from '../data/portfolioData.js';
 import { useMobileMenu } from '../hooks/useMobileMenu.js';
@@ -11,9 +12,19 @@ const NAV_LINKS = [
 
 export function Header({ theme, onToggleTheme }) {
   const { open, toggle, close, buttonRef, navRef } = useMobileMenu();
+  const headerRef = useRef(null);
+
+  // Anchors (scroll-padding-top) and the pinned Work stage sit exactly below the header, whatever its height.
+  useEffect(() => {
+    const header = headerRef.current;
+    const measure = () => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <header className="site-header">
+    <header ref={headerRef} className="site-header">
       <div className="header-inner shell">
         <a className="wordmark" href="#home" onClick={close} aria-label="Jason Selerio, back to top">
           <span className="wordmark-symbol" aria-hidden="true">js<span>.</span></span>
@@ -24,7 +35,8 @@ export function Header({ theme, onToggleTheme }) {
         </nav>
         <div className="header-actions">
           <button className="icon-button theme-button" type="button" onClick={onToggleTheme}
-            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            title={theme === 'dark' ? 'Light theme' : 'Dark theme'}>
             {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
           </button>
           <a className="header-cta" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="Let's talk on WhatsApp (opens in a new tab)">Let's talk <ArrowUpRight size={15} aria-hidden="true" /></a>
