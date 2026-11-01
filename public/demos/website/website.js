@@ -85,7 +85,8 @@ byId('send').addEventListener('click', send);
 toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true', false));
 
 nav.addEventListener('click', (e) => {
-  if (e.target.closest('a') && head.classList.contains('is-open')) setMenu(false, true);
+  // A chosen section takes the reading position; focus is not pulled back to the Menu button.
+  if (e.target.closest('a') && head.classList.contains('is-open')) setMenu(false, false);
 });
 
 document.addEventListener('keydown', (e) => {

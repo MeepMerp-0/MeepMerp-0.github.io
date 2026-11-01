@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { useReducedMotion } from 'motion/react';
 import { ArrowDown } from 'lucide-react';
 import { DemoDialog } from '../components/work/DemoDialog.jsx';
 import { Emblem } from '../components/work/Emblem.jsx';
@@ -16,21 +15,14 @@ const COUNT = WORK_SCENES.length;
 // - pinned: the stage sticks under the header while the page scrolls through a tall track; scroll position drives
 //   the Three.js scene and which project panel shows. After the last chapter the stage scrolls away into About.
 // - strip: articles flow normally under a short sticky 3D band that follows the article being read.
-// - static (reduced motion or a short screen): articles flow with still emblems and no canvas.
+// - static (reduced motion, no WebGL, or a short screen): articles flow with still emblems and no canvas.
 export function Work({ theme }) {
-  const reduceMotion = useReducedMotion();
-  const mode = useWorkMode(reduceMotion);
+  const mode = useWorkMode();
   const trackRef = useRef(null);
   const stageRef = useRef(null);
   const articleRefs = useRef([]);
   const [demo, setDemo] = useState(null);
-  const { active, setActive, store, chapterTop } = useWorkProgress({ mode, count: COUNT, trackRef, stageRef, articleRefs });
-
-  const goToChapter = (index) => {
-    setActive(index);
-    const top = chapterTop(index);
-    if (top !== null) window.scrollTo({ top, behavior: 'smooth' });
-  };
+  const { active, store, goToChapter } = useWorkProgress({ mode, count: COUNT, trackRef, stageRef, articleRefs });
 
   const openDemo = (project) => setDemo(project.demo);
 
@@ -38,7 +30,7 @@ export function Work({ theme }) {
     <div className="shell work-head">
       <SectionIntro titleId="work-title" number="01" eyebrow="SELECTED WORK" title="Four projects, in depth."
         subtitle="An AI assistant, current company work, a business system across web and mobile, and client web delivery." />
-      <a className="work-skip" href="#about">Skip the project scenes <ArrowDown size={15} aria-hidden="true" /></a>
+      <a className="work-skip" href="#about">Skip to About <ArrowDown size={15} aria-hidden="true" /></a>
     </div>
   );
 

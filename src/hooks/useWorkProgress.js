@@ -1,7 +1,7 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-// Pinned needs room for the stage and its copy; strip needs room for a canvas band above flowing articles.
-const PINNED_QUERY = '(min-width: 900px) and (min-height: 640px)';
+// Pinned needs a landscape stage, so the sculpture sits beside the copy rather than behind it; strip needs room for a canvas band above flowing articles.
+const PINNED_QUERY = '(min-width: 900px) and (min-height: 640px) and (min-aspect-ratio: 6/5)';
 const STRIP_QUERY = '(min-height: 500px)';
 
 function useMedia(query) {
@@ -15,11 +15,29 @@ function useMedia(query) {
   );
 }
 
+// Whether this browser can create a WebGL context at all (checked once, then released).
+let webgl;
+function webglAvailable() {
+  if (webgl === undefined) {
+    try {
+      const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+      webgl = Boolean(gl);
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      webgl = false;
+    }
+  }
+  return webgl;
+}
+
 // 'pinned' (sticky stage), 'strip' (sticky canvas band over flowing articles) or 'static' (flow, no canvas).
-export function useWorkMode(reduceMotion) {
+// Reduced motion and missing WebGL both get ordinary flow. The media queries are live, so changing the
+// reduced-motion setting mid-visit switches the layout without a reload.
+export function useWorkMode() {
+  const reduceMotion = useMedia('(prefers-reduced-motion: reduce)');
   const pinned = useMedia(PINNED_QUERY);
   const strip = useMedia(STRIP_QUERY);
-  if (reduceMotion) return 'static';
+  if (reduceMotion || !webglAvailable()) return 'static';
   if (pinned) return 'pinned';
   return strip ? 'strip' : 'static';
 }
@@ -47,6 +65,10 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }) {
   const [active, setActive] = useState(0);
   const [store] = useState(createSceneStore);
+  // While a chapter button's smooth scroll is under way, the chosen chapter stays active instead of flicking
+  // through (and announcing) the chapters in between.
+  const jump = useRef(null);
+  const remeasure = useRef(() => {});
 
   useEffect(() => {
     if (mode === 'static') return undefined;
@@ -77,10 +99,15 @@ export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }
         chapter = index;
         scene = clamp(index + (mid - r.top) / Math.max(1, r.height) - 0.5, 0, count - 1);
       }
+      if (jump.current !== null) {
+        if (chapter !== jump.current) { store.set(scene); return; }
+        jump.current = null;
+      }
       setActive(chapter);
       store.set(scene);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    remeasure.current = schedule;
 
     // On mount too: a #work deep link or restored scroll position lands mid-track before any scroll event.
     measure();
@@ -106,5 +133,24 @@ export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }
     return start + ((index + 0.5) / count) * (track.offsetHeight - stage.offsetHeight);
   };
 
-  return { active, setActive, store, chapterTop };
+  // Chapter buttons: show the chosen chapter at once and smooth-scroll to its midpoint. The hold ends when the
+  // scroll settles, or after 1.5 s if the visitor takes over.
+  const goToChapter = (index) => {
+    setActive(index);
+    const top = chapterTop(index);
+    if (top === null) return;
+    jump.current = index;
+    let timer = 0;
+    const release = () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('scrollend', release);
+      jump.current = null;
+      remeasure.current();
+    };
+    timer = window.setTimeout(release, 1500);
+    window.addEventListener('scrollend', release);
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+
+  return { active, store, goToChapter };
 }

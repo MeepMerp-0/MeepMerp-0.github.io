@@ -3,9 +3,12 @@ import { AKI_ENABLED } from '../../services/akiClient.js';
 import { twoDigits } from '../../utils/format.js';
 
 // Opens the real assistant through its own launcher, exactly as a click on the robot would.
+// Uses Aki's own launcher, so the assistant behaves exactly as when the robot is clicked. If the panel is
+// already open, focus moves to it instead.
 function openAki() {
   const launcher = document.querySelector('.aki-launcher');
   if (launcher && launcher.getAttribute('aria-expanded') !== 'true') launcher.click();
+  else document.getElementById('aki-panel')?.focus();
 }
 
 function ExternalLink({ href, label }) {
@@ -32,7 +35,7 @@ export function ProjectPanel({ project, index, total, onDemo, className = '', hi
           <dt>Approach</dt>
           <dd><ul className="project-approach">{project.approach.map((item) => <li key={item}>{item}</li>)}</ul></dd>
         </div>
-        <div><dt>Result</dt><dd>{project.result}</dd></div>
+        <div><dt>Result</dt><dd>{project.resultWithoutAki && !AKI_ENABLED ? project.resultWithoutAki : project.result}</dd></div>
       </dl>
       <ul className="project-tech" aria-label="Technologies">
         {project.tech.map((tech) => <li key={tech}>{tech}</li>)}

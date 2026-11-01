@@ -25,7 +25,7 @@ export function DemoDialog({ demo, onClose }) {
               <p className="demo-note">{demo.note}</p>
             </div>
             <div className="demo-tools">
-              <a className="project-link" href={demo.src} target="_blank" rel="noopener noreferrer" aria-label="Open the demo on its own page (opens in a new tab)">
+              <a className="project-link" href={demo.src} target="_blank" rel="noopener noreferrer" aria-label="Standalone: open the demo on its own page (opens in a new tab)">
                 Standalone <ArrowUpRight size={14} aria-hidden="true" />
               </a>
               <button type="button" className="icon-button" aria-label="Close demo" onClick={() => ref.current.close()}>
