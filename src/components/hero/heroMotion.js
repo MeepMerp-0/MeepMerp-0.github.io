@@ -49,12 +49,24 @@ export function typeAt(p) {
   return { lift: -16 * ease(0, 1, p), accent: ease(0.15, 0.95, p) };
 }
 
-// Camera keyframes: a wide overview of all three layers, a close view of the core (about 6.7 from it), then an end view
-// that opens out and leans toward Application. The projection test keeps all three framed at p = 0 and 1.
+// A camera pose from the point it looks at: distance, elevation above the ground plane and azimuth (positive is to the
+// right of straight-on), the last two in degrees.
+const orbit = (target, distance, elevation, azimuth) => {
+  const el = (elevation * Math.PI) / 180;
+  const az = (azimuth * Math.PI) / 180;
+  return {
+    position: [target[0] + distance * Math.cos(el) * Math.sin(az), target[1] + distance * Math.sin(el),
+      target[2] + distance * Math.cos(el) * Math.cos(az)],
+    target,
+  };
+};
+
+// Camera keyframes: a raised overview of all three layers, a close view of the core (about 6.6 from it), then an end
+// view that leans toward Application and keeps the core beside it. The projection test keeps them framed.
 const KEYS = [
-  { position: [1.2, 3.8, 11.8], target: [-0.4, 0.3, -2] },
+  orbit([-1.4, -0.1, -1.8], 12.8, 42, -26),
   { position: [1.2, 2.0, 3.3], target: CORE },
-  { position: [4, 3, 15.6], target: [2.05, 0.3, -1.6] },
+  orbit([1.9, 0.4, -2], 7.8, 22, 6),
 ];
 
 // Canvas aspect at and above which the overview fits without stepping back.
