@@ -21,7 +21,7 @@ export function App() {
       <a className="skip-link" href="#content">Skip to content</a>
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main id="content">
-        <Hero />
+        <Hero theme={theme} />
         <Work theme={theme} />
         <About />
         <Process />

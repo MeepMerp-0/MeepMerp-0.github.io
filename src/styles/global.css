@@ -147,6 +147,11 @@ section[id] { scroll-margin-top: 0; }
 .hero-slab-front { width: 24%; height: 66%; transform: translate(-6%, -50%) rotateY(-26deg) translateZ(50px); background: linear-gradient(115deg, var(--metal-lo) 0%, var(--metal-hi) 32%, var(--metal-mid) 48%, var(--metal-lo) 74%, var(--metal-mid) 100%); box-shadow: 0 40px 80px -30px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.18); }
 .hero-orb { position: absolute; width: 14%; aspect-ratio: 1; left: 62%; top: 18%; border-radius: 50%; transform: translateZ(90px); background: radial-gradient(circle at 32% 28%, var(--metal-hi), var(--metal-mid) 45%, var(--metal-lo) 100%); box-shadow: 0 18px 40px -12px rgba(0,0,0,.5); }
 .hero-floor { position: absolute; left: 10%; right: 10%; bottom: 4%; height: 14%; border-radius: 50%; background: radial-gradient(closest-side, var(--glow), transparent); }
+/* The Three.js sculpture fades in over the CSS placeholder once its first frame is drawn; the placeholder stays if WebGL fails. */
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .6s var(--ease); }
+.hero-art-rig, .hero-floor { transition: opacity .6s var(--ease); }
+.hero-art[data-status='ready'] .hero-canvas { opacity: 1; }
+.hero-art[data-status='ready'] .hero-art-rig, .hero-art[data-status='ready'] .hero-floor { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
     .hero-art-rig { animation: hero-turn linear both; animation-timeline: scroll(root); animation-range: 0 90vh; }
