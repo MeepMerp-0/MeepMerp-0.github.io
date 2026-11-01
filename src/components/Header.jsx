@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ArrowUpRight, Menu, Moon, Sun, X } from 'lucide-react';
 import { PERSONAL, WHATSAPP_URL } from '../data/portfolioData.js';
+import { useActiveSection } from '../hooks/useActiveSection.js';
 import { useMobileMenu } from '../hooks/useMobileMenu.js';
 
 const NAV_LINKS = [
@@ -9,8 +10,10 @@ const NAV_LINKS = [
   { href: '#process', label: 'Process' },
   { href: '#contact', label: 'Contact' },
 ];
+const SECTION_IDS = NAV_LINKS.map(({ href }) => href.slice(1));
 
 export function Header({ theme, onToggleTheme }) {
+  const active = useActiveSection(SECTION_IDS);
   const { open, toggle, close, buttonRef, navRef } = useMobileMenu();
   const headerRef = useRef(null);
 
@@ -31,7 +34,7 @@ export function Header({ theme, onToggleTheme }) {
           <span className="wordmark-text">JASON SELERIO <small>{PERSONAL.title.toUpperCase()}</small></span>
         </a>
         <nav ref={navRef} className={`site-nav${open ? ' site-nav--open' : ''}`} id="main-navigation" aria-label="Main navigation">
-          {NAV_LINKS.map(({ href, label }) => <a key={href} href={href} onClick={close}>{label}</a>)}
+          {NAV_LINKS.map(({ href, label }) => <a key={href} href={href} onClick={close} aria-current={href === `#${active}` ? 'location' : undefined}>{label}</a>)}
         </nav>
         <div className="header-actions">
           <button className="icon-button theme-button" type="button" onClick={onToggleTheme}
