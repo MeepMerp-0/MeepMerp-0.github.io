@@ -39,10 +39,13 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
       // only on the screen. The screen height is 100svh from the probe rather than innerHeight, which changes as a
       // phone's address bar hides. The 32px of slack before leaving stops a stage just over the limit flickering.
       const screen = track.querySelector('.steps-probe')?.offsetHeight || window.innerHeight;
-      const room = screen - header - stageHeight - 48;
-      // The stage sticks centred in the space under the header, at least 24px below it. Progress is read from the
-      // same line, so step 1 starts as the stage sticks.
-      stick.current = header + Math.max(24, (screen - header - stageHeight) / 2);
+      // Where Aki's launcher sits over the content (tablets and phones) the CSS reserves its height at the bottom,
+      // so a pinned stage never sits under it.
+      const reserve = parseFloat(getComputedStyle(track).getPropertyValue('--steps-reserve')) || 0;
+      const room = screen - header - stageHeight - Math.max(48, reserve + 24);
+      // The stage sticks centred in the space between the header and the reserve, at least 24px below the header.
+      // Progress is read from the same line, so step 1 starts as the stage sticks.
+      stick.current = header + Math.max(24, (screen - header - reserve - stageHeight) / 2);
       track.style.setProperty('--stick-top', `${stick.current}px`);
       const fits = !reduce.matches && room >= (pinnedNow.current ? -32 : 0);
       track.style.setProperty('--stage-h', `${stageHeight}px`);

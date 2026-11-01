@@ -59,7 +59,10 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
   return (
     <div className="scene" data-status={status}>
       <canvas ref={canvasRef} className="scene-canvas" aria-hidden="true" hidden={status === 'failed'} />
-      {status !== 'ready' && <div className="scene-fallback"><Emblem id={fallbackId} /></div>}
+      {/* Until the first frame the emblem stands in, except while Aki's pieces have not fallen yet: showing it whole
+          there would flash a finished Aki that then disappears. */}
+      {status !== 'ready' && !(status === 'waiting' && store.get() < -0.1)
+        && <div className="scene-fallback"><Emblem id={fallbackId} /></div>}
     </div>
   );
 }

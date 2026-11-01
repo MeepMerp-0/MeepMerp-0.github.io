@@ -358,7 +358,11 @@ section[id] { scroll-margin-top: 0; }
 .steps-track[data-pinned='true'] .steps-stage { position: sticky; top: var(--stick-top, calc(var(--header-h, 72px) + 24px)); }
 /* Measures 100svh, the screen height with the browser bars shown, so the fit does not change as a phone's
    address bar hides and shows. */
-.steps-track { position: relative; }
+.steps-track { position: relative; --steps-reserve: 0px; }
+/* A heading inside a still block is more compact, so the block fits on short laptop screens too. */
+.steps-stage .section-intro { margin-bottom: clamp(20px, 3vh, 36px); }
+.steps-stage .section-intro h2 { font-size: clamp(32px, 3.8vw, 56px); }
+.steps-stage .section-intro p { margin-top: 10px; font-size: 16px; }
 .steps-probe { position: absolute; top: 0; width: 0; height: 100svh; visibility: hidden; pointer-events: none; }
 /* Step panes share one grid cell; only the active one shows, with a short cross-fade. */
 .steps-panes { display: grid; }
@@ -447,6 +451,7 @@ section[id] { scroll-margin-top: 0; }
 }
 @media (max-width: 1050px) {
   .shell { width: min(100% - 64px, 1296px); }
+  :root { --shell-gutter: 32px; }
   .section-intro { grid-template-columns: 130px 1fr; }
   .capabilities-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-panel { width: min(520px, 54%); }
@@ -462,6 +467,8 @@ section[id] { scroll-margin-top: 0; }
   .about-layout, .contact-grid, .process { grid-template-columns: 1fr; }
   .section-intro { grid-template-columns: 1fr; gap: 10px; }
   .section-intro-label { padding-top: 0; }
+  /* Aki's launcher (72px, 24px from the bottom) overlaps the content column here. */
+  .steps-track { --steps-reserve: 96px; }
 }
 @media (max-width: 560px) {
   .shell { width: min(100% - 32px, 1296px); }
@@ -481,7 +488,24 @@ section[id] { scroll-margin-top: 0; }
   .about-facts { grid-template-columns: 1fr; }
   .about-timeline { padding: 20px; }
   .capabilities-tabs { grid-template-columns: 1fr; }
-  .capabilities-tab { min-height: 56px; flex-direction: row; align-items: center; gap: 12px; }
+  .capabilities-tab { min-height: 52px; padding: 12px 16px; flex-direction: row; align-items: center; gap: 12px; font-size: 16px; }
+  .capabilities-title { font-size: 30px; margin-bottom: 16px; }
+  .capabilities-panel { padding: 20px; }
+  .capabilities-panel p { font-size: 16px; }
+  /* Phones: the four steps sit in a 2 x 2 grid without their summaries, so the heading, steps and detail fit
+     one screen and the block can stay still. */
+  .process { gap: 12px; }
+  .process-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .process-step { min-height: 52px; padding: 10px 12px; grid-template-columns: 30px minmax(0, 1fr); column-gap: 8px; }
+  .process-step:hover { transform: none; }
+  .process-num { font-size: 20px; }
+  .process-label { font-size: 15px; align-self: center; }
+  .process-summary { display: none; }
+  .process-detail { min-height: 0; padding: 20px; }
+  .process-detail h3 { margin-bottom: 12px; font-size: 26px; }
+  .process-detail dl { gap: 12px; }
+  .process-detail dd { font-size: 15px; line-height: 1.5; }
+
   .form-two { grid-template-columns: 1fr; gap: 0; }
   .footer-inner { flex-direction: column; align-items: flex-start; gap: 6px; }
   .demo-dialog { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
@@ -489,13 +513,29 @@ section[id] { scroll-margin-top: 0; }
   .demo-head h2 { font-size: 18px; }
   .demo-note { display: none; }
 }
+/* Short phones (such as 375 x 667): a tighter scale so each still block fits above Aki's launcher. */
+@media (max-width: 560px) and (max-height: 700px) {
+  .steps-stage .section-intro h2 { font-size: 28px; }
+  .steps-stage .section-intro p { font-size: 14px; line-height: 1.45; }
+  .capabilities-title { font-size: 24px; margin-bottom: 10px; }
+  .capabilities-tabs { gap: 6px; }
+  .capabilities-tab { min-height: 44px; padding: 8px 12px; font-size: 15px; }
+  .capabilities-panel { margin-top: 8px; padding: 14px 16px; }
+  .capabilities-panel p { font-size: 15px; line-height: 1.45; }
+  .capabilities-panel .capabilities-evidence { margin-top: 8px; font-size: 13px; }
+  .process-step { min-height: 44px; padding: 8px 10px; }
+  .process-detail { padding: 14px 16px; }
+  .process-detail h3 { margin-bottom: 8px; font-size: 22px; }
+  .process-detail dd { font-size: 14px; line-height: 1.45; }
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
 /* Aki assistant: fixed above the header (100) and reading progress (120), below the skip link (900). */
-.aki { position: fixed; z-index: 250; right: 24px; bottom: 24px; }
+/* The launcher and panel line up with the page's content edge (the .shell gutter), not the window edge. */
+.aki { position: fixed; z-index: 250; right: max(var(--shell-gutter, 48px), calc((100% - 1296px) / 2)); bottom: 24px; }
 .aki-launcher { display: block; width: 72px; height: 72px; padding: 0; background: none; border: 0; border-radius: 0; line-height: 0; overflow: visible; cursor: pointer; }
 .aki-launcher canvas { display: block; }
 .aki-bubble { position: absolute; right: 84px; bottom: 14px; display: flex; flex-direction: column; gap: 1px; width: max-content; max-width: calc(100vw - 140px); padding: 7px 11px; background: var(--text); color: var(--bg); border: 0; border-radius: 12px; text-align: left; white-space: nowrap; font: 400 12px/1.35 var(--font-body); cursor: pointer; animation: aki-bubble-in .45s .6s cubic-bezier(.22, 1, .36, 1) both; }
@@ -518,7 +558,7 @@ section[id] { scroll-margin-top: 0; }
   --chat-line: var(--border);
   --chat-mine: var(--signal-wash);
   --chat-mine-line: var(--accent-border);
-  position: fixed; right: 24px; bottom: 108px; display: flex; flex-direction: column; width: min(372px, calc(100vw - 48px)); max-height: calc(100dvh - 132px);
+  position: fixed; right: max(var(--shell-gutter, 48px), calc((100% - 1296px) / 2)); bottom: 108px; display: flex; flex-direction: column; width: min(372px, calc(100vw - 48px)); max-height: calc(100dvh - 132px);
   background: var(--chat-surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 18px; outline: none;
   box-shadow: 0 34px 80px -30px rgba(0, 0, 0, .65), 0 0 0 1px color-mix(in srgb, var(--signal) 8%, transparent) inset;
   backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15);
