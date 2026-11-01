@@ -1,8 +1,8 @@
 // Shared Three.js studio for the Hero and Work scenes: one renderer setup, lighting rig, material set and theme
 // palette, so both sculptures read as one family. No model or texture files; reflections come from a procedural room.
 import {
-  ACESFilmicToneMapping, DirectionalLight, HemisphereLight, MeshPhysicalMaterial, MeshStandardMaterial,
-  PMREMGenerator, Scene, WebGLRenderer,
+  ACESFilmicToneMapping, DirectionalLight, HemisphereLight, LineBasicMaterial, MeshBasicMaterial, MeshPhysicalMaterial,
+  MeshStandardMaterial, PMREMGenerator, Scene, WebGLRenderer,
 } from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
@@ -13,14 +13,39 @@ export const THEMES = {
   dark: {
     metal: '#d8b878', deep: '#8c6833', stone: '#2b261e', glass: '#f1e4c8', exposure: 1.05, env: 0.85,
     sky: '#f4e2bf', ground: '#1a1611', hemi: 0.55, rim: '#9fb6d6', rimPower: 1.6,
-    keys: ['#ffe4b5', '#f6d7a0', '#ffc98a', '#f4e8d2'],
+    keys: ['#ffe4b5', '#dfe8ff', '#eef3ff', '#fff1de'],
   },
   light: {
     metal: '#b07a33', deep: '#6e4718', stone: '#d8ccb6', glass: '#fffaf0', exposure: 0.95, env: 1.0,
     sky: '#fff7e8', ground: '#cdbfa6', hemi: 0.8, rim: '#c9d4e4', rimPower: 0.9,
-    keys: ['#fff1d6', '#ffe9c4', '#ffdcae', '#fff6e6'],
+    keys: ['#fff1d6', '#eef3ff', '#f3f6ff', '#fff6e6'],
   },
 };
+
+// A sculpture's own palette: each colour is a [dark, light] pair, so every scene can have its own colours and still
+// suit both themes. Each entry is lit metal by default, or `glow` (unlit, reads as light) or `line`. Call
+// apply(theme) before drawing; it recolours only when the theme changes.
+export function tones(spec) {
+  const set = {};
+  Object.entries(spec).forEach(([key, { c, glow, line, metal = 0.6, rough = 0.35, opacity, side }]) => {
+    const params = opacity === undefined ? {} : { transparent: true, opacity, depthWrite: false };
+    if (side !== undefined) params.side = side;
+    const material = line ? new LineBasicMaterial(params)
+      : glow ? new MeshBasicMaterial(params)
+        : new MeshStandardMaterial({ ...params, metalness: metal, roughness: rough });
+    material.userData.pair = c;
+    set[key] = material;
+  });
+  let current;
+  set.apply = (theme) => {
+    if (theme === current) return;
+    current = theme;
+    Object.values(set).forEach((material) => {
+      if (material.userData?.pair) material.color.set(material.userData.pair[theme === 'light' ? 1 : 0]);
+    });
+  };
+  return set;
+}
 
 // Throws when WebGL is unavailable; callers keep their static fallback.
 export function createStudio(canvas, { compact = false, onLost } = {}) {

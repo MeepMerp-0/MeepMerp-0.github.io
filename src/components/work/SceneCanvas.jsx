@@ -13,6 +13,7 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
     let cancelled = false;
     let unsubscribe = () => {};
     let resizeObserver;
+    let visibility;
 
     const start = async () => {
       try {
@@ -29,6 +30,9 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
         unsubscribe = store.subscribe((value) => scene.setScene(value));
         resizeObserver = new ResizeObserver(() => scene.resize());
         resizeObserver.observe(canvas);
+        // Tells the scene when the canvas is really on screen, so Aki's one-time assembly plays where it is seen.
+        visibility = new IntersectionObserver(([entry]) => scene.setInView(entry.isIntersecting), { threshold: 0.4 });
+        visibility.observe(canvas);
         setStatus('ready');
       } catch {
         if (!cancelled) setStatus('failed');
@@ -47,6 +51,7 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
       io.disconnect();
       unsubscribe();
       resizeObserver?.disconnect();
+      visibility?.disconnect();
       sceneRef.current?.dispose();
       sceneRef.current = null;
     };

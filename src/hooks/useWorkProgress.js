@@ -60,7 +60,7 @@ function createSceneStore() {
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 // Reads the scroll position and never writes it: no wheel or touch handling, no scroll locking.
-// `scene` is a continuous chapter coordinate in [-0.5, count - 0.5] kept outside React, so a scroll frame re-renders
+// `scene` is a continuous chapter coordinate in [0, count - 0.5] kept outside React, so a scroll frame re-renders
 // nothing; only the integer `active` chapter is state.
 export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }) {
   const [active, setActive] = useState(0);
@@ -85,9 +85,9 @@ export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }
         if (!track || !stage) return;
         const p = clamp((headerHeight() - track.top) / Math.max(1, track.height - stage), 0, 1);
         chapter = Math.min(count - 1, Math.floor(p * count));
-        // Each chapter's midpoint is its sculpture's resting place. The half chapter before the first midpoint
-        // and after the last one stay in the coordinate, so the first sculpture can assemble and the last finish.
-        scene = p * count - 0.5;
+        // Each chapter's midpoint is its sculpture's resting place. The half chapter after the last midpoint stays
+        // in the coordinate, so the last sculpture can finish its motion.
+        scene = Math.max(0, p * count - 0.5);
       } else {
         // The article crossing the middle of the reading area leads; the band follows it continuously.
         const top = headerHeight() + (stageRef.current?.offsetHeight || 0);
@@ -98,7 +98,7 @@ export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }
         if (index < 0) index = mid < rects[0].top ? 0 : rects.length - 1;
         const r = rects[index];
         chapter = index;
-        scene = clamp(index + (mid - r.top) / Math.max(1, r.height) - 0.5, -0.5, count - 0.5);
+        scene = clamp(index + (mid - r.top) / Math.max(1, r.height) - 0.5, 0, count - 0.5);
       }
       if (jump.current !== null) {
         if (chapter !== jump.current) { store.set(scene); return; }
