@@ -7,10 +7,10 @@ export const HERO_PINNED_QUERY = '(min-width: 360px) and (min-height: 560px)';
 // Same condition as the wide layout in global.css: the art is a column beside the copy.
 const WIDE_QUERY = '(min-width: 900px) and (orientation: landscape)';
 const MIN_ART = 180;
-// The stage's vertical padding and row gaps in global.css (40 px on phones, less on wide stages), plus a little slack.
+// The stage's vertical padding and row gaps in global.css (40 px on both layouts, counting the cue row's gap on
+// phones), plus a little slack.
 const PADDING = 42;
-const FOOT_ROW = 44;
-const HYSTERESIS = 16;
+const HYSTERESIS = 48;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const headerHeight = () => document.querySelector('.site-header')?.offsetHeight || 72;
@@ -39,6 +39,8 @@ export function useHeroProgress() {
   const copyRef = useRef(null);
   const labelsRef = useRef(null);
   const footRef = useRef(null);
+  const cueRef = useRef(null);
+  const skipRef = useRef(null);
   const probeRef = useRef(null);
   // Live, so switching the setting mid-visit gives the still layout without a reload.
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)');
@@ -47,31 +49,41 @@ export function useHeroProgress() {
   const [store] = useState(createProgressStore);
 
   // Mode: settled before first paint, so a deep link is placed against the final layout. The measurement uses the
-  // content's own heights, which do not depend on the mode, so the result cannot flip-flop by itself.
+  // heights of the content blocks only. The cue and the "Now" markers stay in layout (hidden, never removed) in both
+  // modes, so neither the mode nor the progress changes any of them, and the answer cannot flip-flop by itself.
   useLayoutEffect(() => {
     const hero = heroRef.current;
     const allowed = !reduceMotion && webglAvailable();
     const fits = window.matchMedia(HERO_PINNED_QUERY);
     const wide = window.matchMedia(WIDE_QUERY);
 
+    // The first answer on a page uses the plain limit, so a screen inside the hysteresis band starts pinned.
+    let placed = false;
     const evaluate = () => {
       const current = hero.dataset.mode || 'still';
       let next = 'still';
       if (allowed && fits.matches) {
+        // Wide stages: the cue shares the foot row. Phones: the cue has a row of its own, and the art band needs MIN_ART.
         const needed = copyRef.current.offsetHeight + labelsRef.current.offsetHeight
-          + Math.max(footRef.current.offsetHeight, FOOT_ROW) + (wide.matches ? 0 : MIN_ART) + PADDING;
+          + Math.max(footRef.current.offsetHeight, skipRef.current.offsetHeight)
+          + (wide.matches ? 0 : MIN_ART + cueRef.current.offsetHeight) + PADDING;
         // The probe is 100svh, so a mobile URL bar showing or hiding does not change the answer.
         const available = probeRef.current.offsetHeight - headerHeight();
-        next = current === 'pinned'
+        next = current === 'pinned' || !placed
           ? (needed > available ? 'still' : 'pinned')
           : (needed < available - HYSTERESIS ? 'pinned' : 'still');
       }
+      placed = true;
       if (next === current) return;
-      if (hero.getBoundingClientRect().bottom <= 0) {
-        // The Hero is entirely above the viewport: keep the visitor on the same content.
-        const before = trackRef.current.offsetHeight;
+      const work = document.getElementById('work');
+      if (work && hero.getBoundingClientRect().bottom <= 0) {
+        // The Hero is entirely above the viewport: keep the visitor on the same content. Work's position is read
+        // before and after the flip. The second read forces layout and includes any scroll anchoring the browser did,
+        // so only what is left over is corrected, and it is never corrected twice.
+        const before = work.getBoundingClientRect().top;
         hero.dataset.mode = next;
-        window.scrollBy({ top: trackRef.current.offsetHeight - before, behavior: 'instant' });
+        const delta = work.getBoundingClientRect().top - before;
+        if (delta) window.scrollBy({ top: delta, behavior: 'instant' });
       } else {
         hero.dataset.mode = next;
       }
@@ -81,7 +93,7 @@ export function useHeroProgress() {
     evaluate();
     window.addEventListener('resize', evaluate);
     const observer = new ResizeObserver(evaluate);
-    [copyRef, labelsRef, footRef, probeRef].forEach((ref) => observer.observe(ref.current));
+    [copyRef, labelsRef, footRef, cueRef, skipRef, probeRef].forEach((ref) => observer.observe(ref.current));
     const header = document.querySelector('.site-header');
     if (header) observer.observe(header);
     return () => {
@@ -139,5 +151,5 @@ export function useHeroProgress() {
     };
   }, [mode, store]);
 
-  return { heroRef, trackRef, stageRef, copyRef, labelsRef, footRef, probeRef, mode, active, store };
+  return { heroRef, trackRef, stageRef, copyRef, labelsRef, footRef, cueRef, skipRef, probeRef, mode, active, store };
 }
