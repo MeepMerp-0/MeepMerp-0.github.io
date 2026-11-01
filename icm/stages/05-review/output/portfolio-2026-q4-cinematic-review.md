@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 05-review
 state: READY
-revision: "review r5; reviewed code 4a26708f386709137cc81f8a792cd3e041005a04"
+revision: "review r6; reviewed code 1d801de363a97406ab3ce1fee2808abf98e6d158"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -61,6 +61,11 @@ At the owner's request, commit `072511e` matches the Hero sculpture to its headl
 - **Website workflow (`4a26708`).** The website demo shows a simulated workflow behind its form, matching the FuturoHub chapter.
   - The business is still invented and is labelled as not a FuturoHub site.
   - The demo claims no real integration and sends nothing.
+- **Palettes and motion (`1d801de`).**
+  - Each sculpture now has its own dark and light palette.
+  - Aki's assembly is a one-time timed animation, not scroll-driven. It is the only timed animation in the Work scene, and drawing stops when it ends.
+  - The guard scans their face on their own phone.
+  - The FuturoHub graph shows channel triggers and an if/else gate. The icons are generic, and the page copy is unchanged, so no new claims were added.
 - Verification: Stage 04 "Scene realignment checks".
 
 ## Architecture and integrated review

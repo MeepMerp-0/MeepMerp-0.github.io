@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 04-verification
 state: READY
-revision: "verification r5; scene realignment tested at 4a26708f386709137cc81f8a792cd3e041005a04; earlier rows at d630305 or 06d2e1d, as marked"
+revision: "verification r6; scene realignment tested at 1d801de363a97406ab3ce1fee2808abf98e6d158; earlier rows at d630305 or 06d2e1d, as marked"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -128,6 +128,24 @@ Follow-up at `f145246`:
 | Website workflow (`4a26708`) | Run at 1280 dark, 390 light and 390 with reduced motion. The form trigger and the chat trigger both reach all six steps in order and fill in the owner summary. Reset restores the page exactly. No errors, no overflow, no outside requests. Tests 270/270. |
 
 Software WebGL only. Real GPUs and devices remain NOT TESTED.
+
+Follow-up at `1d801de`:
+
+| Check | Result |
+| --- | --- |
+| Tests, lint, build | 270/270 pass; lint clean; build passes |
+| Smoke suite | Pass, after two runs that failed |
+| Robot canvas hash | `769e31257e57cc48` in all 6 cases, unchanged |
+| Viewport matrix | Overflow 0 |
+| Hero probe | 20 WebGL runs ready, 0 px over the headline, 0 draws offscreen, no errors; the 2 runs without WebGL fall back |
+| Aki intro | Nothing is drawn before the canvas is on screen. The pieces fall over about 1.6 s, then the draw count stops rising. Aki stays assembled while scrolling. |
+| Pinned screenshots | 1440 x 900 in both themes, chapters 0 to 3.45. Every sculpture stays in frame, the light-theme FuturoHub board and Timekeeping floor are visible against the cream background, and there are no errors or outside requests. |
+| Guard close-ups | The phone is hidden while the arm rises, appears when the arm is level, the scan runs, and the frame turns green when verified |
+| Strip screenshots | 390 x 844 in both themes: all four sculptures draw in the band |
+
+**Smoke failures.** The two failed runs stopped at "reveal was not animating" while the machine's load average was 7 to 13. The previous commit `8324804`, which had passed earlier, failed the same check under the same load, so the failure is environmental. The suite passed once load fell to about 4.
+
+**Long tasks.** Load-time long tasks were about 3 s for both this build and `8324804` under that load. The earlier 1.46 s figure was measured on a quieter machine.
 
 ## Failures, fixes, and remaining gaps
 

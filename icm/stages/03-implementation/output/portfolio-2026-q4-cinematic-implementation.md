@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 03-implementation
 state: READY
-revision: "implementation r5; application code at 4a26708f386709137cc81f8a792cd3e041005a04"
+revision: "implementation r6; application code at 1d801de363a97406ab3ce1fee2808abf98e6d158"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -123,6 +123,16 @@ Follow-up `4a26708` (owner request): the website demo now matches FuturoHub's we
   4. The owner gets the summary.
 - All steps stay in the page. The CSP is unchanged.
 - The dialog title and note mention the workflow.
+
+Follow-up `1d801de` (owner request):
+
+| Area | Change |
+| --- | --- |
+| Palettes | Each sculpture has its own colours, defined as dark and light pairs through a shared `tones()` helper in `studio.js`. Hero: champagne, deep teal, pearl and violet. INNERCIRCLE: sapphire, cyan and silver, with amber cards. Timekeeping: navy, teal and emerald, with an indigo dashboard. FuturoHub: graphite nodes with channel colours, a violet assistant, a gold gate, and green and coral branches. Chapter key lights are cooler for the blue scenes. |
+| Aki | Assembles once, on a 1.6 s timer, the first time the canvas is at least 40 % on screen while Aki shows. Scroll no longer drives it, and no piece is drawn before it starts. Rendering returns to on-demand afterwards. The scene coordinate starts at 0 again. |
+| Timekeeping | The guard walks into the proximity ring around a post beacon and raises the arm. Their own phone appears only once the arm is level, and the face scan runs on it, followed by verification and the automatic log. |
+| FuturoHub | Four channel triggers (a chat app, social DMs, a website message and a point-of-sale terminal) feed an assistant node and an if/else gate. Run 1 is a chat order on the yes branch: order sheet, then owner alert. Run 2 is a website message on the no branch: auto-reply, then hand-off. The gate's tick or cross lights for the branch taken. Generic icons only; no brand marks. |
+| Emblems | Timekeeping and FuturoHub fallbacks redrawn to match. |
 
 ## Checkpoint and developer evidence
 
