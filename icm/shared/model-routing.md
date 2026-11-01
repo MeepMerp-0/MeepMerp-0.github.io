@@ -132,7 +132,7 @@ Assign one writer at a time to shared files such as `src/data/portfolioData.js`,
 
 ### Verification and acceptance
 
-Use the repository's existing tooling. Node.js 22 or newer is required. For implementation changes, follow the relevant checks in `.github/workflows/portfolio-quality.yml`:
+Use the repository's existing tooling. Node.js 26 or newer is required. For implementation changes, follow the relevant checks in `.github/workflows/portfolio-quality.yml`:
 
 - Install locked dependencies with `npm ci` when setting up the checkout or after lockfile changes.
 - Run `npm test` for the integrated frontend-helper and Worker test suite. `npm run aki:test` is available for focused Worker iteration.
