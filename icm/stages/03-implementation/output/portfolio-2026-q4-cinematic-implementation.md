@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 03-implementation
 state: READY
-revision: "implementation r2; application code at d630305a278d763e88db20cf3306eb81f5837468"
+revision: "implementation r3; application code at 072511e9bb01c07c75e0702a38219ed8e49b1b98"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -85,6 +85,23 @@ Deleted as superseded by the new sections: `src/components/PortfolioWorkflow.{js
 - The mobile block keeps the existing `.aki` and launcher geometry.
 
 Inherited effects: the greeting bubble's rules read page tokens that the rework redefined, so its original values for `--bg`, `--text`, `--font-body` and `--font-mono` are pinned on `.aki-bubble` in both themes. Its computed styles match a baseline build of `98a55dc` (Stage 04). The focus ring uses the new signal colour. No markup was added.
+
+## Scene realignment (T11, owner request)
+
+The owner asked for the 3D to follow the Hero wording and to show each project. Commit `072511e`:
+
+| Area | Change |
+| --- | --- |
+| Hero | Sculpture rebuilt to match "AI systems and full-stack apps, built for real work": an interface pane, a logic slab and two data discs, with an AI orb linked into the stack, on a plinth. Scroll parts the layers and circles the orb. Loading, fallback and render-on-demand rules unchanged. |
+| Aki | A 3D likeness of the robot's TV head (shell, screen, block eyes, ears, antenna) in the launcher's shell, trim and LED colours, assembled from pieces that fall into place as the chapter opens. The owner asked for this likeness. The launcher robot is a separate 2D canvas from `robot-heads` and is not imported, changed, recoloured or moved. |
+| INNERCIRCLE | An AI core hands task cards to four agents inside an arc of floating dashboard panels, after the owner's reference image. Abstract: no product screens or data. |
+| Timekeeping | A guard walks into the phone's proximity ring, taps the phone, a face scan verifies them, and the entry travels to a web dashboard row. Generic figure, no real person or screen. |
+| FuturoHub | A workflow graph: a website form and a chat start it, an assistant node routes the request, three actions fire and the owner is told. Pulses run along the links in order. |
+| Scroll coordinate | Runs from -0.5 to count - 0.5 so Aki can assemble before its midpoint and FuturoHub can finish after it. Camera, hand-overs and chapter state still use the 0 to count - 1 range. |
+| Emblems | Static fallbacks redrawn to match each new sculpture. |
+| Copy | Timekeeping approach names the proximity check, face verification on the phone and automatic logging (owner's description; consistent with `PROJECTS` highlights). FuturoHub title, role, context and approach add workflow automation on the owner's instruction. `portfolioData.js` unchanged, so Aki's answers are unchanged. |
+
+Build: studio chunk 568.7 kB (142.5 kB gzip), workScene 8.8 kB, heroScene 1.8 kB.
 
 ## Checkpoint and developer evidence
 

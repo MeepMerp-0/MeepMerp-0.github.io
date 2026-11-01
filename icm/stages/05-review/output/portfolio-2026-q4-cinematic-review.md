@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 05-review
 state: READY
-revision: "review r2; reviewed code d630305a278d763e88db20cf3306eb81f5837468"
+revision: "review r3; reviewed code 072511e9bb01c07c75e0702a38219ed8e49b1b98"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -47,6 +47,15 @@ The owner's docs commit `98a55dc` made a lightweight real Three.js Hero a requir
 - **Readable without WebGL.** With WebGL disabled, and after a forced context loss, the title, role, View Work and Contact remain and the CSS sculpture is shown.
 - **Never Aki's robot.** The sculpture is authored from boxes, tori, a sphere and a cylinder. It does not import or reference any Aki file. The robot's canvas hash, launcher rectangle and style chain are unchanged.
 - **Fallback and performance limits are recorded** in Stage 04.
+
+## Scene realignment (r3)
+
+At the owner's request, commit `072511e` matches the Hero sculpture to its headline and gives each Work chapter a sculpture of its project (Stage 03 T11). Review points:
+
+- **Aki likeness.** The owner asked for the Work sculpture to look like the robot. It is a separate Three.js model in the robot's colours. The launcher robot is not imported, changed, recoloured or moved; its canvas hash is unchanged. The Hero remains unrelated to the robot, as `98a55dc` requires.
+- **Claims.** The Timekeeping wording comes from the owner's description and the existing `PROJECTS` highlights. The FuturoHub workflow-automation wording follows the owner's instruction and supersedes R14's web-only framing. No metrics, clients or outcomes were added.
+- **Performance.** Still render on demand; no idle loop. The studio chunk grew by about 21 kB (RoundedBoxGeometry and the new scene code).
+- Verification: Stage 04 "Scene realignment checks".
 
 ## Architecture and integrated review
 

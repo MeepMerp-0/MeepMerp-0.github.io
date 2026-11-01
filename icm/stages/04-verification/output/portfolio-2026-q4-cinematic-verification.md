@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 04-verification
 state: READY
-revision: "verification r2; tested revision d630305a278d763e88db20cf3306eb81f5837468 (some rows at 06d2e1d, as marked)"
+revision: "verification r3; scene realignment tested at 072511e9bb01c07c75e0702a38219ed8e49b1b98; earlier rows at d630305 or 06d2e1d, as marked"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -98,6 +98,24 @@ blockers: []
   - The built CSP contains the Aki origin from the local `.env`, which is a development address. This is existing build behaviour, and `dist/` is not committed.
 - **History.** No source maps were found, and no private file is tracked.
 - **Approved destinations.** Each demo loads only its own `index.html`, `.css` and `.js`. No other request was attempted, direct or embedded.
+
+## Scene realignment checks (072511e)
+
+| Check | Result |
+| --- | --- |
+| Unit tests | 270/270 pass |
+| Lint | clean |
+| Build | pass, no source maps |
+| Existing smoke suite (`scripts/verify-scroll-preview.mjs`, includes the Aki steps) | pass, exit 0 |
+| Robot canvas hash, rectangle and style chain, 6 width and theme cases | identical to baseline (`769e31257e57cc48`) |
+| Viewport and theme matrix, 20 runs | overflow 0; overlap hits are the known false positives |
+| Hero probe, 18 width and theme runs plus reduced motion | ready in all WebGL runs, 0 px over the headline, 0 draws while offscreen, no errors |
+| Hero without WebGL | CSS fallback (`failed` status), copy and actions present |
+| Pinned screenshots, both themes, scene -0.5 to 3.5 | Aki assembles from falling pieces; each sculpture stays in frame beside the copy; no console errors; no outside requests |
+| Strip screenshots, 390 x 844 | all four sculptures draw in the band; no errors |
+| Chapter buttons | land on each chapter and announce it |
+
+Software WebGL only. Real GPUs and devices remain NOT TESTED.
 
 ## Failures, fixes, and remaining gaps
 
