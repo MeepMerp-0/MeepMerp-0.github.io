@@ -23,8 +23,8 @@ const jitter = (i, k) => fract(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) 
 // The launcher itself is a separate 2D canvas and is not touched.
 const AKI = { shell: '#7a4a2a', trim: '#c8a27a', screen: '#17110c', led: '#e8f2ff' };
 
-// 0 · Aki: the robot's TV head, a still sculpture assembled from pieces that fall into place as you scroll down into
-// Work and rise back out as you scroll up. The fall is a pure function of scroll position (ctx.intro), with no timer,
+// 0 · Aki: the robot's TV head, a still sculpture assembled from pieces that fall into place as you scroll through
+// its pinned chapter and rise back out as you scroll up. The fall is a pure function of scroll position (ctx.intro), with no timer,
 // so stopping holds the frame exactly. No piece shows before its fall starts.
 function buildAki() {
   const g = new Group();
@@ -488,7 +488,7 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
 
   const render = () => {
     frame = 0;
-    // The scene coordinate runs from -1 (Work just entering, Aki's pieces still high above) to count - 0.5 (the
+    // The scene coordinate runs from -0.5 (Aki's chapter on screen, its pieces still high above) to count - 0.5 (the
     // last workflow finishing). The camera and the hand-overs use the chapter range, so negative values only drive
     // Aki's assembly (ctx.intro below); each sculpture's own motion gets the full value.
     const c = MathUtils.clamp(s, 0, groups.length - 1);
@@ -516,9 +516,10 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
     rim.intensity = palette.rimPower * (0.8 + 0.4 * Math.sin(f * Math.PI));
 
     ctx.theme = themeName;
-    // Aki's pieces start falling once the canvas is well into view (s = -0.8) and have landed when Work reaches the
-    // header (s = 0), in step with the scroll in both directions.
-    ctx.intro = MathUtils.clamp(1 + s / 0.8, 0, 1);
+    // Aki's chapter is pinned (or its article reaches the middle of the band) at s = -0.5 with no piece showing; the
+    // pieces then fall in step with the scroll and have landed by s = -0.1, so Aki rests a moment before the
+    // hand-over. Scrolling up lifts them out again.
+    ctx.intro = MathUtils.clamp((s + 0.5) / 0.4, 0, 1);
     groups.forEach((group, i) => {
       const presence = 1 - MathUtils.clamp(Math.abs(c - i), 0, 1);
       // Only the sculptures being travelled between are drawn, so a resting chapter shows its sculpture alone.

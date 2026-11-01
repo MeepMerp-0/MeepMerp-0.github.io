@@ -12,11 +12,13 @@ export function Process() {
   return (
     <section className="page-section process-section" id="process" aria-labelledby="process-title">
       <div className="shell">
-        <SectionIntro titleId="process-title" number="03" eyebrow="PROCESS" title="Four steps, written down."
-          subtitle="How I take work from a loose request to something a team can rely on. A working approach, not a guarantee." />
         <div className="steps-track" ref={trackRef} data-pinned={pinned} style={{ '--steps': PROCESS_STEPS.length }}>
         <span className="steps-probe" aria-hidden="true" />
-        <div className="process steps-stage" ref={stageRef}>
+        {/* The heading is part of the still block, so it stays on screen with the steps. */}
+        <div className="steps-stage" ref={stageRef}>
+        <SectionIntro titleId="process-title" number="03" eyebrow="PROCESS" title="Four steps, written down."
+          subtitle="How I take work from a loose request to something a team can rely on. A working approach, not a guarantee." />
+        <div className="process">
           <ol className="process-steps">
             {PROCESS_STEPS.map((step, index) => (
               <li key={step.id}>
@@ -42,6 +44,7 @@ export function Process() {
               </div>
             ))}
           </div>
+        </div>
         </div>
         </div>
       </div>

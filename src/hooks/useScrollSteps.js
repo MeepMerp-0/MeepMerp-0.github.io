@@ -18,6 +18,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
   const jump = useRef(null);
   const remeasure = useRef(() => {});
   const endHold = useRef(() => {});
+  const stick = useRef(0);
 
   // A layout effect, so the first mode decision is in place before paint and a deep link or restored scroll
   // position is placed against the final page height.
@@ -39,6 +40,10 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
       // phone's address bar hides. The 32px of slack before leaving stops a stage just over the limit flickering.
       const screen = track.querySelector('.steps-probe')?.offsetHeight || window.innerHeight;
       const room = screen - header - stageHeight - 48;
+      // The stage sticks centred in the space under the header, at least 24px below it. Progress is read from the
+      // same line, so step 1 starts as the stage sticks.
+      stick.current = header + Math.max(24, (screen - header - stageHeight) / 2);
+      track.style.setProperty('--stick-top', `${stick.current}px`);
       const fits = !reduce.matches && room >= (pinnedNow.current ? -32 : 0);
       track.style.setProperty('--stage-h', `${stageHeight}px`);
       if (fits !== pinnedNow.current) {
@@ -51,7 +56,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
         return;
       }
       if (!fits) return;
-      const p = (header - track.getBoundingClientRect().top) / Math.max(1, track.offsetHeight - stageHeight);
+      const p = (stick.current - track.getBoundingClientRect().top) / Math.max(1, track.offsetHeight - stageHeight);
       const next = stepAt(p, count);
       if (jump.current !== null) {
         if (next !== jump.current) return;
@@ -87,9 +92,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
     const track = trackRef.current;
     const stage = stageRef.current;
     if (!pinnedNow.current || !track || !stage) return;
-    const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'))
-      || document.querySelector('.site-header')?.offsetHeight || 0;
-    const start = track.getBoundingClientRect().top + window.scrollY - header;
+    const start = track.getBoundingClientRect().top + window.scrollY - stick.current;
     jump.current = i;
     let timer = 0;
     const stop = () => {
