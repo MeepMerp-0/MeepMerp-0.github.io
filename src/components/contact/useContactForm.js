@@ -5,28 +5,32 @@ const EMPTY_VALUES = { name: '', email: '', purpose: '', message: '', website: '
 const NOTHING_INVALID = { name: false, email: false, purpose: false, message: false };
 
 // Form state and the send flow. `submit` gets the trimmed fields and resolves true once the message is delivered.
-export function useContactForm(submit) {
-  const [values, setValues] = useState(EMPTY_VALUES);
+// `start` prefills fields (the default intent's purpose); Reset returns to it.
+export function useContactForm(submit, start = {}) {
+  const initial = { ...EMPTY_VALUES, ...start };
+  const [values, setValues] = useState(initial);
   const [invalid, setInvalid] = useState(NOTHING_INVALID);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const sentTimes = useRef([]);
 
+  // Typed or set by the page (the intent fills the purpose field). Either way the field's flag clears.
+  const setField = (name, value) => {
+    setValues((current) => ({ ...current, [name]: value }));
+    setInvalid((current) => (current[name] ? { ...current, [name]: false } : current));
+  };
+
   // Props for one input. Editing a field clears its flag; the honeypot has no flag, so it gets no aria-invalid.
   const field = (name) => ({
     name,
     value: values[name],
-    onChange: (event) => {
-      const { value } = event.target;
-      setValues((current) => ({ ...current, [name]: value }));
-      setInvalid((current) => (current[name] ? { ...current, [name]: false } : current));
-    },
+    onChange: (event) => setField(name, event.target.value),
     'aria-invalid': invalid[name],
   });
 
   const reset = () => {
-    setValues(EMPTY_VALUES);
+    setValues(initial);
     setInvalid(NOTHING_INVALID);
     setFailed(false);
     setSent(false);
@@ -72,6 +76,7 @@ export function useContactForm(submit) {
   return {
     values,
     field,
+    setField,
     hasInvalidFields: Object.values(invalid).some(Boolean),
     sent,
     loading,

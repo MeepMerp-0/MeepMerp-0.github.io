@@ -18,3 +18,8 @@ export const findInvalidFields = ({ name, email, purpose, message }) => ({
 // A courtesy limit for this page only: three sent messages a minute. A reload starts over.
 export const isRateLimited = (sentTimes, now) =>
   sentTimes.filter((time) => now - time < RATE_LIMIT_WINDOW_MS).length >= MAX_SENDS_PER_WINDOW;
+
+// Picking an intent fills "What is this about?" only while the field is empty or still holds an intent's own label,
+// so a visitor's own words are never overwritten. The backend receives the field as typed: no new field is sent.
+export const purposeForIntent = (current, intentLabels, nextLabel) =>
+  (current.trim() === '' || intentLabels.includes(current.trim()) ? nextLabel : current);

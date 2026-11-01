@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LIMITS, findInvalidFields, isRateLimited } from './contactRules.js';
+import { LIMITS, findInvalidFields, isRateLimited, purposeForIntent } from './contactRules.js';
 
 const VALID = { name: 'Ada', email: 'ada@example.com', purpose: 'A role', message: 'Hello.' };
 
@@ -35,4 +35,12 @@ test('a fourth message within 60 seconds is rate limited', () => {
   assert.equal(isRateLimited([now - 2000, now - 1000], now), false);
   assert.equal(isRateLimited([now - 59_999, now - 1000, now], now), true);
   assert.equal(isRateLimited([now - 60_000, now - 1000, now], now), false);
+});
+
+test('an intent fills an empty purpose or replaces another intent label, never typed words', () => {
+  const labels = ['Full-time role', 'Freelance project'];
+  assert.equal(purposeForIntent('', labels, 'Freelance project'), 'Freelance project');
+  assert.equal(purposeForIntent('  ', labels, 'Full-time role'), 'Full-time role');
+  assert.equal(purposeForIntent('Full-time role', labels, 'Freelance project'), 'Freelance project');
+  assert.equal(purposeForIntent('Backend role in Dubai', labels, 'Freelance project'), 'Backend role in Dubai');
 });
