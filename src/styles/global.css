@@ -356,6 +356,15 @@ section[id] { scroll-margin-top: 0; }
 /* Still blocks: when pinned the track gives each step about 55svh of scroll while the stage stays under the header. */
 .steps-track[data-pinned='true'] { height: calc(var(--stage-h, 0px) + var(--steps) * 55svh); }
 .steps-track[data-pinned='true'] .steps-stage { position: sticky; top: calc(var(--header-h, 72px) + 24px); }
+/* Measures 100svh, the screen height with the browser bars shown, so the fit does not change as a phone's
+   address bar hides and shows. */
+.steps-track { position: relative; }
+.steps-probe { position: absolute; top: 0; width: 0; height: 100svh; visibility: hidden; pointer-events: none; }
+/* Step panes share one grid cell; only the active one shows, with a short cross-fade. */
+.steps-panes { display: grid; }
+.steps-pane { grid-area: 1 / 1; opacity: 0; visibility: hidden; transition: opacity .25s var(--ease), visibility 0s .25s; }
+.steps-pane[data-active='true'] { opacity: 1; visibility: visible; transition-delay: 0s; }
+@media (prefers-reduced-motion: reduce) { .steps-pane { transition: none; } }
 .capabilities-title { margin: 0 0 18px; font: 400 clamp(26px, 2.6vw, 36px)/1.2 var(--font-display); }
 .capabilities-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .capabilities-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 76px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; font-size: 15px; font-weight: 600; transition: border-color .2s, background-color .2s, transform .2s var(--ease); }

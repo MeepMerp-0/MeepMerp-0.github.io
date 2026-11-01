@@ -1,15 +1,13 @@
 import { useRef } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import { Reveal } from '../components/Reveal.jsx';
 import { SectionIntro } from '../components/SectionIntro.jsx';
 import { ABOUT } from '../data/siteCopy.js';
 import { useScrollSteps } from '../hooks/useScrollSteps.js';
-import { EASE_OUT } from '../utils/motion.js';
 
 // Tabs with roving focus (arrow keys, Home, End). Every capability name stays visible, so the section reads
 // without interaction; selecting one only adds its detail. Scrolling through the pinned block steps through them.
 function Capabilities() {
-  const reduceMotion = useReducedMotion();
   const tabs = useRef([]);
   const trackRef = useRef(null);
   const stageRef = useRef(null);
@@ -19,18 +17,21 @@ function Capabilities() {
 
   const onKeyDown = (event) => {
     const moves = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+    // Move from the focused tab: while pinned, scrolling can select another tab without moving focus.
+    const from = Math.max(0, tabs.current.indexOf(document.activeElement));
     let next;
-    if (event.key in moves) next = (selected + moves[event.key] + count) % count;
+    if (event.key in moves) next = (from + moves[event.key] + count) % count;
     else if (event.key === 'Home') next = 0;
     else if (event.key === 'End') next = count - 1;
     else return;
     event.preventDefault();
     goTo(next);
-    tabs.current[next]?.focus();
+    tabs.current[next]?.focus({ preventScroll: true });
   };
 
   return (
     <div className="steps-track" ref={trackRef} data-pinned={pinned} style={{ '--steps': count }}>
+    <span className="steps-probe" aria-hidden="true" />
     <div className="capabilities steps-stage" ref={stageRef}>
       <h3 className="capabilities-title">What I bring to a team</h3>
       <div className="capabilities-tabs" role="tablist" aria-label="Capabilities" onKeyDown={onKeyDown}>
@@ -42,17 +43,15 @@ function Capabilities() {
           </button>
         ))}
       </div>
-      <div className="capabilities-panel" id="cap-panel" role="tabpanel" aria-labelledby={`cap-tab-${active.id}`}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={active.id}
-            initial={reduceMotion ? false : { opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
-            transition={{ duration: 0.25, ease: EASE_OUT }}>
-            <p>{active.body}</p>
-            <p className="capabilities-evidence"><span>Evidence</span> {active.evidence}</p>
-          </motion.div>
-        </AnimatePresence>
+      {/* Every panel is laid out in the same cell, so the stage is as tall as the longest one whichever step shows,
+          and the pinned fit never depends on the step. */}
+      <div className="capabilities-panel steps-panes" id="cap-panel" role="tabpanel" aria-labelledby={`cap-tab-${active.id}`}>
+        {ABOUT.capabilities.map((item, index) => (
+          <div key={item.id} className="steps-pane" data-active={index === selected}>
+            <p>{item.body}</p>
+            <p className="capabilities-evidence"><span>Evidence</span> {item.evidence}</p>
+          </div>
+        ))}
       </div>
     </div>
     </div>

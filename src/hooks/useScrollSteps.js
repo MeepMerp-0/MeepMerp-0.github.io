@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
@@ -17,8 +17,11 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
   // While a button's smooth scroll runs, the chosen step stays selected instead of flicking through the others.
   const jump = useRef(null);
   const remeasure = useRef(() => {});
+  const endHold = useRef(() => {});
 
-  useEffect(() => {
+  // A layout effect, so the first mode decision is rendered before paint and a deep link or restored scroll
+  // position is placed against the final page height.
+  useLayoutEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     const headerHeight = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'))
@@ -31,14 +34,18 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
       if (!track || !stage) return;
       const header = headerHeight();
       const stageHeight = stage.offsetHeight;
-      // The stage markup is the same in both modes, so the fit does not depend on the mode. The 32px of slack
-      // before leaving keeps a stage that is a few px over the limit from flickering between modes.
-      const room = window.innerHeight - header - stageHeight - 48;
+      // The stage is the same in both modes and for every step (its panes share one cell), so the fit depends
+      // only on the screen. The screen height is 100svh from the probe rather than innerHeight, which changes as a
+      // phone's address bar hides. The 32px of slack before leaving stops a stage just over the limit flickering.
+      const screen = track.querySelector('.steps-probe')?.offsetHeight || window.innerHeight;
+      const room = screen - header - stageHeight - 48;
       const fits = !reduce.matches && room >= (pinnedNow.current ? -32 : 0);
       track.style.setProperty('--stage-h', `${stageHeight}px`);
       if (fits !== pinnedNow.current) {
         pinnedNow.current = fits;
         setPinned(fits);
+        // The track's height changes with the mode; its ResizeObserver reads the step once it has.
+        return;
       }
       if (!fits) return;
       const p = (header - track.getBoundingClientRect().top) / Math.max(1, track.offsetHeight - stageHeight);
@@ -72,6 +79,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
   // Show the chosen step at once; pinned, also smooth-scroll to its midpoint. The hold ends when the scroll
   // settles, or after 1.5 s if the visitor takes over.
   const goTo = (i) => {
+    endHold.current();
     setIndex(i);
     const track = trackRef.current;
     const stage = stageRef.current;
@@ -81,12 +89,18 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
     const start = track.getBoundingClientRect().top + window.scrollY - header;
     jump.current = i;
     let timer = 0;
-    const release = () => {
+    const stop = () => {
       window.clearTimeout(timer);
       window.removeEventListener('scrollend', release);
+      endHold.current = () => {};
+    };
+    // A second choice before this scroll settles replaces this hold instead of ending it early.
+    endHold.current = stop;
+    function release() {
+      stop();
       jump.current = null;
       remeasure.current();
-    };
+    }
     timer = window.setTimeout(release, 1500);
     window.addEventListener('scrollend', release);
     window.scrollTo({ top: start + ((i + 0.5) / count) * (track.offsetHeight - stage.offsetHeight), behavior: 'smooth' });
