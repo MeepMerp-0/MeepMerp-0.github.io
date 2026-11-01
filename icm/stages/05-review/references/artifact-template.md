@@ -11,7 +11,7 @@ Explain the concrete visitor problem and expected behavior in PR-ready language.
 | Boundary / task | Diff or evidence reviewed | Finding and severity | Owner / resolution | Status |
 | --- | --- | --- | --- | --- |
 
-Cover public claim evidence, native-scroll Work/Three.js behavior and fallback, responsive/accessibility evidence, original robot/launcher baseline, scoped chat-panel presentation diff, protected Aki frontend/backend contracts, contact behavior, and indirect shared-style/provider/data/dependency effects under [final authority](../../../shared/model-routing.md#final-review-and-release). Separate pre-existing findings from regressions.
+Cover public claim evidence, headline-aligned Three.js Hero, all four [Work scene directions](../../../shared/design-preferences.md#work-scene-directions) and native-scroll/fallback behavior, responsive/accessibility evidence, live robot/launcher baseline versus decorative Work likeness, scoped chat-panel presentation diff, protected Aki frontend/backend contracts, contact behavior, and indirect shared-style/provider/data/dependency effects under [final authority](../../../shared/model-routing.md#final-review-and-release). Separate pre-existing findings from regressions.
 
 ## Acceptance and verification limits
 
@@ -26,7 +26,7 @@ Draft the PR summary in the repository template's terms: visitor problem, author
 
 ## Demo publication decision, when selected
 
-Record final authority's decision for exact public source and actual build/export allowlists, target revision, sanitized scan/human-review and browser request-attempt evidence, and visible fictional/local/no-real-action labels. Exclude canned Aki demos. Review claim ceiling: no invented metrics, payroll/legal/security guarantee, real integration, or private feature parity; INNERCIRCLE stays at its public summary level and defaults to an abstract scene. State mandatory export/network `PASS`, `FAIL`, or `NOT TESTED` and release-readiness effect. Keep raw private provenance and scan/HAR material private. Confirm review preceded any public push, draft PR, or attachment, and record separate authority for merge, main push, deployment, or messages under the [demo release decision](../../../shared/demo-boundary.md#release-decision).
+Record final authority's decision for exact public source and actual build/export allowlists, target revision, sanitized scan/human-review and browser request-attempt evidence, and visible fictional/local/no-real-action labels on non-Aki simulations. Identify Aki assembly as decorative art of the real public project; exclude canned Aki demos. Review claim ceiling: no invented metrics, payroll/legal/security guarantee, real sensing/integration, or private feature parity; INNERCIRCLE's central-AI/task handoffs remain an independent concept within its public summary. State mandatory export/network `PASS`, `FAIL`, or `NOT TESTED` and release-readiness effect. Keep raw private provenance and scan/HAR material private. Confirm review preceded any public push, draft PR, or attachment, and record separate authority for merge, main push, deployment, or messages under the [demo release decision](../../../shared/demo-boundary.md#release-decision).
 
 ## Checkpoint, audit, and final status
 

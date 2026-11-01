@@ -22,7 +22,7 @@ The project aliases `payroll-web`, `payroll-mobile`, `innercircle`, `futurohub`,
 
 ## Existing design and constants
 
-The snapshot is a React/Vite JavaScript and JSX app with `motion` already listed in [package.json](../../package.json). Inspect the active checkout before implementation. The required main Work Three.js integration is future implementation scope, not a dependency installed by this documentation update; preserve Aki-related versions/behavior. Preserve useful IDs/deep links and public contracts. Aki's original robot/launcher and functional/backend behavior are protected; only scoped chat presentation, responsive geometry, existing theme binding, and minimal presentational markup are permitted. Shared data/style/provider consumers must be checked for indirect effects.
+The snapshot is a React/Vite JavaScript and JSX app with `motion` already listed in [package.json](../../package.json). Inspect the active checkout before implementation. The required shared Hero/Work Three.js integration is future implementation scope, not a dependency installed by this documentation update; preserve Aki-related versions/behavior. Preserve useful IDs/deep links and public contracts. Aki's original **live** robot/launcher and functional/backend behavior are protected; scoped live chat presentation and a separate decorative Work likeness are permitted by the current design contract. Shared data/style/provider consumers must be checked for indirect effects.
 
 ## Commands and release
 

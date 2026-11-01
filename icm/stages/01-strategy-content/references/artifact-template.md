@@ -15,18 +15,18 @@ Use the page sequence Hero, Work, About, Process, Contact, with primary navigati
 
 ## Visual and interaction direction
 
-Describe Premium Cinematic option D in light and dark themes, the native-scroll Work 3D/pinned sequence, its content purpose, and mobile/reduced-motion ordinary-flow treatments. Preserve readable semantic DOM outside canvas. Mark unconfirmed scene details as proposals. Use [design direction](../../../shared/design-preferences.md#confirmed-direction).
+Describe Premium Cinematic option D in light and dark themes, the headline-aligned Hero, and the native-scroll Work sequence. Use the approved [scene directions](../../../shared/design-preferences.md#work-scene-directions): decorative Aki assembly, conceptual central-AI handoffs, simulated attendance, and fictional FuturoHub web-to-automation. Preserve readable semantic DOM and mobile/reduced-motion ordinary-flow treatments. Mark exact geometry/camera/timing as proposals rather than reopening the approved visual concepts.
 
 ## Claims and evidence limits
 
 | Proposed claim | Source / proof register entry | Publicly supportable wording | Missing evidence or restriction |
 | --- | --- | --- | --- |
 
-Keep INNERCIRCLE within its [public evidence boundary](../../../shared/proof-register.md#innercircle). Do not invent rankings, metrics, dates, outcomes, or employment history. Distinguish existing live Aki capabilities from permitted chat-panel presentation refinements. Preserve the original robot and launcher appearance and behavior; do not propose a canned Aki demo.
+Keep INNERCIRCLE within its [public evidence boundary](../../../shared/proof-register.md#innercircle). Do not invent rankings, metrics, dates, outcomes, or employment history. Distinguish existing live Aki capabilities and launcher preservation from its isolated decorative Work likeness and permitted chat-panel presentation refinements; do not propose a canned Aki assistant demo.
 
 ## Demo brief, when selected
 
-Record the permitted concept alias, capability, approved public facts with opaque evidence IDs and public revisions, invented behavior, visible fictional/local/no-real-action labels, and claim limits. Payroll is synthetic and non-statutory with no GPS/biometrics/camera/real processing; FuturoHub is freshly fictional with no real lead; INNERCIRCLE defaults to an abstract scene within its public summary ceiling. No canned Aki walkthrough or duplicate widget. Keep private provenance and raw scans outside this public artifact. Cite the [demo boundary](../../../shared/demo-boundary.md#public-and-private-evidence); leave unverified facts open.
+Record the permitted concept alias, capability, approved public facts with opaque evidence IDs and public revisions, invented behavior, visible fictional/local/no-real-action labels for non-Aki simulations, and claim limits. Payroll's illustrated proximity/phone/image-check/dashboard sequence is synthetic and non-statutory with no actual GPS, camera, biometric processing, or submission. FuturoHub's web-to-automation flow is fictional with no real lead or integration; INNERCIRCLE's central-AI/task-handoff concept remains independent of its private product. No canned Aki walkthrough or duplicate widget. Keep private provenance and raw scans outside this public artifact. Cite the [demo boundary](../../../shared/demo-boundary.md#public-and-private-evidence); leave unverified facts open.
 
 ## Creative checkpoint and open decisions
 

@@ -2,13 +2,13 @@
 
 This folder adapts [Interpretable Context Methodology](references/source-and-adaptations.md) to the portfolio in this repository. It provides selective context, five stage contracts, and Markdown output locations for a run. It is documentation, not an automation engine or a change to the live site.
 
-The [complete saved implementation prompt](prompts/rework-portfolio.md) carries the current requirements: Premium Cinematic light/dark presentation, Hero → Work → About → Process → Contact, a lightweight real Three.js Hero and a separate real Three.js pinned Work sequence, desktop/tablet/mobile acceptance, safe fictional demos, and the original Aki robot/runtime preserved with scoped chat-panel styling. These are implementation requirements, not completed or browser-verified features. Conversation previews are not committed application code.
+The [complete saved implementation prompt](prompts/rework-portfolio.md) carries the current requirements: Premium Cinematic light/dark presentation, Hero → Work → About → Process → Contact, a headline-aligned real Three.js Hero, a pinned four-scene Work sequence (Aki assembly, conceptual agent handoffs, simulated attendance, and fictional web-to-automation), desktop/tablet/mobile acceptance, and the live Aki robot/runtime preserved with scoped chat-panel styling. These are implementation requirements, not completed or browser-verified features. Conversation previews are not committed application code.
 
 ## Start here
 
 From the repository root, ask your agent to **read `icm/AGENTS.md`**, then give one request:
 
-> Read `icm/AGENTS.md`, `icm/CONTEXT.md`, and `icm/prompts/rework-portfolio.md`. Execute the portfolio rework on a new feature branch from the exact latest fetched `origin/docs/icm-portfolio-workspace`, follow all five stages, and prepare a reviewed draft PR back to that documentation branch. Preserve Aki's robot and functionality; restyle only its chat panel. Do not merge or deploy.
+> Read `icm/AGENTS.md`, `icm/CONTEXT.md`, and `icm/prompts/rework-portfolio.md`. Execute the portfolio rework on a new feature branch from the exact latest fetched `origin/docs/icm-portfolio-workspace`, follow all five stages, and prepare a reviewed draft PR back to that documentation branch. Preserve Aki's live robot and functionality; permit only scoped chat presentation in the live assistant and a separate decorative Work assembly. Do not merge or deploy.
 
 > Read `icm/AGENTS.md` and `icm/CONTEXT.md`. Set up this portfolio workflow using what is already confirmed, and tell me only which decisions are still open.
 

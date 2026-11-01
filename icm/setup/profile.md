@@ -10,12 +10,12 @@ Status: prefilled from confirmed user choices; update only when the user changes
 | Audiences and markets | Recruiters/hiring managers, founders, owners/operations, agencies; UAE, GCC/Middle East, Philippines/SE Asia, global remote | [Audiences](../shared/portfolio-strategy.md#audiences-and-markets) |
 | Selected visual direction | Premium Cinematic (option D), complete light/dark themes, lightweight actual Three.js Hero and separate main Work scene | [Design](../shared/design-preferences.md#confirmed-direction) |
 | Page and navigation | Hero then Work → About → Process → Contact; navigation uses those four sections | [Order](../shared/design-preferences.md#page-and-project-order) |
-| Hero rendering | Real lightweight Three.js sculpture on capable devices; immediate semantic title/role/actions, ordinary scroll into Work, static/failure fallback; never use the Aki robot | [Hero contract](../shared/design-preferences.md#threejs-hero) |
-| Work sequence | Aki → INNERCIRCLE → Timekeeping, Payroll & Attendance → FuturoHub; native page-scroll pin/scrub/pause/reverse/release | [Motion](../shared/design-preferences.md#threejs-and-motion) |
-| Aki boundary | Preserve the original robot/launcher and functional/backend behavior; permit scoped chat-panel presentation and existing theme binding | [Aki preservation](../shared/design-preferences.md#aki-preservation) |
+| Hero rendering | Real lightweight Three.js sculpture aligned to final approved headline/subtitle; current public headline is evidence baseline, not frozen copy; never use Aki's robot | [Hero contract](../shared/design-preferences.md#threejs-hero) |
+| Work sequence | Aki assembly → conceptual INNERCIRCLE agent handoffs → simulated guard attendance → fictional FuturoHub web-to-automation; native page-scroll pin/scrub/pause/reverse/release | [Scene directions](../shared/design-preferences.md#work-scene-directions) |
+| Aki boundary | Preserve the live robot/launcher and functional/backend behavior; permit a decorative faithful Work likeness plus scoped live chat-panel presentation | [Aki preservation](../shared/design-preferences.md#aki-preservation) |
 | Devices and themes | 320, 360, 390, 768, 820, 1024, 1440px in light and dark; responsive, keyboard/touch, reduced-motion/failure paths | [Acceptance](../shared/design-preferences.md#responsive-and-theme-acceptance) |
 | Disclosure limit | INNERCIRCLE may use only its existing high-level public summary | [Proof register](../shared/proof-register.md#innercircle) |
-| Demo direction | Project order confirmed; independent fictional non-Aki interactions remain to specify, with no canned assistant walkthrough | [Demo catalog](../shared/demo-catalog.md#presentation) |
+| Demo direction | Approved scene concepts remain independent fictional illustrations; no real sensing/integration, private feature parity, or canned assistant walkthrough | [Demo catalog](../shared/demo-catalog.md#presentation) |
 | Future implementation branch | New unique feature branch from exact latest fetched `origin/docs/icm-portfolio-workspace`; draft PR back to that branch | [Branch workflow](../shared/run-contract.md#branch-workflow) |
 
 ## Source pointers
