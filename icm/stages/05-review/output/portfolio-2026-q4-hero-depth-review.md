@@ -9,7 +9,7 @@ source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
 pr_base: feat/portfolio-cinematic-rework
 inputs:
-  - "Stage 01 brief r1, Stage 02 spec r2, Stage 03 implementation r3, Stage 04 verification r1"
+  - "Stage 01 brief r1, Stage 02 spec r3, Stage 03 implementation r4, Stage 04 verification r2"
 ---
 
 # Review record: Depth, Flow and Type Hero
@@ -44,7 +44,7 @@ inputs:
   - Inputs, Intelligence and Application told by camera, route, labels and type together;
   - a still layout for every fallback case;
   - Aki unchanged.
-- **Content stays within approved public facts.** The headline and supporting line are the owner's approved copy. The stage descriptions are conceptual, and no metric, client or outcome was added. The scene shows no product, brand or text.
+- **Content stays within approved public facts.** The headline and supporting line are the owner's approved copy. The stage descriptions are conceptual, and no metric, client or outcome was added. The scene shows no product or brand; its only text is the stage labels and "AI".
 - **The `design-preferences.md` Hero rule** "no second long pin" is superseded by the owner's brief for this run, and is noted in that file.
 
 ## Reference rebuild review (r2)
