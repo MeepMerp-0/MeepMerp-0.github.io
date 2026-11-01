@@ -11,7 +11,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createStudio, tones } from '../three/studio.js';
-import { CORE, HERO_FOV, ROUTE_CORE, cameraAt, clamp01, ease, signalAt, stageWeights } from './heroMotion.js';
+import { CORE, HERO_FOV, ROUTE_CORE, SIGNAL, cameraAt, clamp01, ease, signalAt, stageWeights } from './heroMotion.js';
 
 // Fixed pseudo-random numbers in [0, 1), so a scroll position always draws the same frame.
 const hash = (i, k) => {
@@ -348,7 +348,7 @@ function build(studio, theme) {
     ? uStart + (s / ROUTE_CORE) * (uCore - uStart)
     : uCore + ((s - ROUTE_CORE) / (1 - ROUTE_CORE)) * (1 - uCore));
   const startIndex = Math.floor(uStart * TUBULAR);
-  // Draws the signal in front of the panel or the core it is crossing; over the core it shrinks so "AI" stays readable.
+  // Draws the signal in front of the panel or the core it is crossing; `over` is how far it is over the hexagon.
   const hover = (at) => {
     let z = at.z;
     let over = 0;
@@ -403,7 +403,10 @@ function build(studio, theme) {
     accents.forEach((stage, i) => stage.forEach(([material, , base, gain]) => {
       material.emissiveIntensity = base + gain * w[i];
     }));
-    labels.forEach((label, i) => { label.material.opacity = 0.72 + 0.28 * w[i]; });
+    // All three labels read at the overview. Once the camera moves in, only the active stage's label stays, so labels
+    // of layers leaving the frame never show as cut-off fragments.
+    const away = ease(SIGNAL.start, 0.3, p);
+    labels.forEach((label, i) => { label.material.opacity = (0.72 + 0.28 * w[i]) * (1 - away) + w[i] * away; });
     t.spoke.opacity = 0.7 + 0.3 * w[1];
     paint(current, w);
     // The draw range counts indices, six per tube segment per radial step; the overlay starts at the signal's tile.
@@ -412,8 +415,9 @@ function build(studio, theme) {
     const { z, over } = hover(point);
     signal.position.set(point.x, point.y, z);
     halo.position.copy(signal.position);
-    signal.scale.setScalar(1 - 0.55 * over);
-    halo.scale.setScalar(1 - 0.5 * over);
+    // Over the hexagon the signal is absorbed into the core, so it never sits on the "AI" text.
+    signal.scale.setScalar(Math.max(1e-3, 1 - over));
+    halo.scale.setScalar(Math.max(1e-3, 1 - over));
     const { position, target } = cameraAt(p, camera.aspect);
     camera.position.set(...position);
     camera.lookAt(...target);
