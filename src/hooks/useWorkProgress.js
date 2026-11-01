@@ -60,8 +60,8 @@ function createSceneStore() {
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 // Reads the scroll position and never writes it: no wheel or touch handling, no scroll locking.
-// `scene` is a continuous chapter coordinate in [0, count - 0.5] kept outside React, so a scroll frame re-renders
-// nothing; only the integer `active` chapter is state.
+// `scene` is a continuous chapter coordinate in [-1, count - 0.5] kept outside React, so a scroll frame re-renders
+// nothing; only the integer `active` chapter is state. Negative values mean Work is still scrolling in.
 export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }) {
   const [active, setActive] = useState(0);
   const [store] = useState(createSceneStore);
@@ -100,6 +100,12 @@ export function useWorkProgress({ mode, count, trackRef, stageRef, articleRefs }
         chapter = index;
         scene = clamp(index + (mid - r.top) / Math.max(1, r.height) - 0.5, 0, count - 0.5);
       }
+      // While the section scrolls in, the coordinate is lowered by up to 1: by 1 with Work's top at the viewport
+      // bottom, falling to 0 as its top meets the header (where #work links land), so the first sculpture assembles
+      // on the way in. Subtracting rather than replacing keeps the coordinate continuous in both modes.
+      const header = headerHeight();
+      const sectionTop = trackRef.current?.closest('section')?.getBoundingClientRect().top ?? header;
+      scene -= clamp((sectionTop - header) / Math.max(1, window.innerHeight - header), 0, 1);
       if (jump.current !== null) {
         if (chapter !== jump.current) { store.set(scene); return; }
         jump.current = null;

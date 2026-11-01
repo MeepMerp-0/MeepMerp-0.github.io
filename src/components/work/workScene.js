@@ -23,8 +23,9 @@ const jitter = (i, k) => fract(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) 
 // The launcher itself is a separate 2D canvas and is not touched.
 const AKI = { shell: '#7a4a2a', trim: '#c8a27a', screen: '#17110c', led: '#e8f2ff' };
 
-// 0 · Aki: the robot's TV head, assembled from pieces that fall into place once, on a short timer, the first time
-// the chapter is on screen. Scrolling does not drive it, and no piece shows before it starts.
+// 0 · Aki: the robot's TV head, a still sculpture assembled from pieces that fall into place as you scroll down into
+// Work and rise back out as you scroll up. The fall is a pure function of scroll position (ctx.intro), with no timer,
+// so stopping holds the frame exactly. No piece shows before its fall starts.
 function buildAki() {
   const g = new Group();
   g.userData.frame = [4.4, 3.6];
@@ -56,7 +57,7 @@ function buildAki() {
   [-1, 1].forEach((side) => add(new Mesh(new RoundedBoxGeometry(0.34, 0.56, 0.05, 2, 0.05), led), side * 0.55, 0.12, 0.83));
 
   g.userData.update = (s, ctx) => {
-    // ctx.intro runs 0 to 1 over the timed fall. The shell lands first and the eyes last.
+    // ctx.intro runs 0 to 1 with the scroll as Work comes in. The shell lands first and the eyes last.
     pieces.forEach((piece, i) => {
       const u = MathUtils.clamp((ctx.intro - (i / pieces.length) * 0.55) / 0.45, 0, 1);
       piece.visible = u > 0;
@@ -478,13 +479,6 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
   let s = 0;
   let themeName = theme;
   let palette = studio.setTheme(theme);
-  // Aki's assembly: starts when the canvas is on screen with Aki showing, then plays on a timer. It replays each
-  // time Aki has been fully out of view, either because the canvas left the screen (resetIntro) or because the
-  // scene coordinate moved past Aki so its group is hidden (the c check in render). Both reset while Aki cannot
-  // be seen, so the replay is the only thing a visitor notices. While Aki is visible nothing resets.
-  const INTRO_MS = 1600;
-  let inView = false;
-  let introStart = null;
   const ctx = { theme, intro: 0 };
   let frame = 0;
   let size = { w: 1, h: 1, wide: false };
@@ -494,8 +488,9 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
 
   const render = () => {
     frame = 0;
-    // The scene coordinate runs from -0.5 (Aki still assembling) to count - 0.5 (the last workflow finishing).
-    // The camera and the hand-overs use the chapter range; each sculpture's own motion gets the full value.
+    // The scene coordinate runs from -1 (Work just entering, Aki's pieces still high above) to count - 0.5 (the
+    // last workflow finishing). The camera and the hand-overs use the chapter range, so negative values only drive
+    // Aki's assembly (ctx.intro below); each sculpture's own motion gets the full value.
     const c = MathUtils.clamp(s, 0, groups.length - 1);
     const base = Math.min(Math.floor(c), groups.length - 2);
     const f = c - base;
@@ -520,10 +515,10 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
     key.color.copy(keyColor);
     rim.intensity = palette.rimPower * (0.8 + 0.4 * Math.sin(f * Math.PI));
 
-    if (c >= 0.98) introStart = null;
-    else if (introStart === null && inView) introStart = performance.now();
     ctx.theme = themeName;
-    ctx.intro = introStart === null ? 0 : Math.min(1, (performance.now() - introStart) / INTRO_MS);
+    // Aki's pieces start falling once the canvas is well into view (s = -0.8) and have landed when Work reaches the
+    // header (s = 0), in step with the scroll in both directions.
+    ctx.intro = MathUtils.clamp(1 + s / 0.8, 0, 1);
     groups.forEach((group, i) => {
       const presence = 1 - MathUtils.clamp(Math.abs(c - i), 0, 1);
       // Only the sculptures being travelled between are drawn, so a resting chapter shows its sculpture alone.
@@ -534,8 +529,6 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
       group.scale.setScalar(0.82 + 0.18 * presence);
     });
     renderer.render(scene, camera);
-    // The only timed animation: keep drawing until the assembly lands, then go back to drawing on demand.
-    if (introStart !== null && ctx.intro < 1) request();
   };
   const request = () => { if (!frame) frame = requestAnimationFrame(render); };
 
@@ -555,9 +548,6 @@ export function createWorkScene(canvas, { theme = 'dark', compact = false, onLos
   return {
     setScene(value) { if (value !== s) { s = value; request(); } },
     setTheme(name) { themeName = name; palette = studio.setTheme(name); request(); },
-    setInView(value) { if (value !== inView) { inView = value; request(); } },
-    // Rewinds the assembly. It draws once so the pieces are already hidden when the canvas comes back into view.
-    resetIntro() { if (introStart !== null) { introStart = null; request(); } },
     resize,
     // Renders the current state now; the caller uses it to know the first frame has been drawn.
     renderNow: render,

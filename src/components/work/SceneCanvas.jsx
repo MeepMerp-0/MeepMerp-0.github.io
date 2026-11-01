@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Emblem } from './Emblem.jsx';
 
 // Mounts the Three.js scene once the Work section is within a viewport of the screen, feeds it the scroll
-// coordinate from `store`, and keeps the static emblem on screen until the first frame (or for good if WebGL fails).
+// coordinate from `store` (which also drives Aki's scroll-linked assembly), and keeps the static emblem on screen
+// until the first frame (or for good if WebGL fails).
 export function SceneCanvas({ store, theme, compact, fallbackId }) {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
@@ -13,7 +14,6 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
     let cancelled = false;
     let unsubscribe = () => {};
     let resizeObserver;
-    let visibility;
 
     const start = async () => {
       try {
@@ -30,13 +30,6 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
         unsubscribe = store.subscribe((value) => scene.setScene(value));
         resizeObserver = new ResizeObserver(() => scene.resize());
         resizeObserver.observe(canvas);
-        // Tells the scene when the canvas is really on screen, so Aki's assembly plays where it is seen, and when
-        // it is fully off screen (ratio 0), so the assembly can reset out of sight and replay on return.
-        visibility = new IntersectionObserver(([entry]) => {
-          scene.setInView(entry.intersectionRatio >= 0.4);
-          if (entry.intersectionRatio === 0) scene.resetIntro();
-        }, { threshold: [0, 0.4] });
-        visibility.observe(canvas);
         setStatus('ready');
       } catch {
         if (!cancelled) setStatus('failed');
@@ -55,7 +48,6 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
       io.disconnect();
       unsubscribe();
       resizeObserver?.disconnect();
-      visibility?.disconnect();
       sceneRef.current?.dispose();
       sceneRef.current = null;
     };
