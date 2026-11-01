@@ -1,18 +1,21 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Reveal } from '../components/Reveal.jsx';
 import { SectionIntro } from '../components/SectionIntro.jsx';
 import { ABOUT } from '../data/siteCopy.js';
+import { useScrollSteps } from '../hooks/useScrollSteps.js';
 import { EASE_OUT } from '../utils/motion.js';
 
 // Tabs with roving focus (arrow keys, Home, End). Every capability name stays visible, so the section reads
-// without interaction; selecting one only adds its detail.
+// without interaction; selecting one only adds its detail. Scrolling through the pinned block steps through them.
 function Capabilities() {
   const reduceMotion = useReducedMotion();
-  const [selected, setSelected] = useState(0);
   const tabs = useRef([]);
-  const active = ABOUT.capabilities[selected];
+  const trackRef = useRef(null);
+  const stageRef = useRef(null);
   const count = ABOUT.capabilities.length;
+  const { pinned, index: selected, goTo } = useScrollSteps({ count, trackRef, stageRef });
+  const active = ABOUT.capabilities[selected];
 
   const onKeyDown = (event) => {
     const moves = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
@@ -22,18 +25,19 @@ function Capabilities() {
     else if (event.key === 'End') next = count - 1;
     else return;
     event.preventDefault();
-    setSelected(next);
+    goTo(next);
     tabs.current[next]?.focus();
   };
 
   return (
-    <div className="capabilities">
+    <div className="steps-track" ref={trackRef} data-pinned={pinned} style={{ '--steps': count }}>
+    <div className="capabilities steps-stage" ref={stageRef}>
       <h3 className="capabilities-title">What I bring to a team</h3>
       <div className="capabilities-tabs" role="tablist" aria-label="Capabilities" onKeyDown={onKeyDown}>
         {ABOUT.capabilities.map((item, index) => (
           <button key={item.id} ref={(el) => { tabs.current[index] = el; }} type="button" role="tab"
             id={`cap-tab-${item.id}`} aria-controls="cap-panel" aria-selected={index === selected}
-            tabIndex={index === selected ? 0 : -1} className="capabilities-tab" onClick={() => setSelected(index)}>
+            tabIndex={index === selected ? 0 : -1} className="capabilities-tab" onClick={() => goTo(index)}>
             <span className="capabilities-num" aria-hidden="true">0{index + 1}</span>{item.label}
           </button>
         ))}
@@ -50,6 +54,7 @@ function Capabilities() {
           </motion.div>
         </AnimatePresence>
       </div>
+    </div>
     </div>
   );
 }

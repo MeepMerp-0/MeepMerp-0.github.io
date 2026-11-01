@@ -212,7 +212,7 @@ async function verifyLayout(label, section) {
       errors.push('horizontal document overflow: ' + htmlWidth + ' / ' + bodyWidth + ' vs ' + width);
     }
     const selectors = ['.site-header', '.shell', '.hero-stage', '.hero h1', '.hero-focus', '.hero-labels', '.hero-foot',
-      '.section-intro', '.project-row', '.about-layout', '.capabilities-grid',
+      '.section-intro', '.project-row', '.about-layout', '.capabilities-tabs', '.process-steps',
       '.contact-grid', '.contact-form', '.portfolio-workflow__window'];
     const inspected = new Set();
     const candidates = [

@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { SectionIntro } from '../components/SectionIntro.jsx';
+import { useScrollSteps } from '../hooks/useScrollSteps.js';
 import { PROCESS_STEPS } from '../data/siteCopy.js';
 import { twoDigits } from '../utils/format.js';
 import { EASE_OUT } from '../utils/motion.js';
 
 export function Process() {
   const reduceMotion = useReducedMotion();
-  const [selected, setSelected] = useState(0);
+  const trackRef = useRef(null);
+  const stageRef = useRef(null);
+  const { pinned, index: selected, goTo } = useScrollSteps({ count: PROCESS_STEPS.length, trackRef, stageRef });
   const active = PROCESS_STEPS[selected];
 
   return (
@@ -15,12 +18,13 @@ export function Process() {
       <div className="shell">
         <SectionIntro titleId="process-title" number="03" eyebrow="PROCESS" title="Four steps, written down."
           subtitle="How I take work from a loose request to something a team can rely on. A working approach, not a guarantee." />
-        <div className="process">
+        <div className="steps-track" ref={trackRef} data-pinned={pinned} style={{ '--steps': PROCESS_STEPS.length }}>
+        <div className="process steps-stage" ref={stageRef}>
           <ol className="process-steps">
             {PROCESS_STEPS.map((step, index) => (
               <li key={step.id}>
                 <button type="button" className="process-step" aria-pressed={index === selected}
-                  aria-controls="process-detail" onClick={() => setSelected(index)}>
+                  aria-controls="process-detail" onClick={() => goTo(index)}>
                   <span className="process-num">{twoDigits(index + 1)}</span>
                   <span className="process-label">{step.label}</span>
                   <span className="process-summary">{step.summary}</span>
@@ -43,6 +47,7 @@ export function Process() {
               </motion.div>
             </AnimatePresence>
           </div>
+        </div>
         </div>
       </div>
     </section>
