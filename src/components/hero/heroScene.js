@@ -45,8 +45,25 @@ const TUBULAR = 240;
 const RADIAL = 8;
 const ROUTE_RADIUS = 0.035;
 
+// Releases the studio, then the GPU context itself. The studio's context-lost listener is gone by then, so this does
+// not call onLost. A browser that lacks the extension, or a context that is already lost, is left alone.
+function release(studio) {
+  studio.dispose();
+  try { studio.renderer.forceContextLoss?.(); } catch { /* already lost */ }
+}
+
+// If anything throws after the renderer exists, the renderer and its context are released before the error goes on.
 export function createHeroScene(canvas, { theme = 'dark', onLost } = {}) {
   const studio = createStudio(canvas, { onLost });
+  try {
+    return build(studio, theme);
+  } catch (error) {
+    release(studio);
+    throw error;
+  }
+}
+
+function build(studio, theme) {
   const { scene, renderer, key } = studio;
   const camera = new PerspectiveCamera(HERO_FOV, 1, 0.1, 100);
 
@@ -238,7 +255,7 @@ export function createHeroScene(canvas, { theme = 'dark', onLost } = {}) {
       disposed = true;
       cancelAnimationFrame(frame);
       scene.traverse((o) => o.isInstancedMesh && o.dispose());
-      studio.dispose();
+      release(studio);
     },
   };
 }

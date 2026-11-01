@@ -31,7 +31,7 @@ const whenIdle = (fn) => {
 // Pinned: a tall track with a sticky stage whose scene, labels and type follow scroll progress. Still: ordinary flow
 // with one frame at progress 0. The inline art shows until the first WebGL frame and whenever WebGL fails or is lost.
 export function Hero({ theme }) {
-  const { heroRef, trackRef, stageRef, copyRef, labelsRef, footRef, probeRef, mode, active, store } = useHeroProgress();
+  const { heroRef, trackRef, stageRef, copyRef, labelsRef, footRef, cueRef, skipRef, probeRef, mode, active, store } = useHeroProgress();
   const [art, setArt] = useState('svg');
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
@@ -44,26 +44,51 @@ export function Hero({ theme }) {
     let scene;
     let unsubscribe;
     let resizeObserver;
+    let dppx;
+    let onDppx;
+
+    // A change of device pixel ratio (browser zoom, moving the window to another display) can leave the canvas's CSS
+    // size alone, so the observer stays silent. Each resolution query matches one value, so re-arm after every change.
+    const watchDppx = () => {
+      dppx = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      onDppx = () => { scene?.resize(); watchDppx(); };
+      dppx.addEventListener('change', onDppx, { once: true });
+    };
+    const unwatchDppx = () => dppx?.removeEventListener('change', onDppx);
+
+    // Releases the scene and everything listening to it. Used on unmount, on a creation error and on context loss.
+    const teardown = () => {
+      unsubscribe?.();
+      resizeObserver?.disconnect();
+      unwatchDppx();
+      scene?.dispose();
+      unsubscribe = undefined;
+      resizeObserver = undefined;
+      dppx = undefined;
+      scene = undefined;
+      sceneRef.current = null;
+    };
 
     const cancelIdle = whenIdle(async () => {
       try {
         const { createHeroScene } = await import('../components/hero/heroScene.js');
         if (cancelled) return;
-        scene = createHeroScene(canvas, { theme: document.documentElement.dataset.theme, onLost: () => setArt('svg') });
+        scene = createHeroScene(canvas, {
+          theme: document.documentElement.dataset.theme,
+          // Context loss: stop rendering for good and show the inline art. The mode stays, so the page does not move.
+          onLost: () => { teardown(); setArt('svg'); },
+        });
         sceneRef.current = scene;
         scene.setProgress(store.get());
         unsubscribe = store.subscribe(scene.setProgress);
         resizeObserver = new ResizeObserver(() => scene.resize());
         resizeObserver.observe(canvas);
+        watchDppx();
         scene.renderNow();
         setArt('canvas');
       } catch {
         // Only the art changes. The layout mode stays, so a late failure cannot collapse the track under the visitor.
-        unsubscribe?.();
-        resizeObserver?.disconnect();
-        scene?.dispose();
-        sceneRef.current = null;
-        scene = undefined;
+        teardown();
         if (!cancelled) setArt('svg');
       }
     });
@@ -71,10 +96,7 @@ export function Hero({ theme }) {
     return () => {
       cancelled = true;
       cancelIdle();
-      unsubscribe?.();
-      resizeObserver?.disconnect();
-      scene?.dispose();
-      sceneRef.current = null;
+      teardown();
     };
   }, [store]);
 
@@ -122,9 +144,7 @@ export function Hero({ theme }) {
                     <span className="hero-stage-head">
                       <span className="hero-stage-num">{String(i + 1).padStart(2, '0')}</span>
                       <span className="hero-stage-name">{name}</span>
-                      {pinned && i === active && (
-                        <span className="hero-now"><span className="hero-now-shape" aria-hidden="true" />Now</span>
-                      )}
+                      <span className="hero-now"><span className="hero-now-shape" aria-hidden="true" />Now</span>
                     </span>
                     <span className="hero-stage-desc">{description}</span>
                   </li>
@@ -133,8 +153,8 @@ export function Hero({ theme }) {
             </div>
           </div>
           <div ref={footRef} className="hero-foot">
-            <a className="hero-skip" href="#work">Skip to Work</a>
-            <span className="hero-cue"><ArrowDown size={14} aria-hidden="true" />Scroll to explore</span>
+            <a ref={skipRef} className="hero-skip" href="#work">Skip to Work</a>
+            <span ref={cueRef} className="hero-cue"><ArrowDown size={14} aria-hidden="true" />Scroll to explore</span>
           </div>
         </div>
       </div>
