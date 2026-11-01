@@ -2,14 +2,14 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 03-implementation
 state: READY
-revision: "implementation r4; application code at 758f14d"
+revision: "implementation r5; application code at e52bd63"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
 pr_base: feat/portfolio-cinematic-rework
 inputs:
-  - "icm/stages/02-specification/output/portfolio-2026-q4-hero-depth-spec.md (spec r2)"
+  - "icm/stages/02-specification/output/portfolio-2026-q4-hero-depth-spec.md (spec r2, r3 reference, r4 zoom-out)"
 ---
 
 # Implementation record: Depth, Flow and Type Hero
@@ -84,3 +84,12 @@ The owner supplied a reference image and asked that the Hero look like it (spec 
 | `758f14d` | Opus 5.5 (a two-line polish after the visual review) | The signal is absorbed into the hexagon instead of sitting on the "AI" text. Scene labels of inactive stages fade out once the camera leaves the overview, so cut-off fragments never show at the frame edge. |
 
 The page structure, progress, modes, copy and label plate are unchanged.
+
+## Owner follow-ups (r5)
+
+| Commit | Model | Change |
+| --- | --- | --- |
+| `1ca264d` | Sonnet 5.5 | Closing zoom-out (spec r4). After Application is large at p = 0.72, the camera pulls back to a frontal view of the whole row, 1.2 times the opening distance, by `ZOOM_END` = 0.94, then holds. The camera is now four keys eased beat by beat, so the pose stays continuous. Framing tests cover p = 1 at four aspect ratios. |
+| `af489f6` | Sonnet 5.5 | Owner request outside the Hero scope: the Work scene's Aki chapter replays its falling assembly whenever it comes back into view (scrolling up into it from INNERCIRCLE, or down into it from the Hero). The intro resets only when the chapter is fully out of view, so a partly visible chapter never restarts or flashes. Aki's launcher, chat, services and Worker are unchanged. |
+| `7ef9ea7` | Opus 5.5 | The static no-JavaScript Hero in `index.html` painted, unstyled, for a moment on every refresh before React mounted. It is now hidden by CSS and revealed only if it is still in the page after 4 s (the app failed to mount); with scripts turned off a `<noscript>` style shows it at once. |
+| `e52bd63` | Opus 5.5 | A faint cut-off "INTELLIGENCE" label showed at p ≈ 0.6. Inactive labels now fade on the cube of their stage weight, and every label fades out as any corner reaches the canvas edge (from its projected corners, so it stays a pure function of progress and aspect). |

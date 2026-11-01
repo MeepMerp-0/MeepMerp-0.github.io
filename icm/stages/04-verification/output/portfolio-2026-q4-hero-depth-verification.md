@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 04-verification
 state: READY
-revision: "verification r2; reference rebuild tested at 758f14d, earlier rows at f46c9b1"
+revision: "verification r3; follow-ups tested at e52bd63, reference rebuild at 758f14d, earlier rows at f46c9b1"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -10,7 +10,7 @@ working_branch: feat/hero-depth-flow-type
 pr_base: feat/portfolio-cinematic-rework
 inputs:
   - "icm/stages/02-specification/output/portfolio-2026-q4-hero-depth-spec.md (spec r2)"
-  - "icm/stages/03-implementation/output/portfolio-2026-q4-hero-depth-implementation.md (r3)"
+  - "icm/stages/03-implementation/output/portfolio-2026-q4-hero-depth-implementation.md (r5)"
 ---
 
 # Verification record: Depth, Flow and Type Hero
@@ -75,7 +75,7 @@ inputs:
 - **Pixel ratio changes** were emulated. Headless Chrome delivered one return to 1× only on the next change.
 - **Large resizes** (1440 × 900 to 1440 × 500, and phone rotation): About moved by thousands of pixels. The likely cause is Work switching between its pinned and strip layouts, a behaviour that predates this run. This was not confirmed; the Hero's own mode flip stays within 0.2 px.
 - **195 × 422** (200 % zoom of a 390 px phone, below the 320 px floor) has 119 px of horizontal overflow. It was not compared with the previous build.
-- **The no-JavaScript block** shows briefly before React mounts on a normal load. It uses the Hero's own classes to keep the change small.
+- **The no-JavaScript block** uses the Hero's own classes to keep the change small. It no longer shows before React mounts; see the r3 checks below.
 
 ## Reference rebuild checks (after `3f55a1e`)
 
@@ -94,3 +94,18 @@ Remaining limits:
 - **Empty space in the art column.** The art column is taller than the 2.4:1 panorama, so at p = 0 there is empty space above and below it.
 - **Small text on phones.** The scene labels are small there; they are decorative, and the HTML stage list carries the names.
 - **Hairline spokes.** The spokes are 1 px lines, so in the close-up they look thinner than the fins.
+
+## Owner follow-up checks (r3, at `e52bd63`)
+
+| Check | Kind | Result |
+| --- | --- | --- |
+| `npm test` (277), `eslint .`, `npm run build` | Command | PASS |
+| Smoke suite | Command | PASS (all checks, including the 43 Aki steps) |
+| Determinism at 1440 × 900 dark: rest, hold, reverse, p = 0.37 round trip | Browser viewport | PASS |
+| Zoom-out: p = 0, 0.2, 0.45, 0.6, 0.72, 0.85, 0.94 and 1 at 1440 × 900 dark and 390 × 844 light | Browser viewport, reviewed by eye | PASS. The camera ends on the whole row, wider than the opening, and holds from 0.94. All three scene labels are back at p = 1. No cut-off label at any of these values; at p = 0.6 only "03 / APPLICATION" shows. |
+| Aki replay in the Work scene, 1440 and 390 | Browser viewport | PASS: (a) Hero to Aki replays; (b) INNERCIRCLE back to Aki replays; (c) up into the Hero and back replays; (d) a partly visible chapter does not restart or flash; (e) idle after the intro. Launcher hash `769e31257e57cc48` ×6, unchanged. |
+| Refresh with scripts on, dev server and built preview | Browser viewport | PASS. Sampled every frame from the new document until the app mounted: the static block was hidden in every frame (16 frames on dev, 4 on the build), never visible. |
+| Scripts blocked (app never mounts) | Simulated fallback | PASS: hidden at 1.5 s, visible at 5 s |
+| Scripts turned off | Simulated fallback | PASS: visible at once |
+
+The 4 s reveal means that if the app script fails, a visitor waits up to 4 s before the static content shows.

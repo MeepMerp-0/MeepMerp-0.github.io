@@ -2,14 +2,14 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 05-review
 state: READY
-revision: "review r2; reviewed code 758f14d"
+revision: "review r3; reviewed code e52bd63"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
 working_branch: feat/hero-depth-flow-type
 pr_base: feat/portfolio-cinematic-rework
 inputs:
-  - "Stage 01 brief r1, Stage 02 spec r3, Stage 03 implementation r4, Stage 04 verification r2"
+  - "Stage 01 brief r1, Stage 02 spec r4, Stage 03 implementation r5, Stage 04 verification r3"
 ---
 
 # Review record: Depth, Flow and Type Hero
@@ -61,3 +61,14 @@ No other finding is open.
 - The branch is `feat/hero-depth-flow-type`. Its proposed base is `feat/portfolio-cinematic-rework` (draft PR #16).
 - **Human approval is required before merge.** No merge or deployment was done.
 - **Real-device testing is still open**: an iPhone and an Android phone at their default text size, and a desktop GPU.
+
+## Owner follow-ups (r3)
+
+The architecture model reviewed the zoom-out, the Aki replay, the refresh fix and the label fade (Stage 03 r5) against the verification in Stage 04 r3.
+
+- **Zoom-out:** deterministic, continuous across beats, and framed at all four tested aspect ratios.
+- **Aki replay:** the change is in the Work scene (`workScene.js`, `SceneCanvas.jsx`), made at the owner's request. It touches only when the assembly intro restarts. Aki's appearance, launcher, chat, services and Worker are unchanged.
+- **Refresh flash:** fixed without removing the no-JavaScript content.
+- **Label fragments:** fixed at the root (a frame-edge fade) rather than by tuning one progress value.
+
+No finding is open. The release handoff above still applies: human approval before merge, and real-device testing still open.
