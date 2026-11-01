@@ -19,7 +19,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
   const remeasure = useRef(() => {});
   const endHold = useRef(() => {});
 
-  // A layout effect, so the first mode decision is rendered before paint and a deep link or restored scroll
+  // A layout effect, so the first mode decision is in place before paint and a deep link or restored scroll
   // position is placed against the final page height.
   useLayoutEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -43,6 +43,9 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
       track.style.setProperty('--stage-h', `${stageHeight}px`);
       if (fits !== pinnedNow.current) {
         pinnedNow.current = fits;
+        // Set on the element too: React runs pending effects, such as the initial #hash scroll, before it
+        // renders this state, so the track must already have its final height by then.
+        track.dataset.pinned = String(fits);
         setPinned(fits);
         // The track's height changes with the mode; its ResizeObserver reads the step once it has.
         return;
