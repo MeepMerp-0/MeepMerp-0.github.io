@@ -5,8 +5,10 @@
 
 export const STAGES = ['Inputs', 'Intelligence', 'Application'];
 
-// The signal waits at Inputs, reaches the core at CORE, and rests at Application from END on.
-export const SIGNAL = { start: 0.08, core: 0.5, end: 0.92 };
+// The signal waits at Inputs, reaches the core at `core`, and rests at Application from `end` on.
+export const SIGNAL = { start: 0.08, core: 0.45, end: 0.72 };
+// The camera's closing zoom-out runs from SIGNAL.end to here, then holds on the full view.
+export const ZOOM_END = 0.94;
 // Where the core sits along the route (0 = first input, 1 = application).
 export const ROUTE_CORE = 0.5;
 // The camera never comes closer than this to the core's centre, so the near plane cannot cut into it.
@@ -32,15 +34,15 @@ export function signalAt(p) {
 
 // The stage the journey is in, for aria-current and the label marker.
 export function activeStage(p) {
-  return p < 0.3 ? 0 : p < 0.7 ? 1 : 2;
+  return p < 0.27 ? 0 : p < 0.6 ? 1 : 2;
 }
 
 // How strongly each stage is emphasised, 0..1. Neighbouring stages cross-fade.
 export function stageWeights(p) {
   return [
-    1 - ease(0.2, 0.4, p),
-    ease(0.2, 0.4, p) * (1 - ease(0.6, 0.8, p)),
-    ease(0.6, 0.8, p),
+    1 - ease(0.17, 0.37, p),
+    ease(0.17, 0.37, p) * (1 - ease(0.5, 0.7, p)),
+    ease(0.5, 0.7, p),
   ];
 }
 
@@ -61,37 +63,39 @@ const orbit = (target, distance, elevation, azimuth) => {
   };
 };
 
-// Camera keyframes. The scene is a frontal row of three layers (see heroScene.js): the overview looks at the row almost
-// head-on from slightly above, the close-up sits about 3.2 from the core, a little off-axis so the fins show their depth,
-// and the end view opens out to the right so Application is large with the core partly in frame. The projection test
-// keeps them framed.
+// Camera keyframes, one per beat boundary. The scene is a frontal row of three layers (see heroScene.js): the overview
+// looks at the row almost head-on from slightly above, the close-up sits about 3.2 from the core, a little off-axis so
+// the fins show their depth, then the camera opens out to the right so Application is large with the core partly in
+// frame, and finally pulls back to a frontal view of the whole row, wider than the opening (8.9 against 7.4 from the
+// same target). `fit` is how much of the narrow-canvas step-back applies at that key. The projection test keeps them
+// framed.
+const OVERVIEW = [0.46, 0.5, -3];
 const KEYS = [
-  orbit([0.46, 0.5, -3], 7.4, 3, 0),
-  orbit(CORE, 3.2, 10, 22),
-  orbit([2.75, 0.45, -3], 5.4, 8, 12),
+  { ...orbit(OVERVIEW, 7.4, 3, 0), fit: 1 },
+  { ...orbit(CORE, 3.2, 10, 22), fit: 0.5 },
+  { ...orbit([2.75, 0.45, -3], 5.4, 8, 12), fit: 1 },
+  { ...orbit(OVERVIEW, 8.9, 3, 0), fit: 1 },
 ];
+// Beat boundaries: hold, move in, open toward Application, zoom out, hold.
+const BEATS = [SIGNAL.start, SIGNAL.core, SIGNAL.end, ZOOM_END];
 
 // Canvas aspect at and above which the overview fits without stepping back.
 const FIT_ASPECT = 1.74;
 
 // Camera pose for progress p and the canvas aspect ratio (width / height). Narrow canvases step back along the view
-// direction so the overview still fits; the close-up steps back less. Returns plain arrays.
+// direction so the overview still fits; the close-up steps back less. Each beat eases between two keys, so the pose is
+// continuous across beats. Returns plain arrays.
 export function cameraAt(p, aspect = 16 / 9) {
-  const a = ease(SIGNAL.start, SIGNAL.core, p);
-  const b = ease(SIGNAL.core, SIGNAL.end, p);
-  const from = p <= SIGNAL.core ? KEYS[0] : KEYS[1];
-  const to = p <= SIGNAL.core ? KEYS[1] : KEYS[2];
-  const t = p <= SIGNAL.core ? a : b;
+  const i = p <= BEATS[1] ? 0 : p <= BEATS[2] ? 1 : 2;
+  const [from, to] = [KEYS[i], KEYS[i + 1]];
+  const t = ease(BEATS[i], BEATS[i + 1], p);
   const target = mix3(from.target, to.target, t);
   let position = mix3(from.position, to.position, t);
   const narrow = Math.min(3.4, Math.max(1, FIT_ASPECT / Math.max(0.2, aspect)));
-  // Full step-back at the overviews, half of it at the close-up.
-  const closeness = p <= SIGNAL.core ? a : 1 - b;
-  const k = mix(narrow, 1 + (narrow - 1) * 0.5, closeness);
-  position = mix3(target, position, k);
+  position = mix3(target, position, 1 + (narrow - 1) * mix(from.fit, to.fit, t));
   // Clearance from the core, enforced rather than assumed.
-  const d = position.map((v, i) => v - CORE[i]);
+  const d = position.map((v, j) => v - CORE[j]);
   const len = Math.hypot(...d);
-  if (len < CORE_CLEARANCE) position = CORE.map((c, i) => c + (d[i] / len) * CORE_CLEARANCE);
+  if (len < CORE_CLEARANCE) position = CORE.map((c, j) => c + (d[j] / len) * CORE_CLEARANCE);
   return { position, target };
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  CORE, CORE_CLEARANCE, HERO_FOV, SIGNAL, activeStage, cameraAt, signalAt, stageWeights, typeAt,
+  CORE, CORE_CLEARANCE, HERO_FOV, SIGNAL, ZOOM_END, activeStage, cameraAt, signalAt, stageWeights, typeAt,
 } from './heroMotion.js';
 
 const samples = Array.from({ length: 401 }, (_, i) => i / 400);
@@ -12,6 +12,7 @@ test('the signal holds at Inputs, reaches the core mid-journey and rests at Appl
   assert.equal(signalAt(SIGNAL.core), 0.5);
   assert.equal(signalAt(SIGNAL.end), 1);
   assert.equal(signalAt(1), 1);
+  assert.deepEqual([SIGNAL.start, SIGNAL.core, SIGNAL.end], [0.08, 0.45, 0.72]);
   samples.slice(1).forEach((p, i) => assert.ok(signalAt(p) >= signalAt(samples[i]), `monotonic at ${p}`));
 });
 
@@ -25,8 +26,12 @@ test('every value is a pure function of progress, so reversing restores the same
 
 test('stages run Inputs, Intelligence, Application with bounded emphasis', () => {
   assert.equal(activeStage(0), 0);
-  assert.equal(activeStage(0.5), 1);
+  assert.equal(activeStage(0.26), 0);
+  assert.equal(activeStage(0.45), 1);
+  assert.equal(activeStage(0.61), 2);
   assert.equal(activeStage(1), 2);
+  // Stages never go backwards as progress grows.
+  samples.slice(1).forEach((p, i) => assert.ok(activeStage(p) >= activeStage(samples[i]), `stage order at ${p}`));
   for (const p of samples) {
     stageWeights(p).forEach((w) => assert.ok(w >= 0 && w <= 1));
     const w = stageWeights(p);
@@ -46,11 +51,30 @@ test('the camera keeps clear of the core at every progress and aspect ratio', ()
   }
 });
 
-test('the camera moves in for the core and ends on a wider view that leans toward Application', () => {
+test('the camera moves in for the core, opens toward Application, then zooms out wider than the opening', () => {
   const dist = (p) => Math.hypot(...cameraAt(p).position.map((v, i) => v - CORE[i]));
   assert.ok(dist(SIGNAL.core) < dist(0) * 0.65);
-  assert.ok(dist(1) > dist(SIGNAL.core) * 1.1, 'the end view opens out from the close-up');
-  assert.ok(cameraAt(1).target[0] > 1.5, 'the end view is centred toward Application');
+  assert.ok(cameraAt(SIGNAL.end).target[0] > 1.5, 'the third beat is centred toward Application');
+  const from = cameraAt(0).target;
+  for (const aspect of [0.97, 1.2, 1.74, 1.76]) {
+    const away = (p) => Math.hypot(...cameraAt(p, aspect).position.map((v, i) => v - from[i]));
+    assert.ok(away(1) >= 1.15 * away(0), `final view is wider than the opening at aspect=${aspect}`);
+    assert.deepEqual(cameraAt(ZOOM_END, aspect), cameraAt(1, aspect), 'the last beat holds');
+    assert.deepEqual(cameraAt(0.04, aspect), cameraAt(0, aspect), 'the first beat holds');
+  }
+});
+
+test('the camera is continuous, with no jump between beats', () => {
+  for (const aspect of [0.97, 1.76]) {
+    let prev = cameraAt(0, aspect);
+    for (let i = 1; i <= 2000; i += 1) {
+      const cur = cameraAt(i / 2000, aspect);
+      [['position', cur.position, prev.position], ['target', cur.target, prev.target]].forEach(([name, a, b]) => {
+        assert.ok(Math.hypot(...a.map((v, k) => v - b[k])) < 0.05, `${name} jumps at p=${i / 2000}, aspect=${aspect}`);
+      });
+      prev = cur;
+    }
+  }
 });
 
 // Projects a world point to normalised device coordinates for the scene camera (up is +y, looking at the target).
@@ -107,18 +131,24 @@ test('the framing rules hold for common canvas shapes', () => {
     const eye = cam0.position.map((v, i) => v - cam0.target[i]);
     assert.ok(Math.abs(eye[0]) < 0.1 * Math.hypot(...eye) && eye[1] > 0 && eye[1] < 0.2 * Math.hypot(...eye), `frontal at p=0, ${at}`);
     // Close-up: the hexagon and inner fins fill most of the frame's height, seen a little off-axis.
-    const cam5 = cameraAt(0.5, aspect);
+    const cam5 = cameraAt(SIGNAL.core, aspect);
     const focus = coreFrame(cam5, aspect, 0.9);
-    assert.ok(inside(focus), `hexagon and inner fins inside at p=0.5, ${at}: ${JSON.stringify(focus)}`);
+    assert.ok(inside(focus), `hexagon and inner fins inside at p=0.45, ${at}: ${JSON.stringify(focus)}`);
     const eye5 = cam5.position.map((v, i) => v - CORE[i]);
-    assert.ok(Math.abs(eye5[0]) > 0.15 * Math.hypot(...eye5), `off-axis at p=0.5, ${at}`);
-    if (aspect >= 1.74) assert.ok(focus.y1 - focus.y0 >= 0.8 * 2, `fills the height at p=0.5, ${at}: ${(focus.y1 - focus.y0) / 2}`);
-    // End view: Application is in frame, large and right of centre, and the core is partly in frame. Inputs may leave.
+    assert.ok(Math.abs(eye5[0]) > 0.15 * Math.hypot(...eye5), `off-axis at p=0.45, ${at}`);
+    if (aspect >= 1.74) assert.ok(focus.y1 - focus.y0 >= 0.8 * 2, `fills the height at p=0.45, ${at}: ${(focus.y1 - focus.y0) / 2}`);
+    // Third beat: Application is in frame, large and right of centre, and the core is partly in frame. Inputs may leave.
+    const cam72 = cameraAt(SIGNAL.end, aspect);
+    const [c72, a72] = [coreFrame(cam72, aspect, 1.42), frame(application, cam72, aspect)];
+    assert.ok(c72.x1 > -margin && c72.x0 < margin, `core partly in frame at p=0.72, ${at}`);
+    assert.ok(inside(a72), `Application inside at p=0.72, ${at}: ${JSON.stringify(a72)}`);
+    assert.ok((a72.x1 - a72.x0) >= 0.35 * 2, `Application fills 35% of the width at p=0.72, ${at}: ${(a72.x1 - a72.x0) / 2}`);
+    assert.ok((a72.x0 + a72.x1) / 2 > 0, `Application is right of centre at p=0.72, ${at}`);
+    // Final view: all three layers and their labels are back in frame, wider than the opening and still frontal.
     const cam1 = cameraAt(1, aspect);
-    const [c1, a1] = [coreFrame(cam1, aspect, 1.42), frame(application, cam1, aspect)];
-    assert.ok(c1.x1 > -margin && c1.x0 < margin, `core partly in frame at p=1, ${at}`);
-    assert.ok(inside(a1), `Application inside at p=1, ${at}: ${JSON.stringify(a1)}`);
-    assert.ok((a1.x1 - a1.x0) >= 0.35 * 2, `Application fills 35% of the width at p=1, ${at}: ${(a1.x1 - a1.x0) / 2}`);
-    assert.ok((a1.x0 + a1.x1) / 2 > 0, `Application is right of centre at p=1, ${at}`);
+    const final = [inputs, intelligence, application].map((l) => frame(l, cam1, aspect));
+    final.forEach((f, i) => assert.ok(inside(f), `layer ${i} inside at p=1, ${at}: ${JSON.stringify(f)}`));
+    const eye1 = cam1.position.map((v, i) => v - cam1.target[i]);
+    assert.ok(Math.abs(eye1[0]) < 0.1 * Math.hypot(...eye1) && eye1[1] > 0 && eye1[1] < 0.2 * Math.hypot(...eye1), `frontal at p=1, ${at}`);
   }
 });
