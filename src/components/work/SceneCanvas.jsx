@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Emblem } from './Emblem.jsx';
 
 // Mounts the Three.js scene once the Work section is within a viewport of the screen, feeds it the scroll
@@ -8,6 +8,8 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const [status, setStatus] = useState('waiting');
+  // True while Aki's pieces have not fallen yet; re-renders only when that flips, not on every scroll frame.
+  const beforeFall = useSyncExternalStore(store.subscribe, () => store.get() < -0.1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -61,7 +63,7 @@ export function SceneCanvas({ store, theme, compact, fallbackId }) {
       <canvas ref={canvasRef} className="scene-canvas" aria-hidden="true" hidden={status === 'failed'} />
       {/* Until the first frame the emblem stands in, except while Aki's pieces have not fallen yet: showing it whole
           there would flash a finished Aki that then disappears. */}
-      {status !== 'ready' && !(status === 'waiting' && store.get() < -0.1)
+      {status !== 'ready' && !(status === 'waiting' && beforeFall)
         && <div className="scene-fallback"><Emblem id={fallbackId} /></div>}
     </div>
   );
