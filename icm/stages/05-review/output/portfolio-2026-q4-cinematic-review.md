@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 05-review
 state: READY
-revision: "review r6; reviewed code 1d801de363a97406ab3ce1fee2808abf98e6d158"
+revision: "review r7; reviewed code 1d801de363a97406ab3ce1fee2808abf98e6d158 plus the dependency update after 3cb5666"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -67,6 +67,11 @@ At the owner's request, commit `072511e` matches the Hero sculpture to its headl
   - The guard scans their face on their own phone.
   - The FuturoHub graph shows channel triggers and an if/else gate. The icons are generic, and the page copy is unchanged, so no new claims were added.
 - Verification: Stage 04 "Scene realignment checks".
+- **Dependencies (owner request).** `3cb5666` removed two unused type packages. The next commit takes every direct dependency to its latest release and Node to 26.
+  - `wrangler` is Aki's deploy tool. Moving it is outside the original restyle limits and was done only because the owner asked for the latest versions. Worker code, configuration and secrets are untouched, and the dry-run bundle builds.
+  - `deploy.yml` now sets up Node 26. This changes the production pipeline's runtime and has not run in GitHub Actions yet, so the first deploy after merge is its first real test.
+  - The GitHub icon fix keeps the existing markup. Main JS grows by about 15 kB gzip, all from upstream React and `motion`.
+  - Verification: Stage 04 "Dependency update checks".
 
 ## Architecture and integrated review
 

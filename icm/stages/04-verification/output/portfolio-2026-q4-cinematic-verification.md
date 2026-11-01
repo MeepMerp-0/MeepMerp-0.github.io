@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 04-verification
 state: READY
-revision: "verification r6; scene realignment tested at 1d801de363a97406ab3ce1fee2808abf98e6d158; earlier rows at d630305 or 06d2e1d, as marked"
+revision: "verification r7; dependency update tested on the working tree after 3cb5666; scene realignment tested at 1d801de363a97406ab3ce1fee2808abf98e6d158; earlier rows at d630305 or 06d2e1d, as marked"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -146,6 +146,27 @@ Follow-up at `1d801de`:
 **Smoke failures.** The two failed runs stopped at "reveal was not animating" while the machine's load average was 7 to 13. The previous commit `8324804`, which had passed earlier, failed the same check under the same load, so the failure is environmental. The suite passed once load fell to about 4.
 
 **Long tasks.** Load-time long tasks were about 3 s for both this build and `8324804` under that load. The earlier 1.46 s figure was measured on a quieter machine.
+
+## Dependency update checks (after `3cb5666`)
+
+Run on Node 26.13.0 with npm 11.20.0, one check at a time, on the working tree that became the dependency commit.
+
+| Check | Result |
+| --- | --- |
+| `npm ci`, root and Worker | Pass with npm 11. Also passes with npm 10 in a clean copy. npm 11 skips the `esbuild` and `workerd` install scripts, but their platform packages install and Wrangler runs. |
+| Worker bundle | `wrangler deploy --dry-run` bundles the Worker (74.5 KiB, 22.2 KiB gzip). Nothing was deployed. |
+| Unit tests | `npm test` 270/270; `npm run aki:test` 180/180 |
+| Lint | `eslint .` reports no problems |
+| Build | Failed first: `"Github" is not exported by lucide-react`. Fixed in `Contact.jsx` (Stage 03). Then passes: main JS 500 kB (166 kB gzip), studio 574 kB (143 kB gzip), `workScene` 13 kB, `heroScene` 2 kB |
+| Bundle growth | The previous commit, built in a temporary worktree: main JS 455 kB. Updating only React gives 484 kB; only `motion`, 466 kB |
+| Smoke suite | Passes. One earlier run was stopped by a 500 s time limit while the machine's load average was 15; it had no failures up to that point. |
+| Launcher robot | Canvas hash `769e31257e57cc48` at 1440, 768 and 390 px in both themes, unchanged |
+| Hero probe | Ready in every WebGL run, 0 px over the headline, nothing drawn offscreen, no errors; the runs without WebGL fall back |
+| Work scenes | 1440 px dark, chapters 0 to 3.5: all four sculptures draw, no errors, no outside requests |
+| Contact | The GitHub link shows the same outline icon (`lucide lucide-github`, 16 px, two paths) |
+| `npm audit` | Six moderate advisories in ESLint's dev-only `minimatch` chain, the same six as before; no upstream fix. Worker: none. |
+
+GitHub Actions on Node 26: NOT TESTED. `portfolio-quality.yml` runs only on pull requests into `main`, and the deploy workflow was not run.
 
 ## Failures, fixes, and remaining gaps
 

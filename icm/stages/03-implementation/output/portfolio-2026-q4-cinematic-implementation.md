@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 03-implementation
 state: READY
-revision: "implementation r6; application code at 1d801de363a97406ab3ce1fee2808abf98e6d158"
+revision: "implementation r7; application code at 1d801de363a97406ab3ce1fee2808abf98e6d158, dependencies updated after it"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -140,6 +140,18 @@ Follow-up `1d801de` (owner request):
 - Lint: `eslint .` reports no problems.
 - Build: `npm run build`. Main JS 454 kB (151 kB gzip). CSS 41 kB (9 kB gzip). Lazy chunks: shared Three.js studio 548 kB (137 kB gzip; Vite's 500 kB warning applies to this lazy chunk only), `workScene` 4 kB, `heroScene` 1.4 kB. No source maps.
 - Dependency: `three@0.186.1` (MIT), exact pin. The lockfile diff adds only that package. Aki-related versions (`robot-heads 0.3.0`, `motion`, React) are unchanged.
+
+Dependency updates (owner request, after `1d801de`):
+
+- `3cb5666` removed the unused `@types/react` and `@types/react-dom` and resynced the lockfile so `npm ci` passes.
+- The next commit moves every direct dependency to its latest release and Node to 26 (the current LTS line):
+  - Runtime: `lucide-react` 0.447.0 to 1.66.0, `motion` 12 to 14.9, React 19.2 to 19.3.1, `three` 0.186.1 to 0.187.0. Exact pins stay exact.
+  - Build: `@vitejs/plugin-react` 6.1.2, `globals` 17.13.
+  - Worker: `wrangler` 4.150.0 to 4.156.0. This is a deploy tool used by Aki's Worker; it was updated because the owner asked for the latest versions. Worker code and configuration are unchanged.
+  - Node: `engines.node` is `>=26.0.0`, both workflows use `node-version: '26'`, and the Node note in `icm/shared/model-routing.md` follows.
+- `lucide-react` 1.x no longer ships brand icons. Contact draws the same GitHub outline it used before through lucide's own `createLucideIcon`, so the markup and class names are unchanged.
+- Main JS grew from 455 kB to 500 kB (151 to 166 kB gzip). Measured one package at a time, React 19.3 adds about 29 kB and `motion` 14 about 12 kB. No project code caused it.
+- `npm audit` reports six moderate advisories, all in ESLint's dev-only `minimatch` chain, with no upstream fix. The same six were present before the update. The Worker reports none.
 
 ## Demo public-boundary handoff
 
