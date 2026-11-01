@@ -17,7 +17,7 @@ export function useMedia(query) {
 
 // Whether this browser can create a WebGL context at all (checked once, then released).
 let webgl;
-function webglAvailable() {
+export function webglAvailable() {
   if (webgl === undefined) {
     try {
       const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');

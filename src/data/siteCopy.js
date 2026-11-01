@@ -5,10 +5,16 @@ import { EXPERIENCE, PERSONAL } from './portfolioData.js';
 export const HERO = {
   eyebrow: `${PERSONAL.name} · ${PERSONAL.title}`,
   location: 'Abu Dhabi, UAE',
-  headline: ['AI systems and', 'full-stack apps,', 'built for real work.'],
-  lead: PERSONAL.headline,
+  headline: ['From inputs', 'to impact.'],
+  lead: 'I build full-stack applications, AI agents, and workflows that turn complex processes into useful software.',
   availability: 'Open to full-time roles: on-site or hybrid in the UAE, or remote with international teams.',
   focus: ['Full-stack web apps and MVPs', 'AI agents and workflow automation', 'Business systems, dashboards and APIs'],
+  // The three layers the Hero scene travels through, in order.
+  stages: [
+    { name: 'Inputs', description: 'Requests, messages and records arrive.' },
+    { name: 'Intelligence', description: 'Agents sort, decide and route the work.' },
+    { name: 'Application', description: 'Useful software people rely on.' },
+  ],
 };
 
 export const ABOUT = {
