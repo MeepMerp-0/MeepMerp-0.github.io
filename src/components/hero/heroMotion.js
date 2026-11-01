@@ -61,12 +61,14 @@ const orbit = (target, distance, elevation, azimuth) => {
   };
 };
 
-// Camera keyframes: a raised overview of all three layers, a close view of the core (about 6.6 from it), then an end
-// view that leans toward Application and keeps the core beside it. The projection test keeps them framed.
+// Camera keyframes. The scene is a frontal row of three layers (see heroScene.js): the overview looks at the row almost
+// head-on from slightly above, the close-up sits about 3.2 from the core, a little off-axis so the fins show their depth,
+// and the end view opens out to the right so Application is large with the core partly in frame. The projection test
+// keeps them framed.
 const KEYS = [
-  orbit([-1.4, -0.1, -1.8], 12.8, 42, -26),
-  { position: [1.2, 2.0, 3.3], target: CORE },
-  orbit([1.9, 0.4, -2], 7.8, 22, 6),
+  orbit([0.46, 0.5, -3], 7.4, 3, 0),
+  orbit(CORE, 3.2, 10, 22),
+  orbit([2.75, 0.45, -3], 5.4, 8, 12),
 ];
 
 // Canvas aspect at and above which the overview fits without stepping back.
@@ -82,7 +84,7 @@ export function cameraAt(p, aspect = 16 / 9) {
   const t = p <= SIGNAL.core ? a : b;
   const target = mix3(from.target, to.target, t);
   let position = mix3(from.position, to.position, t);
-  const narrow = Math.min(2.4, Math.max(1, FIT_ASPECT / Math.max(0.2, aspect)));
+  const narrow = Math.min(3.4, Math.max(1, FIT_ASPECT / Math.max(0.2, aspect)));
   // Full step-back at the overviews, half of it at the close-up.
   const closeness = p <= SIGNAL.core ? a : 1 - b;
   const k = mix(narrow, 1 + (narrow - 1) * 0.5, closeness);
