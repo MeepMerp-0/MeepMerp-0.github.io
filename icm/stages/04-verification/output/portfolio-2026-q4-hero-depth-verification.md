@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 04-verification
 state: READY
-revision: "verification r1; tested at f46c9b1"
+revision: "verification r2; reference rebuild tested at 758f14d, earlier rows at f46c9b1"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -76,3 +76,21 @@ inputs:
 - **Large resizes** (1440 × 900 to 1440 × 500, and phone rotation): About moved by thousands of pixels. The likely cause is Work switching between its pinned and strip layouts, a behaviour that predates this run. This was not confirmed; the Hero's own mode flip stays within 0.2 px.
 - **195 × 422** (200 % zoom of a 390 px phone, below the 320 px floor) has 119 px of horizontal overflow. It was not compared with the previous build.
 - **The no-JavaScript block** shows briefly before React mounts on a normal load. It uses the Hero's own classes to keep the change small.
+
+## Reference rebuild checks (after `3f55a1e`)
+
+| Check | Kind | Result |
+| --- | --- | --- |
+| `npm test` (276), `eslint .`, `npm run build` | Command | PASS. Re-run after `758f14d` too: tests 276/276, lint clean, build passes. |
+| Smoke suite | Command | PASS at `f63e4bc`. `758f14d` changes only scene materials and the signal's scale, and the smoke suite was not rerun after it. |
+| Determinism (rest, hold, reverse, p = 0.37 round trip) | Browser viewport | PASS: 1440 × 900 dark and 390 × 844 light at `f63e4bc`; 1440 × 900 light and dark at `758f14d` |
+| Overflow at 320, 360, 390, 768, 1024, 1440, 1920 and 844 × 390, both themes | Browser viewport | PASS, 0 |
+| Aki: launcher hash ×6, and clearance at 390 and 412 px | Browser viewport | PASS: `769e31257e57cc48`, no intersections |
+| Reduced motion, no WebGL, context loss, 150 % and 200 % text | Simulated fallback | PASS |
+| Match to the reference | Visual review by Sonnet 5.5 and Opus 5.5 | Layout, tile grid, rings and fins, the AI hexagon, the route, the Application panel and the labels match at p = 0. The light theme follows the same composition. Lit materials make the colours close to the reference but not exact. |
+
+Remaining limits:
+
+- **Empty space in the art column.** The art column is taller than the 2.4:1 panorama, so at p = 0 there is empty space above and below it.
+- **Small text on phones.** The scene labels are small there; they are decorative, and the HTML stage list carries the names.
+- **Hairline spokes.** The spokes are 1 px lines, so in the close-up they look thinner than the fins.

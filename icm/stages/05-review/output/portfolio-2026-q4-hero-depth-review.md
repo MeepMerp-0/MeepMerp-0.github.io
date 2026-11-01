@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 05-review
 state: READY
-revision: "review r1; reviewed code f46c9b1"
+revision: "review r2; reviewed code 758f14d"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -46,6 +46,15 @@ inputs:
   - Aki unchanged.
 - **Content stays within approved public facts.** The headline and supporting line are the owner's approved copy. The stage descriptions are conceptual, and no metric, client or outcome was added. The scene shows no product, brand or text.
 - **The `design-preferences.md` Hero rule** "no second long pin" is superseded by the owner's brief for this run, and is noted in that file.
+
+## Reference rebuild review (r2)
+
+The architecture model reviewed the scene against the owner's image at p = 0 in both themes, and contact sheets at p = 0 to 1. The composition matches. Two issues were found and fixed in `758f14d`:
+
+- in the light theme the signal sat on the "AI" text during the close-up;
+- cut-off scene-label fragments showed at the frame edge as the camera moved in.
+
+No other finding is open.
 
 ## Release handoff
 

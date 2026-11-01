@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 03-implementation
 state: READY
-revision: "implementation r3; application code at f46c9b1"
+revision: "implementation r4; application code at 758f14d"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -71,3 +71,16 @@ T3 and T4 run in parallel in separate worktrees with no shared file. T5 copies T
 - **The no-JavaScript block** offers email, GitHub and CV links instead of View Work and Contact, because the sections those anchors target do not exist without JavaScript.
 
 Nothing under `src/components/aki/`, `src/services/aki*`, `worker/` or any `.aki` selector changed. No dependency, network request or telemetry was added.
+
+## Reference image rebuild (T8, owner request)
+
+The owner supplied a reference image and asked that the Hero look like it (spec r3).
+
+| Commit | Model | Change |
+| --- | --- | --- |
+| `3f55a1e` | Sonnet 5.5 | The scene is rebuilt as the reference panorama:<br>• Inputs: a framed 5 × 5 tile panel with bronze tiles and the signal on a tile.<br>• Intelligence: a core of 120 radial fins between a ticked outer ring with 12 spokes and a thin inner ring, around a bevelled hexagon with "AI" drawn on a canvas texture.<br>• Application: a framed panel with three rows.<br>• One copper route that starts as a faint line.<br>• Scene labels "01 / INPUTS", "02 / INTELLIGENCE" and "03 / APPLICATION". |
+| `225628f` | Sonnet 5.5 | Camera:<br>• a near-frontal overview matching the image;<br>• a close-up on the hexagon at a 22° angle, so the fins show their depth;<br>• an end view opened out to the right on Application.<br>Framing tests are rewritten to these rules. |
+| `f63e4bc` | Sonnet 5.5 | `HeroFallbackArt` is a flat SVG of the same image, coloured by tokens. The art column takes a wider share of the stage. |
+| `758f14d` | Opus 5.5 (a two-line polish after the visual review) | The signal is absorbed into the hexagon instead of sitting on the "AI" text. Scene labels of inactive stages fade out once the camera leaves the overview, so cut-off fragments never show at the frame edge. |
+
+The page structure, progress, modes, copy and label plate are unchanged.
