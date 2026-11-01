@@ -211,7 +211,7 @@ async function verifyLayout(label, section) {
     if (Math.max(htmlWidth, bodyWidth) > width + 3) {
       errors.push('horizontal document overflow: ' + htmlWidth + ' / ' + bodyWidth + ' vs ' + width);
     }
-    const selectors = ['.site-header', '.shell', '.hero-grid', '.hero h1', '.hero-notes',
+    const selectors = ['.site-header', '.shell', '.hero-stage', '.hero h1', '.hero-focus', '.hero-labels', '.hero-foot',
       '.section-intro', '.project-row', '.about-layout', '.capabilities-grid',
       '.contact-grid', '.contact-form', '.portfolio-workflow__window'];
     const inspected = new Set();
@@ -1196,7 +1196,13 @@ async function runAkiSmoke() {
       check(JSON.stringify(links) === JSON.stringify([['Contact', '#contact']]), 'reply links ' + JSON.stringify(links));
       check((await texts('.aki-msg-assistant p')).some((t) => t.includes('not this or that.')), 'disallowed links not shown as plain labels');
       await click('.aki-msg-assistant p a');
-      await delay(1500);
+      // The smooth anchor scroll lasts longer on the longer page (the Hero's pinned track), so wait for it to stop instead of a fixed 1.5 s.
+      for (let last = -1, calm = 0, waited = 0; calm < 6 && waited < 8000; waited += 100) {
+        await delay(100);
+        const y = await evaluate('scrollY');
+        calm = y === last ? calm + 1 : 0;
+        last = y;
+      }
       const pos = await evaluate('({ hash: location.hash, top: document.getElementById("contact").getBoundingClientRect().top, y: scrollY, max: document.documentElement.scrollHeight - innerHeight })');
       check(pos.hash === '#contact' && (Math.abs(pos.top) < 140 || pos.y >= pos.max - 2), 'not scrolled to Contact ' + JSON.stringify(pos));
       check(await exists('#aki-panel'), 'desktop panel closed on a section link');
