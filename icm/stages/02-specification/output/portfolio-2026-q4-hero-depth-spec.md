@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 02-specification
 state: READY
-revision: "spec r3 (owner reference image applied)"
+revision: "spec r4 (closing zoom-out added)"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -254,3 +254,23 @@ After the first implementation, the owner supplied a reference image and asked t
 - p = 1: opens out and moves right, with the Application panel large and the core partly in frame.
 
 **Fallback art:** `HeroFallbackArt` becomes a flat SVG of the same image, coloured by tokens.
+
+## Closing zoom-out (spec r4)
+
+The owner asked that the Hero also zoom out. The sequence becomes four camera beats, all still deterministic functions of progress:
+
+| Progress | Camera | Signal |
+| --- | --- | --- |
+| 0 – 0.08 | Holds the frontal overview | Waits on its Inputs tile |
+| 0.08 – 0.45 | Moves in, close on the hexagon | Travels to the core |
+| 0.45 – 0.72 | Opens toward Application, which appears large | Travels into the Application panel |
+| 0.72 – 0.94 | Zooms out to a full frontal view of all three layers, wider than the opening | Rests in the Application panel |
+| 0.94 – 1 | Holds | Holds |
+
+- The travelled route stays lit, so the final frame shows the whole system with the signal delivered.
+- Scene labels fade back in for the final view.
+- The stage boundaries move to match:
+  - Inputs before about 0.27;
+  - Intelligence until about 0.6;
+  - Application after that.
+- The HTML stage list, rail and "Now" marker follow the same functions. The final view keeps Application active.
