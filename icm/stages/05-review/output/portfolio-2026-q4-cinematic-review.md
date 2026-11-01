@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 05-review
 state: READY
-revision: "review r4; reviewed code f145246db979f9bc89ae1866fc65609d04f8f640"
+revision: "review r5; reviewed code 4a26708f386709137cc81f8a792cd3e041005a04"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -58,6 +58,9 @@ At the owner's request, commit `072511e` matches the Hero sculpture to its headl
 - **Follow-up `f145246`.** The camera on narrow stages now fits each sculpture, and the timekeeping demo follows the scene's proximity, tap, face-check and automatic-log flow.
   - The demo stays fictional and local: no device APIs, unchanged CSP, invented guards and posts.
   - Its payroll disclaimers are unchanged.
+- **Website workflow (`4a26708`).** The website demo shows a simulated workflow behind its form, matching the FuturoHub chapter.
+  - The business is still invented and is labelled as not a FuturoHub site.
+  - The demo claims no real integration and sends nothing.
 - Verification: Stage 04 "Scene realignment checks".
 
 ## Architecture and integrated review

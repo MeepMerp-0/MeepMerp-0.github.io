@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 03-implementation
 state: READY
-revision: "implementation r4; application code at f145246db979f9bc89ae1866fc65609d04f8f640"
+revision: "implementation r5; application code at 4a26708f386709137cc81f8a792cd3e041005a04"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -113,6 +113,16 @@ Follow-up `f145246` (owner request):
   4. The entry is logged and Friday is marked on the dashboard grid automatically, so the totals update.
 
   Clock-out repeats the check. The staff are invented guards, and the posts are fictional. No location, camera or device data is read, and the CSP is unchanged.
+
+Follow-up `4a26708` (owner request): the website demo now matches FuturoHub's web and workflow-automation framing.
+
+- After the form passes its checks, or from a sample chat message, a simulated workflow runs:
+  1. The enquiry arrives.
+  2. An assistant step sorts it by topic.
+  3. Three actions run side by side: the enquiry sheet, an owner alert and a follow-up reminder.
+  4. The owner gets the summary.
+- All steps stay in the page. The CSP is unchanged.
+- The dialog title and note mention the workflow.
 
 ## Checkpoint and developer evidence
 

@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 04-verification
 state: READY
-revision: "verification r4; scene realignment tested at f145246db979f9bc89ae1866fc65609d04f8f640; earlier rows at d630305 or 06d2e1d, as marked"
+revision: "verification r5; scene realignment tested at 4a26708f386709137cc81f8a792cd3e041005a04; earlier rows at d630305 or 06d2e1d, as marked"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -125,6 +125,7 @@ Follow-up at `f145246`:
 | Strip screenshots | 390 x 844 and 1024 x 1366: each sculpture fills the band without clipping |
 | Timekeeping demo flow | Run at 1024 dark, 390 light and 390 with reduced motion. The steps advance through range, tap, face check and logged. Friday changes from Absent to Present and the team hours go from 118 h to 126 h. Clock-out is logged. Reset restores everything except its own "Demo reset" announcement. No errors, no overflow, no outside requests. |
 | Demo isolation probe | Direct and embedded runs: CSP blocks the probe's fetch, the iframe stays sandboxed with an opaque origin, and the only requests are the demo's own files |
+| Website workflow (`4a26708`) | Run at 1280 dark, 390 light and 390 with reduced motion. The form trigger and the chat trigger both reach all six steps in order and fill in the owner summary. Reset restores the page exactly. No errors, no overflow, no outside requests. Tests 270/270. |
 
 Software WebGL only. Real GPUs and devices remain NOT TESTED.
 
