@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 const PINNED_QUERY = '(min-width: 900px) and (min-height: 640px) and (min-aspect-ratio: 6/5)';
 const STRIP_QUERY = '(min-height: 500px)';
 
-function useMedia(query) {
+export function useMedia(query) {
   return useSyncExternalStore(
     (onChange) => {
       const media = window.matchMedia(query);

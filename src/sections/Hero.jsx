@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { HERO } from '../data/siteCopy.js';
 import { EASE_OUT } from '../utils/motion.js';
+import { useMedia } from '../hooks/useWorkProgress.js';
 
 // Three.js starts only after the page has loaded and the browser is idle, so it never delays the copy or actions.
 const whenIdle = (fn) => {
@@ -15,7 +16,9 @@ const whenIdle = (fn) => {
 // The sculpture is decorative. The CSS version is the placeholder until the Three.js frame is drawn, and stays
 // if WebGL is missing or fails. Scroll turns the 3D version slightly while the Hero is on screen; offscreen it
 // stops listening, and with reduced motion it draws one still frame.
-function HeroSculpture({ theme, reduceMotion }) {
+function HeroSculpture({ theme }) {
+  // Live, unlike motion's useReducedMotion, so switching the setting rebuilds the scene as a still frame.
+  const reduceMotion = useMedia('(prefers-reduced-motion: reduce)');
   const boxRef = useRef(null);
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
@@ -110,7 +113,7 @@ export function Hero({ theme }) {
           </motion.div>
           <p className="hero-availability">{HERO.availability}</p>
         </div>
-        <HeroSculpture theme={theme} reduceMotion={reduceMotion} />
+        <HeroSculpture theme={theme} />
       </div>
       <div className="shell hero-foot">
         <ul className="hero-focus" aria-label="What I build">
