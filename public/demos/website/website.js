@@ -64,6 +64,51 @@ function send() {
   byId('sent-who').textContent = `Thanks, ${name}. Your details passed the checks.`;
   sent.hidden = false;
   sent.focus();
+  runFlow('form', name, fields[2].input.value);
+}
+
+// The automation behind the form, simulated step by step: the enquiry arrives, the assistant sorts it by topic,
+// three actions run side by side, and the owner gets the summary. Nothing leaves the page.
+const flowSteps = [...document.querySelectorAll('#flow-steps li')];
+const flowTexts = ['flow-trigger', 'flow-route', 'flow-owner'].map((id) => [id, byId(id).textContent]);
+const ROUTES = { design: 'New design lead', renovation: 'Renovation lead', other: 'General enquiry' };
+// Trigger, route, the three actions together, then the owner.
+const STAGES = [[0], [1], [2, 3, 4], [5]];
+let flowTimer = 0;
+
+function runFlow(source, name, topic) {
+  window.clearTimeout(flowTimer);
+  const route = ROUTES[topic] || ROUTES.other;
+  byId('flow-trigger').textContent = `${source === 'chat' ? 'Chat message' : 'Website form'} from ${name}.`;
+  byId('flow-route').textContent = `Topic read: ${route}.`;
+  byId('flow-owner').textContent = 'Waiting for the actions.';
+  byId('flow-status').textContent = '';
+  flowSteps.forEach((li) => { li.dataset.state = 'todo'; });
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let stage = 0;
+  const advance = () => {
+    STAGES[stage].forEach((n) => { flowSteps[n].dataset.state = 'done'; });
+    stage += 1;
+    if (stage < STAGES.length) {
+      STAGES[stage].forEach((n) => { flowSteps[n].dataset.state = 'current'; });
+      if (still) advance();
+      else flowTimer = window.setTimeout(advance, 650);
+      return;
+    }
+    const summary = `${route} from ${name}, by ${source}: saved, owner notified, reminder set.`;
+    byId('flow-owner').textContent = summary;
+    byId('flow-status').textContent = `Workflow finished (simulated). ${summary}`;
+  };
+  STAGES[0].forEach((n) => { flowSteps[n].dataset.state = 'current'; });
+  if (still) advance();
+  else flowTimer = window.setTimeout(advance, 650);
+}
+
+function resetFlow() {
+  window.clearTimeout(flowTimer);
+  flowSteps.forEach((li) => { delete li.dataset.state; });
+  flowTexts.forEach(([id, text]) => { byId(id).textContent = text; });
+  byId('flow-status').textContent = '';
 }
 
 function reset() {
@@ -75,12 +120,14 @@ function reset() {
   byId('sent-who').textContent = '';
   setMenu(false, false);
   setWidth('desktop');
+  resetFlow();
   window.scrollTo(0, 0);
 }
 
 widthButtons.forEach((b) => b.addEventListener('click', () => setWidth(b.dataset.width)));
 byId('reset').addEventListener('click', reset);
 byId('send').addEventListener('click', send);
+byId('flow-chat').addEventListener('click', () => runFlow('chat', 'Sam (fictional)', 'renovation'));
 
 toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true', false));
 

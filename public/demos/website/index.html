@@ -183,6 +183,7 @@
               <div class="notice" id="sent" role="status" tabindex="-1" hidden>
                 <p class="notice-who" id="sent-who"></p>
                 <p><strong>Simulated — nothing was sent. This form is not connected to any service.</strong></p>
+                <p>The workflow below this preview shows what would happen next.</p>
               </div>
             </form>
           </section>
@@ -194,5 +195,24 @@
       </div>
     </div>
   </div>
+
+  <section class="flow" aria-labelledby="flow-title">
+    <div class="flow-head">
+      <h2 id="flow-title">The workflow behind the form</h2>
+      <p class="flow-note">Send the form above, or try a chat message. Each step is simulated in this page: no sheet, message or reminder is created anywhere.</p>
+    </div>
+    <ol class="flow-steps" id="flow-steps">
+      <li data-node="trigger"><strong>Enquiry received</strong><span id="flow-trigger">Waiting for the website form or a chat message.</span></li>
+      <li data-node="route"><strong>Assistant sorts it</strong><span id="flow-route">Reads the topic and picks the route.</span></li>
+      <li data-node="sheet"><strong>Saved to the enquiry sheet</strong><span>A new row with the name, topic and message.</span></li>
+      <li data-node="notify"><strong>Owner notified</strong><span>A short alert with the summary.</span></li>
+      <li data-node="remind"><strong>Follow-up reminder set</strong><span>So every enquiry gets a reply.</span></li>
+      <li data-node="owner"><strong>Owner sees the summary</strong><span id="flow-owner">Nothing yet.</span></li>
+    </ol>
+    <div class="flow-actions">
+      <button type="button" class="reset-btn" id="flow-chat">Try it with a chat message</button>
+    </div>
+    <p class="flow-status" id="flow-status" role="status"></p>
+  </section>
 </body>
 </html>

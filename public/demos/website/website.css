@@ -674,3 +674,91 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- workflow behind the form (demo chrome tokens) ---------- */
+
+.flow {
+  margin: 0 8px 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--body);
+}
+
+.flow h2 {
+  margin: 0 0 4px;
+  font: 600 1.25rem/1.25 var(--display);
+}
+
+.flow-note,
+.flow-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.flow-status:not(:empty) {
+  margin-top: 10px;
+  color: var(--text);
+}
+
+.flow-steps {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-steps li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.flow-steps li span {
+  color: var(--muted);
+}
+
+.flow-steps li[data-state='current'] {
+  border-color: var(--accent);
+}
+
+.flow-steps li[data-state='done'] {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+.flow-steps li[data-state='done'] strong::before {
+  content: '\2713  ';
+  color: var(--accent);
+}
+
+/* Wide: laid out like a workflow editor, with the three actions side by side between route and owner. */
+@media (min-width: 760px) {
+  .flow-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas: 'trigger route sheet owner' 'trigger route notify owner' 'trigger route remind owner';
+    align-items: center;
+  }
+
+  .flow-steps li[data-node='trigger'] { grid-area: trigger; }
+  .flow-steps li[data-node='route'] { grid-area: route; }
+  .flow-steps li[data-node='sheet'] { grid-area: sheet; }
+  .flow-steps li[data-node='notify'] { grid-area: notify; }
+  .flow-steps li[data-node='remind'] { grid-area: remind; }
+  .flow-steps li[data-node='owner'] { grid-area: owner; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-steps li {
+    transition: none;
+  }
+}
