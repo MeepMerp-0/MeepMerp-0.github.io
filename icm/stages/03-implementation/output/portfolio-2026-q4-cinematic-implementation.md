@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 03-implementation
 state: READY
-revision: "implementation r3; application code at 072511e9bb01c07c75e0702a38219ed8e49b1b98"
+revision: "implementation r4; application code at f145246db979f9bc89ae1866fc65609d04f8f640"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -102,6 +102,17 @@ The owner asked for the 3D to follow the Hero wording and to show each project. 
 | Copy | Timekeeping approach names the proximity check, face verification on the phone and automatic logging (owner's description; consistent with `PROJECTS` highlights). FuturoHub title, role, context and approach add workflow automation on the owner's instruction. `portfolioData.js` unchanged, so Aki's answers are unchanged. |
 
 Build: studio chunk 568.7 kB (142.5 kB gzip), workScene 8.8 kB, heroScene 1.8 kB.
+
+Follow-up `f145246` (owner request):
+
+- **Narrow stages.** On phones and the strip band, the camera moves in until the current sculpture just fits. Each sculpture declares its width and height, and the camera blends between them during a hand-over. Wide pinned stages keep their framing.
+- **Timekeeping demo.** The check-in card now follows the scene's flow:
+  1. Walk into range of the post.
+  2. Tap to clock in.
+  3. A simulated face check runs; it is immediate under reduced motion.
+  4. The entry is logged and Friday is marked on the dashboard grid automatically, so the totals update.
+
+  Clock-out repeats the check. The staff are invented guards, and the posts are fictional. No location, camera or device data is read, and the CSP is unchanged.
 
 ## Checkpoint and developer evidence
 

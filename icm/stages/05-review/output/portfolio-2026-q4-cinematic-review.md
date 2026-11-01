@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-cinematic
 stage: 05-review
 state: READY
-revision: "review r3; reviewed code 072511e9bb01c07c75e0702a38219ed8e49b1b98"
+revision: "review r4; reviewed code f145246db979f9bc89ae1866fc65609d04f8f640"
 scope: "Portfolio application implementation run (not documentation maintenance)"
 source_branch: docs/icm-portfolio-workspace
 source_commit: "297138f73fabccee5c90df7d153159ffc7a36140 at run creation; reconciled to 6a2c204027abc6fa0cb58dcb36a19ae7e23e97d8, then to 98a55dc7bda6dcf3c72b416eb28e7fdf1e656db6, on user request"
@@ -55,6 +55,9 @@ At the owner's request, commit `072511e` matches the Hero sculpture to its headl
 - **Aki likeness.** The owner asked for the Work sculpture to look like the robot. It is a separate Three.js model in the robot's colours. The launcher robot is not imported, changed, recoloured or moved; its canvas hash is unchanged. The Hero remains unrelated to the robot, as `98a55dc` requires.
 - **Claims.** The Timekeeping wording comes from the owner's description and the existing `PROJECTS` highlights. The FuturoHub workflow-automation wording follows the owner's instruction and supersedes R14's web-only framing. No metrics, clients or outcomes were added.
 - **Performance.** Still render on demand; no idle loop. The studio chunk grew by about 21 kB (RoundedBoxGeometry and the new scene code).
+- **Follow-up `f145246`.** The camera on narrow stages now fits each sculpture, and the timekeeping demo follows the scene's proximity, tap, face-check and automatic-log flow.
+  - The demo stays fictional and local: no device APIs, unchanged CSP, invented guards and posts.
+  - Its payroll disclaimers are unchanged.
 - Verification: Stage 04 "Scene realignment checks".
 
 ## Architecture and integrated review
