@@ -46,6 +46,13 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
   <script src="/theme-boot.js"></script>
+  <!-- The static Hero in #root is for when the app script fails: React replaces it on a normal load, so it stays hidden
+       unless it is still there after 4 s. With scripts turned off it shows at once. -->
+  <style>
+    .no-js-fallback { visibility: hidden; animation: no-js-reveal 0s 4s forwards; }
+    @keyframes no-js-reveal { to { visibility: visible; } }
+  </style>
+  <noscript><style>.no-js-fallback { visibility: visible; animation: none; }</style></noscript>
   <title>Jason Selerio — AI &amp; Full-Stack Engineer · Portfolio</title>
 </head>
 
