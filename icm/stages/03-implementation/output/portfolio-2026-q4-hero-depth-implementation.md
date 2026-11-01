@@ -1,8 +1,8 @@
 ---
 run_id: portfolio-2026-q4-hero-depth
 stage: 03-implementation
-state: DRAFT
-revision: "implementation r2 (task plan after adviser review)"
+state: READY
+revision: "implementation r3; application code at f46c9b1"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -39,10 +39,35 @@ Parallel writers use separate worktrees and do not share files. Heavy checks (bu
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | T1 | Brief, spec and motion contract | P0 / medium | Opus 5.5 | none | ICM stages 01, 02 and 03; `src/components/hero/heroMotion.js` and its test | Deterministic motion functions | Pure functions; camera clears the core at every `p` and aspect ratio | `node --test`, 5/5 | done |
 | T2 | Adviser review of the spec | P0 / low | Fable 5.1 | T1 | none (read-only) | Second opinion on consequential decisions | Each point accepted or declined with a reason | Spec r2, "Adviser review" table | done |
-| T3 | Three.js scene | P0 / medium | Sonnet 5.5 | T1, T2 | `src/components/hero/heroScene.js`, `heroMotion.js` (keyframes and `HERO_FOV`), `heroMotion.test.js` (projection test) | Inputs, core, application, copper route, signal, camera | Spec §5 | T6 screenshots, determinism probe | pending |
-| T4 | Hero component, progress, modes, styles and fallback art | P0 / medium | Sonnet 5.5 | T1, T2 | `src/sections/Hero.jsx`, `src/components/hero/HeroFallbackArt.jsx`, `src/hooks/useHeroProgress.js`, `src/hooks/useWorkProgress.js` (exports only), `src/data/siteCopy.js` (Hero copy), `src/styles/global.css` (the `.hero` block only) | Pinned and still Hero | Spec §2–4 and §7 | T6 probes | pending |
-| T5 | Static content when JavaScript fails | P2 / low | Haiku 5.5 | T4 | `index.html` | Readable identity and links before mounting, using the Hero's classes | Spec §6; no inline style or script | T6: page with scripts blocked | pending |
-| T6 | Integration, smoke-suite update, verification and fixes | P0 / medium | Sonnet 5.5 | T3, T4, T5 | `scripts/verify-scroll-preview.mjs` (Hero selectors), fixes in T3 and T4 files | Evidence for every acceptance item | Spec §8 | Stage 04 | pending |
-| T7 | Integrated review | P0 / medium | Opus 5.5, with a Fable 5.1 second opinion | T6 | none (read-only) | Findings, then fixes by Sonnet | No open high-severity finding | Stage 05 | pending |
+| T3 | Three.js scene | P0 / medium | Sonnet 5.5 | T1, T2 | `src/components/hero/heroScene.js`, `heroMotion.js` (keyframes and `HERO_FOV`), `heroMotion.test.js` (projection test) | Inputs, core, application, copper route, signal, camera | Spec §5 | T6 screenshots, determinism probe | done (ae66233; camera retuned in 0cdd6f7) |
+| T4 | Hero component, progress, modes, styles and fallback art | P0 / medium | Sonnet 5.5 | T1, T2 | `src/sections/Hero.jsx`, `src/components/hero/HeroFallbackArt.jsx`, `src/hooks/useHeroProgress.js`, `src/hooks/useWorkProgress.js` (exports only), `src/data/siteCopy.js` (Hero copy), `src/styles/global.css` (the `.hero` block only) | Pinned and still Hero | Spec §2–4 and §7 | T6 probes | done (97a9124; fixes in 7a9bd87, 6f1d9e9, c5a8638, 76d485a, f46c9b1) |
+| T5 | Static content when JavaScript fails | P2 / low | Haiku 5.5 | T4 | `index.html` | Readable identity and links before mounting, using the Hero's classes | Spec §6; no inline style or script | T6: page with scripts blocked | done (1f89e53) |
+| T6 | Integration, smoke-suite update, verification and fixes | P0 / medium | Sonnet 5.5 | T3, T4, T5 | `scripts/verify-scroll-preview.mjs` (Hero selectors), fixes in T3 and T4 files | Evidence for every acceptance item | Spec §8 | Stage 04 | done (737a0f4 and Stage 04) |
+| T7 | Integrated review | P0 / medium | Opus 5.5, with a Fable 5.1 second opinion | T6 | none (read-only) | Findings, then fixes by Sonnet | No open high-severity finding | Stage 05 | done (Stage 05) |
 
 T3 and T4 run in parallel in separate worktrees with no shared file. T5 copies T4's markup and classes, so it runs after T4 has merged.
+
+## What was built
+
+| Area | Result |
+| --- | --- |
+| Structure | `src/sections/Hero.jsx` renders one element tree. `.hero` carries `data-mode` (`pinned` or `still`) and `data-art` (`canvas` or `svg`), and CSS chooses the layout from them. Pinned mode is a 230svh track with a sticky stage under the header. |
+| Progress and modes | `src/hooks/useHeroProgress.js`. Progress is read from native scroll and kept in a store outside React. It sets `--hero-p`, `--hero-w0..2`, `--hero-lift`, `--hero-accent` and `--hero-signal` on the stage, and `aria-current="step"` on the active stage. The mode is decided in a layout effect from a fit measurement that does not depend on the mode or on progress, with 48 px of hysteresis. |
+| Motion contract | `src/components/hero/heroMotion.js`: pure functions of progress, camera keyframes and `HERO_FOV`. `heroMotion.test.js` covers monotonic signal, determinism, stage order, core clearance and the framing rules at four aspect ratios. |
+| Scene | `src/components/hero/heroScene.js`, on the shared studio. Inputs are an instanced tile grid with copper "request" tiles. Intelligence is a ribbed torus core with an inner shell. Application is an abstract panel with cards and a bar chart. One copper route runs through all three, with a travelled overlay and a signal. Rendering happens only on change. Disposal releases the GPU context. |
+| Fallback art | `src/components/hero/HeroFallbackArt.jsx`: an inline SVG of the same three layers, coloured by tokens. It shows before the first frame, without WebGL and after context loss. |
+| Copy | `src/data/siteCopy.js` `HERO`: the headline "From inputs / to impact.", the approved supporting line, and three stage labels with one-line descriptions. The focus list is kept. Aki does not read this file. |
+| Without JavaScript | `index.html` puts the Hero copy, focus list and email, GitHub and CV links inside `#root`, using the Hero's classes. React replaces it on mount. |
+| Styles | The old Hero block in `src/styles/global.css` is replaced. Every selector starts with `.hero`. |
+| Phones | Order: copy, cue, labels, art band, then Skip to Work at the left, so Aki's fixed launcher and greeting bubble cover only decorative art. |
+| Smoke suite | `scripts/verify-scroll-preview.mjs`: the Hero selectors now match the new markup. A fixed 1.5 s wait after an Aki Contact link is replaced by a wait for the scroll to stop, because the longer page makes the smooth scroll take longer. The Aki checks are otherwise unchanged. |
+
+## Deviations from spec r2
+
+- **Stage emphasis.** It is shown by a copper tick, the name colour and the "Now" marker. The stage text stays at full contrast, because fading it to 55 % would fail 4.5:1.
+- **Pinning on phones.** It works at 390 × 844 and 412 × 915 in both themes. Phones 360 px wide and shorter than 828 px, and 320 × 568, fit only the still layout. That is about 105 px short at 360 × 780, without hiding content or shrinking the art band below 180 px.
+- **Skip to Work on phones.** The visible link is its text height (about 20 px), with a 44 px tap target from a pseudo-element, so its box stays clear of Aki's greeting bubble.
+- **The first mode decision** on a page uses the plain limit, so a screen inside the hysteresis band starts pinned. Later decisions use 48 px of hysteresis, so a screen resized into that band stays still until reload.
+- **The no-JavaScript block** offers email, GitHub and CV links instead of View Work and Contact, because the sections those anchors target do not exist without JavaScript.
+
+Nothing under `src/components/aki/`, `src/services/aki*`, `worker/` or any `.aki` selector changed. No dependency, network request or telemetry was added.

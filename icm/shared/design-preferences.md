@@ -16,6 +16,8 @@ The confirmed Work sequence is **Aki → INNERCIRCLE → Timekeeping, Payroll & 
 
 ## Three.js Hero
 
+> Run `portfolio-2026-q4-hero-depth` (owner brief, November 2026) replaces the Hero with a bounded sticky sequence of about 230svh: Inputs, Intelligence and Application, driven only by native scroll. For that Hero, this supersedes "without a second long pin" below. Everything else in this section still applies. See that run's Stage 01 brief and Stage 02 spec.
+
 The capable-device Hero **must use a lightweight actual Three.js sculpture** to carry the established Premium Cinematic depth, metallic material treatment, and cinematic lighting. Reuse the scoped Three.js integration/version chosen for Work; do not add another rendering stack. The sculpture is separate from Aki: do not reuse, reconstruct, modify, recolor, or move the original robot, model, assets, or launcher. An earlier design example conveys a motif only; it is not evidence of a tested Hero renderer or an exact geometry/camera/timing specification.
 
 Keep the verified title, role, **View Work**, and **Contact** as immediately readable, semantic DOM, usable before and without WebGL. Hero scrolls normally into the pinned Work section, without a second long pin, wheel/touch cancellation, body lock, or a scroll trap. Specify responsive camera framing and text/art separation, including short heights, across the seven widths and both themes. Reduced motion uses a useful static presentation; loading, WebGL failure, and context loss leave the text/actions available. Do not block first content on 3D loading. Suspend rendering offscreen and clean up renderer and scene resources. Exact sculpture, camera, and timing are implementation choices within this contract.
