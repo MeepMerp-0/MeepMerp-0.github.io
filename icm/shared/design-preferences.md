@@ -14,6 +14,12 @@ The confirmed page is **Hero → Work → About → Process → Contact**; prima
 
 The confirmed Work sequence is **Aki → INNERCIRCLE → Timekeeping, Payroll & Attendance → FuturoHub**. Each scene retains readable semantic project text and actions outside the canvas. INNERCIRCLE stays within its existing public high-level summary. Exact sculpture, copy, and timing remain specification decisions within these confirmed requirements.
 
+## Three.js Hero
+
+The capable-device Hero **must use a lightweight actual Three.js sculpture** to carry the established Premium Cinematic depth, metallic material treatment, and cinematic lighting. Reuse the scoped Three.js integration/version chosen for Work; do not add another rendering stack. The sculpture is separate from Aki: do not reuse, reconstruct, modify, recolor, or move the original robot, model, assets, or launcher. An earlier design example conveys a motif only; it is not evidence of a tested Hero renderer or an exact geometry/camera/timing specification.
+
+Keep the verified title, role, **View Work**, and **Contact** as immediately readable, semantic DOM, usable before and without WebGL. Hero scrolls normally into the pinned Work section, without a second long pin, wheel/touch cancellation, body lock, or a scroll trap. Specify responsive camera framing and text/art separation, including short heights, across the seven widths and both themes. Reduced motion uses a useful static presentation; loading, WebGL failure, and context loss leave the text/actions available. Do not block first content on 3D loading. Suspend rendering offscreen and clean up renderer and scene resources. Exact sculpture, camera, and timing are implementation choices within this contract.
+
 ## Aki preservation
 
 **Preserve the robot; restyle only the chat interface.** Keep the original robot assets/model, geometry, proportions, colors, materials, facial features, expressions, animations, interactions, branding, launcher appearance/behavior/placement, and existing responsive/theme behavior. Do not redraw, regenerate, recolor, rebuild, replace, or filter the robot to match a new palette.
@@ -28,7 +34,7 @@ No separate canned Aki walkthrough, simulated voice UI, duplicate assistant, or 
 
 ## Three.js and motion
 
-The normal capable-device **main Work showcase must use actual Three.js geometry, materials, lights, and camera rendering**. A scoped Three.js addition is authorized for future implementation if absent; record compatible versions and the integration decision, preserving Aki-related versions and behavior. Reuse existing Motion utilities where suitable. Do not silently substitute CSS-only artwork, add competing animation libraries without need, or treat this documentation revision as a dependency installation.
+The normal capable-device **main Work showcase must use actual Three.js geometry, materials, lights, and camera rendering**. A scoped Three.js addition shared by Hero and Work is authorized for future implementation if absent; record compatible versions and the integration decision, preserving Aki-related versions and behavior. Reuse existing Motion utilities where suitable. Do not silently substitute CSS-only artwork, add competing animation libraries without need, or treat this documentation revision as a dependency installation.
 
 Use native production **page scrolling**: Work arrives normally, pins, advances its objects/camera/project sequence with continued scrolling, pauses at the current progress when scrolling stops, reverses when scrolling upward, then releases into About. Provide keyboard-operable chapters and Skip to About. No wheel/touch cancellation, body lock, timed freeze, scroll trap, or repositioning from the scroll handler. An inline preview's fixed-height internal viewport is not the production page architecture. No perpetual ambient animation is required.
 
@@ -46,8 +52,8 @@ The chat panel must fit desktop/tablet/mobile bounds and safe areas, wrap messag
 
 ## Proposed defaults
 
-Within the confirmed contract, a lightweight Three.js hero, exact sculpture choices, lighting/composition, material treatment, transition timing, and capability-selector presentation remain design proposals. They must support the recruiter path, readable content, accessibility, and measured performance. Do not present these choices as new project facts or validated production behavior.
+Within the confirmed Hero and Work contracts, exact sculpture choices, camera framing, lighting/composition, transition timing, and capability-selector presentation remain design proposals. They must support the recruiter path, readable content, accessibility, and measured performance. Do not present these choices as new project facts or validated production behavior.
 
 ## Decisions for specification
 
-Set exact copy, asset provenance, scene timing/distance, compatible Three.js integration/version, responsive compositions, measured performance budgets, failure/reduced-motion states, and observable acceptance evidence. Check the [existing site map](repo-map.md#existing-design-and-constants); no framework/TypeScript/database/test-stack migration or unrelated dependency upgrade is implied. The page order, Work order, real Three.js requirement, Aki scope, two themes, and viewport matrix are confirmed and must not be reopened as unspecified choices.
+Set exact copy, asset provenance, Hero and Work scene timing/distance, compatible shared Three.js integration/version, responsive compositions, measured performance budgets, failure/reduced-motion states, and observable acceptance evidence. Check the [existing site map](repo-map.md#existing-design-and-constants); no framework/TypeScript/database/test-stack migration or unrelated dependency upgrade is implied. The page order, Work order, real Three.js Hero and Work requirements, Aki scope, two themes, and viewport matrix are confirmed and must not be reopened as unspecified choices.

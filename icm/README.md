@@ -2,7 +2,7 @@
 
 This folder adapts [Interpretable Context Methodology](references/source-and-adaptations.md) to the portfolio in this repository. It provides selective context, five stage contracts, and Markdown output locations for a run. It is documentation, not an automation engine or a change to the live site.
 
-The [complete saved implementation prompt](prompts/rework-portfolio.md) carries the current requirements: Premium Cinematic light/dark presentation, Hero → Work → About → Process → Contact, a real Three.js pinned Work sequence, desktop/tablet/mobile acceptance, safe fictional demos, and the original Aki robot/runtime preserved with scoped chat-panel styling. These are implementation requirements, not completed or browser-verified features. Conversation previews are not committed application code.
+The [complete saved implementation prompt](prompts/rework-portfolio.md) carries the current requirements: Premium Cinematic light/dark presentation, Hero → Work → About → Process → Contact, a lightweight real Three.js Hero and a separate real Three.js pinned Work sequence, desktop/tablet/mobile acceptance, safe fictional demos, and the original Aki robot/runtime preserved with scoped chat-panel styling. These are implementation requirements, not completed or browser-verified features. Conversation previews are not committed application code.
 
 ## Start here
 
