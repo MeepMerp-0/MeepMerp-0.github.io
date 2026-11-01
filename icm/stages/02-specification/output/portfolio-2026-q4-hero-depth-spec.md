@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 02-specification
 state: READY
-revision: "spec r2 (adviser review applied)"
+revision: "spec r3 (owner reference image applied)"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work only"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -216,3 +216,41 @@ It reuses the still-mode Hero classes, so it looks like the mounted Hero's copy 
 | `hero.css` would bundle before `global.css` | Accepted: Hero rules stay in `global.css` (§4, §7) |
 | A mode switch must not remount the canvas | Accepted: one tree (§3) |
 | Smooth anchor scrolling crosses the pin | Decided without asking: keep the site's native smooth anchors. The browser moves the page, and the scene shows the exact position at each step, so nothing keeps moving once the page stops. |
+
+## Owner reference image (spec r3)
+
+After the first implementation, the owner supplied a reference image and asked that the Hero look like it. That image replaces the composition in §5. The scroll contract (§2–§4), the modes, the accessibility rules and the Aki boundary are unchanged. The image is described here rather than copied into the repository.
+
+**Composition:**
+
+- A frontal panorama on a warm charcoal background with a soft warm glow behind the centre. The three layers sit in a row and are joined by one copper tube.
+- **Inputs (left):**
+  - a square panel with a thin bronze frame and a dark fill, holding a 5 × 5 grid of square tiles;
+  - about a third of the tiles are bronze and the rest are dark warm grey;
+  - a glowing copper signal orb sits on one tile at the start.
+- **Intelligence (centre):**
+  - concentric rings: a thin outer ring with radial ticks and long thin spokes that extend past it like a crosshair, about 12 directions;
+  - a wide ribbed annulus of many fine radial fins in champagne, lighter toward the bottom right;
+  - a thin inner ring;
+  - a hexagon with a bronze bevelled rim and a dark face reading **AI** in a bold sans-serif. Draw the text on a canvas texture; this is decorative.
+  - The fins and rings have real depth along z, so the camera's approach shows parallax.
+- **Application (right):**
+  - a wider rectangular panel with a thin bronze frame and a dark fill;
+  - a thin line across the top;
+  - three rows, each with a square block (dark, bronze, dark from top to bottom) beside a long line and a shorter line.
+- **The route:**
+  - comes in from the far left as a thin faint line that thickens into a copper tube;
+  - runs at mid height behind the Inputs panel and through the ring to the hexagon;
+  - leaves on the right and curves down into the Application panel.
+- **Scene labels:** "01 / INPUTS", "02 / INTELLIGENCE" and "03 / APPLICATION" sit above the top-left of each layer, in small spaced uppercase.
+  - They are drawn into the scene as canvas-texture planes, so they move with the camera.
+  - They are decorative: the semantic stage list in HTML stays the accessible source.
+- **Light theme:** the same composition in warm stone, ink and bronze. Panels are light stone with bronze frames, the dark tiles and blocks become warm ink-grey, and the fins become bronze.
+
+**Camera (as before, a deterministic function of progress):**
+
+- p = 0: a frontal overview that matches the image (camera nearly level, slightly above, all three layers framed);
+- p = 0.5: close on the core, with the hexagon and the inner fins filling most of the frame, seen slightly off-axis so the fins show their depth;
+- p = 1: opens out and moves right, with the Application panel large and the core partly in frame.
+
+**Fallback art:** `HeroFallbackArt` becomes a flat SVG of the same image, coloured by tokens.
