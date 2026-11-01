@@ -8,10 +8,14 @@ Status: prefilled from confirmed user choices; update only when the user changes
 | Arrangements | UAE on-site or hybrid; international remote | [Hiring target](../shared/portfolio-strategy.md#hiring-target) |
 | Secondary outcomes | Freelance/consulting, partnerships, personal brand | [Strategy](../shared/portfolio-strategy.md#confirmed-goals) |
 | Audiences and markets | Recruiters/hiring managers, founders, owners/operations, agencies; UAE, GCC/Middle East, Philippines/SE Asia, global remote | [Audiences](../shared/portfolio-strategy.md#audiences-and-markets) |
-| Selected visual direction | Premium Cinematic (option D), with selected scroll-driven 3D and pinned scene changes | [Design](../shared/design-preferences.md#confirmed-direction) |
-| Protected capability | Keep Aki discoverable and functional, including privacy, voice review, and access | [Aki preservation](../shared/design-preferences.md#aki-preservation) |
+| Selected visual direction | Premium Cinematic (option D), complete light/dark themes, actual Three.js in main Work | [Design](../shared/design-preferences.md#confirmed-direction) |
+| Page and navigation | Hero then Work → About → Process → Contact; navigation uses those four sections | [Order](../shared/design-preferences.md#page-and-project-order) |
+| Work sequence | Aki → INNERCIRCLE → Timekeeping, Payroll & Attendance → FuturoHub; native page-scroll pin/scrub/pause/reverse/release | [Motion](../shared/design-preferences.md#threejs-and-motion) |
+| Aki boundary | Preserve the original robot/launcher and functional/backend behavior; permit scoped chat-panel presentation and existing theme binding | [Aki preservation](../shared/design-preferences.md#aki-preservation) |
+| Devices and themes | 320, 360, 390, 768, 820, 1024, 1440px in light and dark; responsive, keyboard/touch, reduced-motion/failure paths | [Acceptance](../shared/design-preferences.md#responsive-and-theme-acceptance) |
 | Disclosure limit | INNERCIRCLE may use only its existing high-level public summary | [Proof register](../shared/proof-register.md#innercircle) |
-| Demo direction | Four projects are a recommended curation set, with exact order and interactions still proposals | [Demo catalog](../shared/demo-catalog.md#presentation) |
+| Demo direction | Project order confirmed; independent fictional non-Aki interactions remain to specify, with no canned assistant walkthrough | [Demo catalog](../shared/demo-catalog.md#presentation) |
+| Future implementation branch | New unique feature branch from exact latest fetched `origin/docs/icm-portfolio-workspace`; draft PR back to that branch | [Branch workflow](../shared/run-contract.md#branch-workflow) |
 
 ## Source pointers
 
@@ -21,4 +25,4 @@ Demo sources have a separate [inspection and evidence boundary](../shared/demo-b
 
 ## Remaining decisions
 
-The specification must settle exact scene placement, asset and library choices, motion and performance budgets, fallback behavior, copy, and measurable acceptance criteria. [Proposed defaults](../shared/design-preferences.md#proposed-defaults) are useful starting assumptions, not confirmed choices. Ask only for an unresolved decision that materially blocks the next step; otherwise produce a reviewable draft and record the assumption.
+The specification must settle exact copy, sculpture/asset choices, compatible Three.js version/integration, timing/pin distance, performance budgets, and concrete verification procedures. [Proposed defaults](../shared/design-preferences.md#proposed-defaults) cover those remaining details; the page/project order, Three.js requirement, Aki scope, themes, and width matrix are confirmed. Ask only when an unresolved choice materially blocks work; otherwise produce a reviewable implementation and record assumptions. Documentation-only maintenance does not execute these application stages.

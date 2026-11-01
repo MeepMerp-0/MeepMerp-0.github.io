@@ -11,7 +11,7 @@ Explain the concrete visitor problem and expected behavior in PR-ready language.
 | Boundary / task | Diff or evidence reviewed | Finding and severity | Owner / resolution | Status |
 | --- | --- | --- | --- | --- |
 
-Cover changed content, motion/accessibility, Aki preservation, frontend/Worker contracts, and other applicable high-risk boundaries under [final authority](../../../shared/model-routing.md#final-review-and-release).
+Cover public claim evidence, native-scroll Work/Three.js behavior and fallback, responsive/accessibility evidence, original robot/launcher baseline, scoped chat-panel presentation diff, protected Aki frontend/backend contracts, contact behavior, and indirect shared-style/provider/data/dependency effects under [final authority](../../../shared/model-routing.md#final-review-and-release). Separate pre-existing findings from regressions.
 
 ## Acceptance and verification limits
 
@@ -22,11 +22,11 @@ Do not convert a local build into evidence of live behavior. Link the selected v
 
 ## PR and release handoff
 
-Draft the PR summary in the repository template's terms: visitor problem, authorized scope, acceptance, reviewer findings, and untested items. Record branch/PR reference if one exists, compatibility and release order where relevant, blockers, required merge/deploy approval or earlier explicit authorization, whether that approval is satisfied, and whether deployment actually occurred. Follow [release policy](../../../shared/model-routing.md#final-review-and-release).
+Draft the PR summary in the repository template's terms: visitor problem, authorized scope, acceptance, reviewer findings, and untested items. Distinguish this docs-only sync on `docs/icm-portfolio-workspace` with draft PR base `main` from the future app implementation on a new unique feature branch pinned to the fetched latest `origin/docs/icm-portfolio-workspace` SHA, with draft PR base `docs/icm-portfolio-workspace`. Record actual branch/base/PR refs, compatibility and release order, blockers, separate merge/deploy approval or earlier authorization, and whether deployment occurred. Follow [release policy](../../../shared/model-routing.md#final-review-and-release).
 
 ## Demo publication decision, when selected
 
-Record final authority's decision for the exact proposed public file allowlist, target hash/revision, sanitized export and browser-network evidence IDs/results, and visitor-facing fictional labels. Review the claim ceiling explicitly: no invented metrics, security/payroll legality guarantees, live integration, or private feature parity; INNERCIRCLE stays at its existing public summary level. State required export/network `PASS`, `FAIL`, or `NOT TESTED` with readiness effect. Keep raw private provenance and scan/HAR material private. Confirm public-boundary review preceded any public push or draft PR, and name separate authorization for merge, main push, deployment, or messages under the [demo release decision](../../../shared/demo-boundary.md#release-decision).
+Record final authority's decision for exact public source and actual build/export allowlists, target revision, sanitized scan/human-review and browser request-attempt evidence, and visible fictional/local/no-real-action labels. Exclude canned Aki demos. Review claim ceiling: no invented metrics, payroll/legal/security guarantee, real integration, or private feature parity; INNERCIRCLE stays at its public summary level and defaults to an abstract scene. State mandatory export/network `PASS`, `FAIL`, or `NOT TESTED` and release-readiness effect. Keep raw private provenance and scan/HAR material private. Confirm review preceded any public push, draft PR, or attachment, and record separate authority for merge, main push, deployment, or messages under the [demo release decision](../../../shared/demo-boundary.md#release-decision).
 
 ## Checkpoint, audit, and final status
 

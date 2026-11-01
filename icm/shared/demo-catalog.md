@@ -8,9 +8,9 @@ The [public demo boundary](demo-boundary.md) governs every item here. These are 
 | --- | --- |
 | `payroll-web` | Fictional payroll and attendance illustration. |
 | `payroll-mobile` | Fictional mobile check-in illustration. |
-| `innercircle` | Generic operations concept within the existing high-level public summary. |
+| `innercircle` | Existing public high-level summary and abstract scene; only clearly independent fictional concepts may supplement it. |
 | `futurohub` | Fictional client website illustration. |
-| `aki-portfolio` | Canned walkthrough distinct from the live parent-page Aki. |
+| `aki-portfolio` | Existing public project and real assistant; preserve robot/runtime, with scoped chat-panel styling only when authorized. |
 
 These aliases identify scope only. They do not encode or authorize disclosure of private locations, revisions, source files, or product behavior.
 
@@ -22,7 +22,7 @@ These aliases identify scope only. They do not encode or authorize disclosure of
 
 ## INNERCIRCLE
 
-The existing public high-level summary is the disclosure ceiling. A clearly labeled **generic fictional operations concept** may let a visitor filter fictional items, change a sample status, perform a sample approval, and inspect a local event log. Invent all roles, records, statuses, and event text. Do not reproduce or imply a real interface, workflow, approval rule, architecture, access pattern, audit implementation, or production feature. Do not add screenshots, metrics, internal terminology, or outcome claims.
+The existing public high-level summary is the disclosure ceiling. Default to that summary and an abstract scene. A clearly labeled **generic fictional operations concept** is permissible only when its independence from INNERCIRCLE is unambiguous. Invent every role, record, status, and event; do not reproduce or imply a real interface, workflow, approval rule, architecture, access pattern, audit implementation, or production feature. Omit a concept when that distinction cannot be maintained. Do not add screenshots, metrics, internal terminology, or outcome claims.
 
 ## FuturoHub
 
@@ -30,10 +30,12 @@ Build a fictional client website illustration with navigable sections and local 
 
 ## Aki
 
-Provide a labeled walkthrough using canned responses to already public FAQ topics, a sample editable transcript that the visitor can review before a simulated send, and a simulated failure/recovery state. Use a separate local adapter that makes no provider, session, voice, or other network call and claims no functional parity. Keep the real parent-page Aki launcher and chat discoverable and functional; do not alter its existing consent, region, session, or voice behavior to support this illustration.
+Keep Aki as the existing public project and the real discoverable assistant. **Do not create a canned walkthrough, simulated voice flow, duplicate widget, or replacement mock.** Preserve the robot's assets, appearance, animations, and launcher. When the task includes the portfolio redesign, only scoped chat-panel presentation, responsive geometry, existing theme binding, and minimal presentation markup may change. Preserve copy, semantics, event wiring, conversation behavior, services/Worker/configuration, providers, consent/privacy/session/region/storage, and editable voice transcription before explicit send. A demo-only request does not independently authorize chat styling. Existing controlled test mocks remain verification facilities.
 
 ## Presentation
 
 - Every concept visibly says **fictional data**, **local interaction**, and **no real action** near its controls and output. A project claim must stay within the public proof record; a demo screenshot or success state is not proof of a real-world outcome.
-- Use inspectable HTML/CSS/JavaScript examples. Premium Cinematic styling may frame selected scenes with 3D and scroll pinning, provided the content remains readable without canvas, works with keyboard and narrow screens, respects reduced motion, and does not trap scrolling.
-- Prefer independently authored bundled assets and no new runtime dependency. Scope each demo as a self-contained module with local in-memory state and Reset, then verify both direct and embedded entries under the [boundary](demo-boundary.md#runtime-isolation).
+- The confirmed Work order is **Aki → INNERCIRCLE → Timekeeping, Payroll & Attendance → FuturoHub**. The specific fictional demo interactions above remain proposals, not claims about private products or completed features.
+- Use inspectable HTML/CSS/JavaScript examples, with no generated example images. The main portfolio Work stage requires real Three.js on capable devices and native page-scroll pin/scrub/pause/reverse/release into About, plus keyboard chapters/skip and readable DOM fallbacks. This does not require a new renderer inside every demo or a canned Aki illustration.
+- Prefer independently authored bundled assets and no unnecessary demo dependency. The separately authorized Three.js Work integration must not relax demo network isolation or change Aki-related dependency behavior. Scope each permitted demo as a self-contained module with local in-memory state and Reset, then verify direct and embedded entries under the [boundary](demo-boundary.md#runtime-isolation).
+- Verify the included presentation at **320, 360, 390, 768, 820, 1024, and 1440px in light and dark themes**, with reduced motion, resize/orientation, keyboard/touch, and useful rendering-failure alternatives. A static in-conversation example is not production acceptance evidence.

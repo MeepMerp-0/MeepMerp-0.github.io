@@ -22,8 +22,10 @@ The project aliases `payroll-web`, `payroll-mobile`, `innercircle`, `futurohub`,
 
 ## Existing design and constants
 
-The snapshot is a React/Vite JavaScript and JSX app with `motion` already listed in [package.json](../../package.json). The existing page and styling must be inspected in the active checkout before a cinematic redesign is specified in detail. The new selected direction is not implemented by this workspace. Preserve existing IDs, deep links, Aki behavior, and public contracts unless an approved spec explicitly changes them.
+The snapshot is a React/Vite JavaScript and JSX app with `motion` already listed in [package.json](../../package.json). Inspect the active checkout before implementation. The required main Work Three.js integration is future implementation scope, not a dependency installed by this documentation update; preserve Aki-related versions/behavior. Preserve useful IDs/deep links and public contracts. Aki's original robot/launcher and functional/backend behavior are protected; only scoped chat presentation, responsive geometry, existing theme binding, and minimal presentational markup are permitted. Shared data/style/provider consumers must be checked for indirect effects.
 
 ## Commands and release
 
 Inspect the active [package scripts](../../package.json), [PR quality workflow](../../.github/workflows/portfolio-quality.yml), [deployment workflow](../../.github/workflows/deploy.yml), and [PR template](../../.github/pull_request_template.md) before checking or releasing a change. Apply the canonical [verification](model-routing.md#verification-and-acceptance) and [final review and release](model-routing.md#final-review-and-release) policy to the affected work.
+
+The [branch workflow](run-contract.md#branch-workflow) distinguishes authorized direct documentation maintenance from future implementation on a new branch based on the exact latest fetched documentation commit. Inspect actual workflow triggers for that PR base; absence of an automatic run is not a passed CI result. Documentation validation does not establish application or browser behavior.

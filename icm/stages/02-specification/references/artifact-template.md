@@ -11,7 +11,11 @@ Describe visitor problem, target outcomes, authorized scope, exclusions, and fac
 | Area / flow | Visitor-visible behavior | Responsive or motion behavior | Acceptance evidence | Open decision |
 | --- | --- | --- | --- | --- |
 
-Include the discoverable Aki entry point, chat and voice transcript review-before-send, consent/session/region/storage safeguards, keyboard/focus/mobile flows, and selected cinematic scenes. Refer to [policy authority](../../../shared/model-routing.md#architecture-security-and-final-authority) for security contracts.
+Specify the Hero and Work-to-About journey; primary navigation labels Work, About, Process, Contact; confirmed Work order Aki, INNERCIRCLE, Payroll/Attendance, FuturoHub; About capabilities; Process Understand, Shape, Build, Verify; and Contact's existing backend contract. Specify Premium Cinematic light/dark, real Three.js geometry/materials/lights/camera for capable devices, scoped dependency addition if absent, and reuse of existing motion tools. Define native page-scroll arrival, pin, continued-scroll scrub, idle pause, reverse, About release, chapter buttons, Skip to About, keyboard control, semantic DOM outside canvas, and loading/error/WebGL/reduced-motion ordinary-flow fallback. Exclude wheel/touch cancellation, body lock, timed freezes, scroll writes in handlers, and an internal preview viewport as the production pattern. Include lifecycle/disposal, resize, offscreen rendering, and measured performance acceptance.
+
+Specify original Aki robot assets, geometry, proportions, materials, colors, animation, launcher appearance, placement, and behavior as preserved. Restrict changes to chat-panel presentation CSS, responsive geometry, internal overflow, existing theme binding, and minimal presentational markup with copy/semantics/IDs/refs/events intact. Require streaming, knowledge/FAQ/greetings, voice-to-editable-transcript review before explicit send, retry/cancel, consent/privacy/region/session/storage/provider/quota contracts, keyboard/focus/mobile flows, and theme changes without conversation/state/scroll reset. Do not modify protected functional/backend paths or add a canned Aki demo. Refer to [policy authority](../../../shared/model-routing.md#architecture-security-and-final-authority).
+
+Make the responsive matrix explicit: 320, 360, 390, 768, 820, 1024, 1440 px in both themes, plus orientation, viewport height, zoom, keyboard, touch, and reduced motion. Require no horizontal scroll, clipping, or collision among navigation, Work, theme control, robot, and chat composer/close controls.
 
 ## Content and evidence contract
 
@@ -19,11 +23,11 @@ List proposed copy/claims with their proof register citation and affected surfac
 
 ## Architecture and interface contracts
 
-State boundaries, data or UI contracts, compatibility requirements, and architectural decisions justified by the behavior. Name decisions needing architecture authority. Avoid selecting a library without a reason and decision.
+State boundaries, data/UI contracts, compatibility, and architecture authority. The confirmed main Work Three.js requirement is an explicit reason for a scoped addition if absent; preserve Aki dependency versions and behavior. Define changed-file allowlists, protected functional/backend paths, shared CSS/provider/data side-effect checks, and one owner per shared file. Keep demo-only CSP separate from live Aki. Record future app branch creation from the fetched exact latest `origin/docs/icm-portfolio-workspace` SHA on a new unique feature branch, with a draft PR targeting that docs branch; [branch workflow](../../../shared/run-contract.md#branch-workflow) governs. Do not treat this docs-only revision as an app run.
 
 ## Demo contract, when selected
 
-Record catalog aliases and sanitized public evidence IDs, fictional flow and visible label, synthetic fixture schema, local canned adapter boundary, reset/error states, and permission behavior. Identify the intended public file/export allowlist, target build, direct and embedded entry modes, network/CSP policy, navigation/storage/message rules, keyboard/mobile/reduced-motion acceptance, and required evidence for each. Keep exact private provenance outside this artifact. Keep real Aki separate, including transcript review before explicit send and consent/privacy/region behavior. Apply the [demo boundary](../../../shared/demo-boundary.md#runtime-isolation) and [release checklist](../../../references/demo-release-checklist.md#browser-and-interaction-review); leave unresolved architecture decisions blocked.
+Record eligible concept aliases, opaque public evidence IDs, fictional flow and visible labels, synthetic fixture schema, local in-memory adapter, Reset/error states, and prohibited permission behavior. Exclude a mock Aki widget. Identify public source and actual build/export allowlists, target revision, direct and embedded modes, demo-only network/CSP policy, navigation/storage/message rules, keyboard/mobile/reduced-motion acceptance, and evidence for each attempted request. Keep private provenance outside this artifact and preserve live Aki. Apply the [demo boundary](../../../shared/demo-boundary.md#runtime-isolation) and [release checklist](../../../references/demo-release-checklist.md#browser-and-interaction-review); leave unresolved mandatory gates blocked.
 
 ## Task plan
 

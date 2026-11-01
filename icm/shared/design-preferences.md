@@ -2,22 +2,52 @@
 
 ## Confirmed direction
 
-The user selected **option D: Premium Cinematic** after reviewing four visual examples. This supersedes the earlier minimal editorial preference. The direction uses deep warm charcoal, warm ivory type, restrained gold, glass/chrome/black sculpture, and cinematic lighting. Selected sections should use scroll-driven 3D; one or more pinned sections should change the scene during scrolling. This is a target for the rework, not a description of the current site. No example image asset is committed here; the option-D description records the selection. Preserve existing accessibility and reduced-motion behavior under [model routing](model-routing.md#primary-implementation-workhorse).
+The user selected **option D: Premium Cinematic**. Use strong editorial typography, deliberate spacing, sculptural geometry, restrained material effects, and purposeful motion. Dark mode uses warm charcoal, ivory, and champagne/gold; light mode uses warm ivory/stone, dark ink, and contrasted bronze/gold. Design both intentionally; do not invert the page to obtain light mode. These are requirements for the rework, not claims that the current site implements them.
 
 Use HTML/CSS/JavaScript or another suitable inspectable interface for design examples and comparisons. Do not generate images as examples.
 
-For demo presentations, use authored HTML/CSS/JavaScript examples, not generated images or private screenshots. Keep native scrolling with no scroll trap. Pinned or scroll-driven scenes must leave readable content outside the canvas, including on mobile and with reduced motion. See the [demo catalog](demo-catalog.md#presentation) for proposed project presentation.
+Use approved public or independently authored assets. Private screenshots and unreviewed assets are excluded. Fictional demonstrations follow the [catalog](demo-catalog.md#presentation) and its disclosure boundary; visual polish does not establish production behavior.
+
+## Page and project order
+
+The confirmed page is **Hero → Work → About → Process → Contact**; primary navigation is **Work, About, Process, Contact**. Preserve useful IDs/deep links and account for sticky headers. The hero states the verified role and value proposition with a clear Work action and contact path. About is concise and evidence-based. Process uses **Understand → Shape → Build → Verify**, with selectable details and no second lengthy pin. Contact prioritizes full-time opportunities, with freelance and partnership paths; preserve its existing backend contract and truthful validation/pending/success/failure states. Do not send real messages during verification.
+
+The confirmed Work sequence is **Aki → INNERCIRCLE → Timekeeping, Payroll & Attendance → FuturoHub**. Each scene retains readable semantic project text and actions outside the canvas. INNERCIRCLE stays within its existing public high-level summary. Exact sculpture, copy, and timing remain specification decisions within these confirmed requirements.
 
 ## Aki preservation
 
-**Do not remove Aki.** Preserve a discoverable, functional launcher and chat during the rework. Preserve voice transcription as editable text for the visitor to review and explicitly send. Keep existing consent, privacy notice, session, and region behavior, plus keyboard access, focus behavior, screen-reader access, and mobile usability. Visual restyling is allowed only with functional parity. For detailed Aki security, provider, privacy, and verification authority, follow [model routing](model-routing.md#architecture-security-and-final-authority) and [Aki proof limits](proof-register.md#aki).
+**Preserve the robot; restyle only the chat interface.** Keep the original robot assets/model, geometry, proportions, colors, materials, facial features, expressions, animations, interactions, branding, launcher appearance/behavior/placement, and existing responsive/theme behavior. Do not redraw, regenerate, recolor, rebuild, replace, or filter the robot to match a new palette.
 
-Any fictional Aki UI walkthrough must be labeled and visually separate from the real, functional widget. Demo isolation applies to the new demos without blocking Aki's approved network and service behavior.
+Allow scoped chat-panel surfaces, typography, spacing, borders, shadows, header/status presentation, message bubbles, composer/buttons, existing visual states, focus indicators, responsive geometry/internal overflow, and binding to the existing theme state. Minimal presentational markup is allowed while preserving semantics, identifiers, refs, event wiring, safe rendering, and existing copy/labels/disclosures. Do not create a competing theme provider or storage mechanism.
+
+Preserve conversation/streaming/request contracts, state, prompts/knowledge/FAQs/greetings, providers/runtime models/fallbacks/quotas, credentials, authentication, consent/privacy/session/region/storage rules, error/cancellation/retry/recovery, microphone handling, and **editable transcription before explicit send**. Preserve keyboard/focus/screen-reader behavior. Worker, service logic, configuration, backend integrations, and Aki-related dependency versions/behavior are outside this rework. Broad duties in [model routing](model-routing.md#architecture-security-and-final-authority) do not expand this authorized scope; [proof limits](proof-register.md#aki) still apply.
+
+Inspect shared imports/data, inherited styles, variables, root classes, providers, transforms, stacking contexts, clipping, overflow, scroll/pointer handlers, and bundling effects. New portfolio/chat styling must not indirectly change the robot or assistant behavior. Theme changes must not remount Aki, reset its session/conversation, interrupt requests, or shift the page. Solve conflicts in the surrounding redesign; record an unavoidable functional change as a separate task.
+
+No separate canned Aki walkthrough, simulated voice UI, duplicate assistant, or replacement mock is authorized. Existing controlled test mocks are verification facilities, not a replacement product. Establish a robot/behavior baseline, an allowlist of chat presentation changes, and checks in both themes/representative viewports. Intentional chat styling differences are expected; robot changes or functional regressions fail. Do not require all Aki presentation files to be byte-identical or alter existing functional tests merely to accept regressions.
+
+## Three.js and motion
+
+The normal capable-device **main Work showcase must use actual Three.js geometry, materials, lights, and camera rendering**. A scoped Three.js addition is authorized for future implementation if absent; record compatible versions and the integration decision, preserving Aki-related versions and behavior. Reuse existing Motion utilities where suitable. Do not silently substitute CSS-only artwork, add competing animation libraries without need, or treat this documentation revision as a dependency installation.
+
+Use native production **page scrolling**: Work arrives normally, pins, advances its objects/camera/project sequence with continued scrolling, pauses at the current progress when scrolling stops, reverses when scrolling upward, then releases into About. Provide keyboard-operable chapters and Skip to About. No wheel/touch cancellation, body lock, timed freeze, scroll trap, or repositioning from the scroll handler. An inline preview's fixed-height internal viewport is not the production page architecture. No perpetual ambient animation is required.
+
+Keep visual enhancements progressive. Specify loading/error and WebGL/context-failure handling, container-based camera resizing, renderer/resource disposal, off-screen suspension, and useful semantic fallbacks. Reduced motion uses ordinary-flow or equivalent static project content without pin/scrub/rotation/parallax/smooth-scroll effects. Preserve all four projects and navigation when rendering is unavailable. Verify actual Three.js behavior; a source example or CSS effect is not evidence of a working browser renderer.
+
+## Responsive and theme acceptance
+
+Check **320, 360, 390, 768, 820, 1024, and 1440px in both light and dark themes**. Include portrait/landscape where relevant, resize/browser-height changes, increased text size/zoom, keyboard/touch, reduced motion, and the on-screen keyboard. Record actual observations and `NOT TESTED` reasons; CSS declarations or a build do not prove this matrix passed.
+
+Adapt typography, navigation, artwork, camera framing, stage height, and pin distance. Avoid horizontal overflow, clipped or overlapping copy, hidden controls, and collisions with Aki. Provide comfortable separated touch targets and hover-independent actions. On constrained devices use a shorter comfortable sequence or an ordinary project layout with the same evidence/actions; do not hide content to fit.
+
+Apply both themes to every redesigned section, navigation/control/overlay, form state, new Three.js composition, included demo, and Aki's chat panel. Use semantic tokens and the established theme state/preference mechanism, respecting system preference until an existing user choice applies. Keep readable text, control/focus boundaries, and state contrast. Theme switching must not reload/reset interactions, lose scroll position, break scene geometry, or change the robot beyond its existing theme behavior. Do not change Aki's storage keys.
+
+The chat panel must fit desktop/tablet/mobile bounds and safe areas, wrap messages/links/formatted content, and keep close/composer/send/voice controls reachable when the keyboard opens. Messages may scroll internally without pushing the composer out of reach. Test the original robot separately from the intentionally restyled chat.
 
 ## Proposed defaults
 
-These are design proposals, not user-confirmed requirements: place a focused cinematic moment in the hero and selected work showcase; offer a lightweight natural-scroll alternative on mobile; progressively enhance the experience; and keep readable DOM content and navigation independent of a 3D canvas. Avoid a scroll trap. Evaluate these against accessibility, content legibility, device capability, and actual measurements before approval.
+Within the confirmed contract, a lightweight Three.js hero, exact sculpture choices, lighting/composition, material treatment, transition timing, and capability-selector presentation remain design proposals. They must support the recruiter path, readable content, accessibility, and measured performance. Do not present these choices as new project facts or validated production behavior.
 
 ## Decisions for specification
 
-Set the exact section/scene placement, pinned sequence and exit, responsive behavior, fallback and reduced-motion behavior, asset provenance and optimization, rendering library if any, performance budgets, loading and failure states, and observable acceptance criteria. Do not add GSAP, Three.js, assets, or another dependency merely because the visual direction mentions 3D. Check the [existing site map](repo-map.md#existing-design-and-constants) and resolve architecture through the assigned authority.
+Set exact copy, asset provenance, scene timing/distance, compatible Three.js integration/version, responsive compositions, measured performance budgets, failure/reduced-motion states, and observable acceptance evidence. Check the [existing site map](repo-map.md#existing-design-and-constants); no framework/TypeScript/database/test-stack migration or unrelated dependency upgrade is implied. The page order, Work order, real Three.js requirement, Aki scope, two themes, and viewport matrix are confirmed and must not be reopened as unspecified choices.
