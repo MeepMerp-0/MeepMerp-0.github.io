@@ -397,17 +397,24 @@ function build(studio, theme) {
   let frame = 0;
   let disposed = false;
   const point = new Vector3();
+  // 1 when a label lies wholly inside the visible frame, falling to 0 as any edge reaches the frame edge, so a label
+  // never shows cut off.
+  const corner = new Vector3();
+  const inFrame = (label) => {
+    const { width, height } = label.geometry.parameters;
+    let margin = Infinity;
+    for (const [sx, sy] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+      corner.set(label.position.x + (sx * width) / 2, label.position.y + (sy * height) / 2, label.position.z).project(camera);
+      margin = Math.min(margin, 1 + corner.x, 1 - corner.x, 1 - Math.abs(corner.y));
+    }
+    return ease(0, 0.08, margin);
+  };
   const render = () => {
     const u = routeAt(signalAt(p));
     const w = stageWeights(p);
     accents.forEach((stage, i) => stage.forEach(([material, , base, gain]) => {
       material.emissiveIntensity = base + gain * w[i];
     }));
-    // All three labels read at the overview. Once the camera moves in, only the active stage's label stays, so labels
-    // of layers leaving the frame never show as cut-off fragments. The closing zoom-out brings the full view back, so
-    // the others return while the camera pulls back and are all in place when it settles.
-    const away = ease(SIGNAL.start, 0.27, p) * (1 - ease(SIGNAL.end + 0.04, ZOOM_END, p));
-    labels.forEach((label, i) => { label.material.opacity = (0.72 + 0.28 * w[i]) * (1 - away) + w[i] * away; });
     t.spoke.opacity = 0.7 + 0.3 * w[1];
     paint(current, w);
     // The draw range counts indices, six per tube segment per radial step; the overlay starts at the signal's tile.
@@ -422,6 +429,14 @@ function build(studio, theme) {
     const { position, target } = cameraAt(p, camera.aspect);
     camera.position.set(...position);
     camera.lookAt(...target);
+    camera.updateMatrixWorld();
+    // All three labels read at the overview. Once the camera moves in, only the active stage's label stays (its weight
+    // is cubed, so a label is nearly gone by the midpoint of its cross-fade), and any label reaching the frame edge
+    // fades out. The closing zoom-out brings the others back by the time the camera settles.
+    const away = ease(SIGNAL.start, 0.27, p) * (1 - ease(SIGNAL.end + 0.04, ZOOM_END, p));
+    labels.forEach((label, i) => {
+      label.material.opacity = ((0.72 + 0.28 * w[i]) * (1 - away) + w[i] ** 3 * away) * inFrame(label);
+    });
     renderer.render(scene, camera);
   };
   const request = () => {
