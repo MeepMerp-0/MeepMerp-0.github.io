@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 03-implementation
 state: READY
-revision: "implementation r7; application code at 12ca617"
+revision: "implementation r8; application code at 058e789"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -113,3 +113,10 @@ The owner asked for three more changes in this run. They sit outside the Hero sc
 | `858b344` | Opus 5.5 | Owner: "make the font larger in what i bring to a team", "process still section should be in here" (heading and steps on one screen), and "make this a still section before aki's shapes fall down". The capabilities type is larger; the Process heading is inside its still block; both blocks are centred under the header. Aki's chapter pins with no pieces showing and the pieces fall over the first part of the chapter (scene -0.5 to -0.1), replacing the fall on the way in from `82d2bb6`. |
 | `3fd35ef` | Opus 5.5, with fixes from the Opus 5.5 and Fable 5.1 reviews | Owner: "make sure that it is responsive for desktop, tablet, and mobile. aki the chatbot should be aligned as well". **Launcher alignment, an owner-approved change to its placement:** Aki's launcher and chat panel sit on the content edge (the `.shell` gutter) instead of 24px from the window edge. Their look, behaviour, chat and services are unchanged. **Fitting on smaller screens:** on tablets and phones a still block is centred above the launcher and counts it in the fit, so pinned text is never under the launcher. Phones get a compact Process (steps in a 2 × 2 grid without summaries), and short phones a tighter scale. The heading inside a still block is more compact, so Process still pins on 1366 × 657 and 1280 × 720 laptops. |
 | `12ca617` | Opus 5.5 | The Work fallback picture, which shows a finished Aki until the 3D scene's first frame, is hidden while Aki's pieces have not fallen yet, so a `#work` deep link no longer flashes a finished Aki that then disappears. |
+
+## Owner follow-ups, third round (r8)
+
+| Commit | Model | Change |
+| --- | --- | --- |
+| `d93297d` | Opus 5.5 | Owner: "still 3d and still moving are too fast". Longer scroll tracks: the Hero from 230svh to 320svh, each Work chapter from 100svh to 160svh (Aki's fall now takes about 64svh), and each still-block step from 55svh to 95svh. |
+| `058e789` | Opus 5.5 | Owner: "keep aki - chatbot to its original position, what i meant for aligning is to align its responses". The launcher and panel are back at 24px from the window edge, which undoes the placement change in `3fd35ef`. In the chat log, the scrollbar now sits in the panel's side padding with its space always kept. Aki's replies line up with the message box's left edge and the visitor's with the send button's right edge (before, the visitor's ended 6px short, against the scrollbar). |

@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 05-review
 state: READY
-revision: "review r5; reviewed code 12ca617"
+revision: "review r6; reviewed code 058e789"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -98,3 +98,7 @@ Opus 5.5 and Fable 5.1 reviewed `858b344` and `70cad0a` independently. The negat
 | Launcher and greeting bubble over pinned text on small phones | Found by the responsive matrix | Fixed in `3fd35ef` (space reserved above the launcher) |
 
 No finding is open.
+
+## Third-round follow-ups (r6)
+
+These were CSS-only changes: three track lengths, the launcher's right offset restored, and the chat log's scrollbar gutter. They were checked by the commands and browser checks in Stage 04 r6. No independent model review was run, given their size. No finding is open.

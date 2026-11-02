@@ -2,7 +2,7 @@
 run_id: portfolio-2026-q4-hero-depth
 stage: 04-verification
 state: READY
-revision: "verification r5; second-round follow-ups tested at 12ca617, outside-Hero follow-ups at 9ded058, follow-ups at e52bd63, reference rebuild at 758f14d, earlier rows at f46c9b1"
+revision: "verification r6; third-round follow-ups tested at 058e789, second-round follow-ups at 12ca617, outside-Hero follow-ups at 9ded058, follow-ups at e52bd63, reference rebuild at 758f14d, earlier rows at f46c9b1"
 scope: "Portfolio application implementation run: the Hero and its hand-over to Work, plus owner-requested follow-ups (Aki scroll assembly, still About and Process blocks, active menu link)"
 source_branch: feat/portfolio-cinematic-rework
 source_commit: "ad9d1254a6c7f8c3a46d5363deac7378147c3a6b"
@@ -135,3 +135,14 @@ Not tested: real phones (address-bar behaviour was handled in code, with the 100
 | Aki falls inside its pinned chapter, 1440 × 900 (pinned) and 390 × 844 (strip) | Browser viewport | PASS. The chapter is on screen with no pieces at s = -0.5; the pieces fall in order and have landed by s = -0.1. Scrolling back up gives the same frames (remaining differences only in the reading-progress bar and section text that animates in as it enters). |
 | Fresh `/#work` load | Browser viewport | PASS. The fallback picture never shows; the canvas takes over (`waiting` then `ready` with no fallback in any frame). |
 | Larger capabilities type and Process heading in its block | Browser viewport, reviewed by eye | PASS at 1440 × 900, 1024 × 768, 768 × 1024, 375 × 667 and 1920 × 1080 |
+
+## Third-round follow-up checks (r6, at `058e789`)
+
+| Check | Kind | Result |
+| --- | --- | --- |
+| `npm test` (283), `eslint src`, `npm run build` | Command | PASS |
+| Smoke suite | Command | PASS (all checks, including the deep-link pass and the 43 Aki steps) |
+| Hero at 1440 × 900 dark with the 320svh track: rest, hold, reverse, p = 0.37 round trip | Browser viewport | PASS |
+| Still blocks and Aki fall with the longer tracks, 1440 × 900 | Browser viewport | PASS: steps 1, 2, 3, 4 and back; deep links to Process and Contact land at the header; Aki's fall frames match on the way back up |
+| Responsive matrix (13 sizes, as r5) with the launcher back at 24px | Browser viewport | PASS: the same pin results as r5, no overflow, the launcher and bubble cover no pinned text, no errors |
+| Chat alignment, offline with seeded replies (all outside requests blocked, no message sent) at 1440 × 900 and 390 × 844 | Browser viewport | PASS: replies and the "AKI" label start at the message box's left edge, and the visitor's bubbles and "YOU" label end at its right edge (1053 and 1395 px desktop; 31 and 359 px phone) |
