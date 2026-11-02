@@ -60,6 +60,7 @@ export function useScrollSteps({ count, trackRef, stageRef }) {
       }
       if (!fits) return;
       const p = (stick.current - track.getBoundingClientRect().top) / Math.max(1, track.offsetHeight - stageHeight);
+      track.style.setProperty('--steps-p', String(clamp01(p)));
       const next = stepAt(p, count);
       if (jump.current !== null) {
         if (next !== jump.current) return;

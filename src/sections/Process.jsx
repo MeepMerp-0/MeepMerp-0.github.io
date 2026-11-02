@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { SectionIntro } from '../components/SectionIntro.jsx';
+import { useReveal } from '../hooks/useReveal.js';
 import { useScrollSteps } from '../hooks/useScrollSteps.js';
 import { PROCESS_STEPS } from '../data/siteCopy.js';
 import { twoDigits } from '../utils/format.js';
@@ -8,6 +9,7 @@ export function Process() {
   const trackRef = useRef(null);
   const stageRef = useRef(null);
   const { pinned, index: selected, goTo } = useScrollSteps({ count: PROCESS_STEPS.length, trackRef, stageRef });
+  const [processRef, reveal] = useReveal(0.2);
 
   return (
     <section className="page-section process-section" id="process" aria-labelledby="process-title">
@@ -18,10 +20,10 @@ export function Process() {
         <div className="steps-stage" ref={stageRef}>
         <SectionIntro titleId="process-title" number="03" eyebrow="PROCESS" title="Four steps, written down."
           subtitle="How I take work from a loose request to something a team can rely on. A working approach, not a guarantee." />
-        <div className="process">
+        <div ref={processRef} className="process" data-reveal={reveal}>
           <ol className="process-steps">
             {PROCESS_STEPS.map((step, index) => (
-              <li key={step.id}>
+              <li key={step.id} className="tm-up" style={{ '--i': index }}>
                 <button type="button" className="process-step" aria-pressed={index === selected}
                   aria-controls="process-detail" onClick={() => goTo(index)}>
                   <span className="process-num">{twoDigits(index + 1)}</span>
@@ -33,7 +35,7 @@ export function Process() {
           </ol>
           {/* All steps share one cell, so the stage height does not depend on the step (see About). While pinned the
               detail follows scrolling, so it is not a live region there; announcing every step would be noise. */}
-          <div className="process-detail steps-panes" id="process-detail" aria-live={pinned ? 'off' : 'polite'}>
+          <div className="process-detail steps-panes tm-up" id="process-detail" aria-live={pinned ? 'off' : 'polite'}>
             {PROCESS_STEPS.map((step, index) => (
               <div key={step.id} className="process-detail-inner steps-pane" data-active={index === selected}>
                 <h3>{twoDigits(index + 1)} · {step.label}</h3>

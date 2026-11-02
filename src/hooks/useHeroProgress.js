@@ -6,9 +6,9 @@ import { useMedia, webglAvailable } from './useWorkProgress.js';
 export const HERO_PINNED_QUERY = '(min-width: 360px) and (min-height: 560px)';
 // Same condition as the wide layout in global.css: the art is a column beside the copy.
 const WIDE_QUERY = '(min-width: 900px) and (orientation: landscape)';
-const MIN_ART = 180;
 // The stage's vertical padding and row gaps in global.css: 48 px on both layouts (phones: 16 px of padding and four 8 px
-// gaps around the cue row; wide: 32 px of padding and two gaps).
+// gaps around the cue row; wide: 32 px of padding and two gaps). On phones the art sits behind the copy as a background,
+// so it needs no room of its own.
 const PADDING = 48;
 const HYSTERESIS = 48;
 
@@ -63,10 +63,10 @@ export function useHeroProgress() {
       const current = hero.dataset.mode || 'still';
       let next = 'still';
       if (allowed && fits.matches) {
-        // Wide stages: the cue shares the foot row. Phones: the cue has a row of its own, and the art band needs MIN_ART.
+        // Wide stages: the cue shares the foot row. Phones: the cue has a row of its own, and the art fills the stage behind.
         const needed = copyRef.current.offsetHeight + labelsRef.current.offsetHeight
           + Math.max(footRef.current.offsetHeight, skipRef.current.offsetHeight)
-          + (wide.matches ? 0 : MIN_ART + cueRef.current.offsetHeight) + PADDING;
+          + (wide.matches ? 0 : cueRef.current.offsetHeight) + PADDING;
         // The probe is 100svh, so a mobile URL bar showing or hiding does not change the answer.
         const available = probeRef.current.offsetHeight - headerHeight();
         next = current === 'pinned' || !placed

@@ -5,6 +5,7 @@ import { CONTACT_INTENTS } from '../../data/siteCopy.js';
 import { EMAIL_URL, PERSONAL } from '../../data/portfolioData.js';
 import { submitContactForm } from '../../services/contactForm.js';
 import { EASE_OUT } from '../../utils/motion.js';
+import { RollText, SplitText } from '../TextMotion.jsx';
 import { LIMITS, purposeForIntent } from './contactRules.js';
 import { useContactForm } from './useContactForm.js';
 
@@ -32,11 +33,11 @@ export function ContactForm() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       {sent ? (
-        <motion.div key="sent" className="form-feedback" role="status" {...fade} transition={{ duration: 0.3, ease: EASE_OUT }}>
+        <motion.div key="sent" className="form-feedback" role="status" data-reveal="in" {...fade} transition={{ duration: 0.3, ease: EASE_OUT }}>
           <Check size={25} aria-hidden="true" />
-          <h3>Message sent.</h3>
-          <p>Thanks for reaching out. You can send another message if needed.</p>
-          <button type="button" className="button button-solid" onClick={startOver}>Write another message <ArrowRight size={16} aria-hidden="true" /></button>
+          <h3><SplitText text="Message sent." /></h3>
+          <p className="tm-lines">Thanks for reaching out. You can send another message if needed.</p>
+          <button type="button" className="button button-solid" onClick={startOver}><RollText>Write another message</RollText> <ArrowRight size={16} aria-hidden="true" /></button>
         </motion.div>
       ) : (
         <motion.form key="form" className="contact-form" onSubmit={handleSubmit} noValidate {...fade} transition={{ duration: 0.3, ease: EASE_OUT }}>

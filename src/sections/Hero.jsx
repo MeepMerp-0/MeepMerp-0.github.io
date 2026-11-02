@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { HeroFallbackArt } from '../components/hero/HeroFallbackArt.jsx';
+import { RollText, Scramble, SplitText } from '../components/TextMotion.jsx';
 import { HERO } from '../data/siteCopy.js';
 import { useHeroProgress } from '../hooks/useHeroProgress.js';
 import { webglAvailable } from '../hooks/useWorkProgress.js';
@@ -108,31 +109,31 @@ export function Hero({ theme }) {
     <section ref={heroRef} className="hero" id="home" aria-labelledby="hero-title" data-mode={mode} data-art={art}>
       <span ref={probeRef} className="hero-probe" aria-hidden="true" />
       <div ref={trackRef} className="hero-track">
-        <div ref={stageRef} className="hero-stage shell">
+        <div ref={stageRef} className="hero-stage shell" data-reveal="in">
           <div ref={copyRef} className="hero-copy">
             <p className="eyebrow hero-eyebrow">
-              <span className="status-dot" aria-hidden="true" />{HERO.eyebrow} · {HERO.location}
+              <span className="status-dot" aria-hidden="true" /><Scramble text={`${HERO.eyebrow} · ${HERO.location}`} />
             </p>
             <h1 id="hero-title">
               {HERO.headline.map((line, i) => (
-                <span key={line} className={i === 1 ? 'hero-line-accent' : undefined}>{line}</span>
+                <span key={line} className={i === 1 ? 'hero-line-accent' : undefined}>{i === 0 ? <SplitText text={line} by="char" /> : line}</span>
               ))}
             </h1>
-            <p className="hero-lead">{HERO.lead}</p>
+            <p className="hero-lead tm-lines">{HERO.lead}</p>
             <ul className="hero-focus" aria-label="What I build">
-              {HERO.focus.map((item) => <li key={item}>{item}</li>)}
+              {HERO.focus.map((item, i) => <li key={item} className="tm-up" style={{ '--i': i }}>{item}</li>)}
             </ul>
-            <div className="hero-actions">
-              <a className="button button-solid" href="#work">View Work <ArrowRight size={18} aria-hidden="true" /></a>
-              <a className="button button-ghost" href="#contact">Contact</a>
+            <div className="hero-actions tm-up">
+              <a className="button button-solid" href="#work"><RollText>View Work</RollText> <ArrowRight size={18} aria-hidden="true" /></a>
+              <a className="button button-ghost" href="#contact"><RollText>Contact</RollText></a>
             </div>
-            <p className="hero-availability">{HERO.availability}</p>
+            <p className="hero-availability tm-lines">{HERO.availability}</p>
           </div>
           <div className="hero-art" aria-hidden="true">
             <HeroFallbackArt />
             <canvas ref={canvasRef} className="hero-canvas" />
           </div>
-          <div ref={labelsRef} className="hero-labels">
+          <div ref={labelsRef} className="hero-labels tm-up">
             <div className="hero-labels-body">
               <div className="hero-rail" aria-hidden="true">
                 <span className="hero-rail-fill" />
@@ -146,14 +147,14 @@ export function Hero({ theme }) {
                       <span className="hero-stage-name">{name}</span>
                       <span className="hero-now"><span className="hero-now-shape" aria-hidden="true" />Now</span>
                     </span>
-                    <span className="hero-stage-desc">{description}</span>
+                    <span className="hero-stage-desc"><SplitText text={description} ink /></span>
                   </li>
                 ))}
               </ol>
             </div>
           </div>
           <div ref={footRef} className="hero-foot">
-            <a ref={skipRef} className="hero-skip" href="#work">Skip to Work</a>
+            <a ref={skipRef} className="hero-skip tm-fade" href="#work">Skip to Work</a>
             <span ref={cueRef} className="hero-cue"><ArrowDown size={14} aria-hidden="true" />Scroll to explore</span>
           </div>
         </div>

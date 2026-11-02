@@ -128,12 +128,12 @@ section[id] { scroll-margin-top: 0; }
 /* Scroll length of the pinned Hero; longer is slower. */
 .hero[data-mode='pinned'] .hero-track { height: 320vh; height: 320svh; }
 .hero-stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'art' 'labels' 'foot'; gap: 24px; padding-block: 32px 40px; }
-.hero[data-mode='pinned'] .hero-stage { position: sticky; top: var(--header-h, 72px); height: calc(100vh - var(--header-h, 72px)); height: calc(100svh - var(--header-h, 72px)); grid-template-areas: 'copy' 'cue' 'labels' 'art' 'foot'; grid-template-rows: auto auto auto minmax(180px, 1fr) auto; gap: 8px; padding-block: 8px; }
+.hero[data-mode='pinned'] .hero-stage { position: sticky; top: var(--header-h, 72px); height: calc(100vh - var(--header-h, 72px)); height: calc(100svh - var(--header-h, 72px)); grid-template-areas: 'copy' 'cue' 'art' 'labels' 'foot'; grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 8px; padding-block: 8px; }
 .hero-copy { grid-area: copy; align-self: start; min-width: 0; }
 .hero-eyebrow { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 22px; }
 .hero h1 { margin: 0; font: 400 clamp(38px, min(11.5vw, 7svh), 56px)/1.02 var(--font-display); letter-spacing: -.035em; transform: translateY(var(--hero-lift)); }
 .hero[data-mode='pinned'] h1 { will-change: transform; }
-.hero h1 span { display: block; }
+.hero h1 > span { display: block; }
 /* The accent line warms as progress rises: a wide gradient slid by --hero-accent. Every stop is readable as large type. */
 .hero h1 .hero-line-accent { width: fit-content; max-width: 100%; font-style: italic; background-image: linear-gradient(100deg, var(--metal-hi) 0%, var(--signal) 50%, var(--metal-mid) 100%); background-size: 200% 100%; background-position: calc(var(--hero-accent) * 100%) 50%; -webkit-background-clip: text; background-clip: text; color: transparent; }
 [data-theme='light'] .hero h1 .hero-line-accent { background-image: linear-gradient(100deg, var(--signal) 0%, var(--metal-lo) 60%, #5a3b12 100%); }
@@ -151,6 +151,15 @@ section[id] { scroll-margin-top: 0; }
 /* The close-up crops the layers at the art box. A short fade at the box edges, not a scrim, keeps that crop from reading as a hard cut. */
 .hero[data-mode='pinned'] .hero-art { -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 96%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect; }
 .hero[data-art='canvas'] .hero-fallback { display: none; }
+/* Phones and portrait tablets, pinned: the art fills the whole stage behind the text as a moving background, so the
+   scroll-driven Hero fits screens with no room for an art band. It fades out toward the top, where the headline sits, and
+   the copy and the label plate stay above it. */
+@media (max-width: 899px), (orientation: portrait) {
+  .hero[data-mode='pinned'] .hero-art { grid-area: auto; grid-row: 1 / -1; grid-column: 1; z-index: 0; opacity: .45; pointer-events: none; -webkit-mask-image: linear-gradient(180deg, transparent 4%, rgba(0, 0, 0, .35) 32%, #000 62%, transparent 100%); mask-image: linear-gradient(180deg, transparent 4%, rgba(0, 0, 0, .35) 32%, #000 62%, transparent 100%); }
+  .hero[data-mode='pinned'] :is(.hero-copy, .hero-labels, .hero-cue, .hero-skip) { position: relative; z-index: 1; }
+  /* A soft halo in the page colour keeps the body copy crisp where the scene passes behind it. */
+  .hero[data-mode='pinned'] :is(.hero-lead, .hero-focus, .hero-availability, .hero-cue, .hero-skip) { text-shadow: 0 0 2px var(--bg), 0 0 10px var(--bg), 0 0 18px var(--bg); }
+}
 /* The flat art's palette, from the theme tokens: warm charcoal, bronze and champagne in the dark theme; stone, ink and bronze in the light one. */
 .hero { --hero-fa-tile: color-mix(in srgb, var(--text) 16%, var(--surface)); --hero-fa-bronze: color-mix(in srgb, var(--metal-mid) 72%, var(--surface)); --hero-fa-frame: color-mix(in srgb, var(--metal-mid) 80%, var(--text)); --hero-fa-face: color-mix(in srgb, var(--text) 18%, var(--surface)); --hero-fa-facetext: var(--text); --hero-fa-fin-lo: color-mix(in srgb, var(--metal-mid) 62%, var(--bg)); --hero-fa-fin-hi: color-mix(in srgb, var(--metal-hi) 80%, var(--metal-mid)); --hero-fa-line: color-mix(in srgb, var(--text) 78%, var(--surface)); --hero-fa-line-dim: color-mix(in srgb, var(--text) 32%, var(--surface)); }
 [data-theme='light'] .hero { --hero-fa-tile: color-mix(in srgb, var(--text) 62%, var(--surface)); --hero-fa-bronze: var(--metal-mid); --hero-fa-frame: var(--metal-mid); --hero-fa-face: color-mix(in srgb, var(--text) 78%, var(--surface)); --hero-fa-facetext: var(--surface); --hero-fa-fin-lo: var(--metal-mid); --hero-fa-fin-hi: var(--metal-lo); --hero-fa-line: color-mix(in srgb, var(--text) 70%, var(--surface)); --hero-fa-line-dim: color-mix(in srgb, var(--text) 28%, var(--surface)); }
@@ -563,6 +572,119 @@ section[id] { scroll-margin-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ===== Text motion (src/components/TextMotion.jsx, src/hooks/useReveal.js) =====
+   Split and scrambled text keeps one .sr-only copy beside aria-hidden fragments. A block opts in with data-reveal:
+   'out' hides its text until it scrolls into view, 'in' plays it once; the Hero stage, header and sent message are
+   'in' from the start, and scopes never nest. Only transform, opacity, clip-path, mask, filter, colour and background
+   move, so no measured box changes size; fill is backwards, so nothing lingers after an animation. Every hide and every
+   timed motion is screen-only under no-preference: reduced motion and print show text at rest. */
+.split-unit, .split-word { display: inline-block; }
+.split-word { white-space: nowrap; }
+.split-ink .split-unit { display: inline; }
+.tm-sr { -webkit-user-select: none; user-select: none; }
+:is(.section-intro-label, .project-kicker) .scramble, .scramble > span { color: inherit; }
+.roll { display: inline-grid; text-decoration: inherit; }
+.roll > span { grid-area: 1 / 1; text-decoration: inherit; }
+.roll > span + span { visibility: hidden; -webkit-user-select: none; user-select: none; }
+.contact-form :is(input, textarea) { caret-color: var(--signal); }
+
+/* Scroll-linked type: pure functions of the properties the hooks already write (--w, --hero-p, --chapter-p, --steps-p),
+   with no transition, so one scroll position gives one frame. Pinned modes never occur under reduced motion; the stage
+   dash reads --w = 1 in still mode. */
+.hero-stage-num::before { transform: scaleX(calc(.4 + .6 * var(--w))); transform-origin: 0 50%; }
+.hero[data-mode='pinned'] .hero-stage-name { background: linear-gradient(var(--hero-copper), var(--hero-copper)) 0 100% / calc(var(--w) * 100%) 1px no-repeat; }
+.hero[data-mode='pinned'] .hero-stage-desc .split-unit { color: color-mix(in srgb, var(--text) calc(clamp(0, var(--w) * (var(--n) + 1) - var(--i), 1) * 100%), var(--muted)); }
+.hero[data-mode='pinned'] .hero-cue { opacity: clamp(0, 1 - var(--hero-p) * 12, 1); }
+.work-chapters button, .capabilities-tab, .process-step { position: relative; }
+.work-chapters button::after, .capabilities-tab::after, .process-step::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 2px; border-radius: 2px; background: currentColor; opacity: .55; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.work-chapters button[aria-current='step']::after { transform: scaleX(clamp(0, var(--chapter-p, 0) - var(--i, 0), 1)); }
+.steps-track[data-pinned='true'] :is(.capabilities-tab[aria-selected='true'], .process-step[aria-pressed='true'])::after { transform: scaleX(clamp(0, var(--steps-p, 0) * var(--steps) - var(--i, 0), 1)); }
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  [data-reveal='out'] :is(.split-rise .split-unit, .tm-up, .tm-lines, .tm-fade, .scramble) { opacity: 0; }
+  [data-reveal='in'] .split-rise .split-unit { animation: tm-rise .6s var(--ease) backwards; animation-delay: calc(var(--d, 0ms) + min(var(--i, 0) * var(--word-step, 40ms), 480ms)); }
+  [data-reveal='in'] .tm-up { animation: tm-up .6s var(--ease) backwards; }
+  [data-reveal='in'] .tm-lines { animation: tm-lines .65s var(--ease) backwards; }
+  [data-reveal='in'] .tm-fade { animation: tm-fade .6s var(--ease) backwards; }
+  [data-reveal='in'] :is(.tm-up, .tm-lines, .tm-fade) { animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 70ms); }
+
+  /* Hero: once on mount. The h1 element itself is never animated: its transform belongs to the scroll. Same
+     specificity as the word rule above and later, so the letters take two animations. */
+  .hero h1 { --d: 60ms; --word-step: 28ms; }
+  .hero-stage[data-reveal='in'] .split-char { animation-name: tm-rise, tm-blur; animation-duration: .7s; }
+  .hero-stage[data-reveal='in'] .hero-line-accent { animation: tm-wipe .75s var(--ease) .3s backwards; }
+  .hero-stage[data-reveal='in'] .status-dot { animation: tm-pop .6s var(--ease) backwards; }
+  .hero-lead { --d: 380ms; }
+  .hero-focus { --d: 460ms; }
+  .hero-labels { --d: 500ms; }
+  .hero-actions { --d: 560ms; }
+  .hero-availability { --d: 620ms; }
+  .hero-skip { --d: 700ms; }
+
+  /* Sections. --d sits on the container; items add --i. */
+  .section-intro-main p, .project-role { --d: 200ms; }
+  .project h3 { --d: 60ms; }
+  .project-facts { --d: 240ms; }
+  .project :is(.project-tech, .project-note, .project-actions, .project-samples) { --d: 500ms; }
+  .about-story .tm-lines { --d: 120ms; }
+  .about-facts { --d: 260ms; }
+  .capabilities-tabs { --d: 160ms; }
+  .capabilities-panel { --d: 380ms; }
+  .process-detail { --d: 240ms; }
+  .contact-method { --d: 200ms; }
+  .site-nav { --d: 120ms; }
+  .header-actions { --d: 380ms; }
+  .header-inner[data-reveal='in'] .wordmark-symbol { animation: tm-pop .7s var(--ease) backwards; }
+  /* Step panes replay on every step change, so they stay short. */
+  .steps-pane[data-active='true'] > :not(dl), .steps-pane[data-active='true'] dl > div { animation: tm-up .4s var(--ease) backwards; }
+  .steps-pane[data-active='true'] > :nth-child(2), .steps-pane[data-active='true'] dl > div:first-child { animation-delay: 60ms; }
+  .steps-pane[data-active='true'] dl > div:nth-child(2) { animation-delay: 120ms; }
+
+  /* Hover/focus label roll: the label leaves upward, the aria-hidden copy arrives from below. */
+  /* The clip box reaches past the label for italics and the underline (padding, cancelled by margin), and overflow:clip
+     keeps the waiting copy below from adding scrollable overflow. */
+  .roll { overflow: clip; padding: 0 .25em .45em; margin: 0 -.25em -.45em; }
+  .roll > span { transition: transform .38s var(--ease); }
+  .roll > span + span { visibility: visible; transform: translateY(160%); }
+  :is(a, button):focus-visible .roll > span:first-child { transform: translateY(-160%); }
+  :is(a, button):focus-visible .roll > span + span { transform: none; }
+
+  /* The clip inset grows by exactly the distance the word moves, so it rises out of a fixed line (its own box bottom). */
+  @keyframes tm-rise {
+    from { transform: translateY(105%); clip-path: inset(-.3em -.2em 105% -.2em); }
+    to { transform: none; clip-path: inset(-.3em -.2em -.3em -.2em); }
+  }
+  @keyframes tm-blur { from { filter: blur(8px); opacity: 0; } 60% { opacity: 1; } }
+  @keyframes tm-wipe {
+    from { clip-path: inset(-.25em 100% -.35em -.2em); filter: blur(6px); }
+    to { clip-path: inset(-.25em -.3em -.35em -.2em); filter: blur(0); }
+  }
+  @keyframes tm-up { from { opacity: 0; transform: translateY(12px); } }
+  @keyframes tm-fade { from { opacity: 0; } }
+  /* A top-down gradient mask sweeps down the block, so copy reads in by line without being split. The mask exists only
+     while the animation runs. */
+  @keyframes tm-lines {
+    from { -webkit-mask-image: linear-gradient(#000 33.3%, transparent 66.6%); mask-image: linear-gradient(#000 33.3%, transparent 66.6%); -webkit-mask-size: 100% 300%; mask-size: 100% 300%; -webkit-mask-position: 0 100%; mask-position: 0 100%; transform: translateY(10px); }
+    to { -webkit-mask-image: linear-gradient(#000 33.3%, transparent 66.6%); mask-image: linear-gradient(#000 33.3%, transparent 66.6%); -webkit-mask-size: 100% 300%; mask-size: 100% 300%; -webkit-mask-position: 0 0; mask-position: 0 0; transform: none; }
+  }
+  @keyframes tm-pop { from { opacity: 0; transform: scale(.4) rotate(-90deg); } }
+}
+/* The mobile menu replays its links on every open, so it starts at once. */
+@media screen and (prefers-reduced-motion: no-preference) and (max-width: 830px) { .site-nav { --d: 0ms; } }
+@media screen and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :is(a, button):hover .roll > span:first-child { transform: translateY(-160%); }
+  :is(a, button):hover .roll > span + span { transform: none; }
+}
+/* About lead: inks word by word as it rises toward the middle of the screen. A native scroll-driven animation, so it is a
+   pure function of scroll; unsupported browsers and reduced motion show it at rest (--text). */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    @keyframes tm-ink { from { color: var(--muted); } }
+    .about-story > p:first-child { view-timeline: --about-lead block; }
+    .about-story > p:first-child .split-unit { animation: tm-ink linear both; animation-timeline: --about-lead; animation-range: cover calc(8% + var(--i) * .8%) cover calc(20% + var(--i) * .8%); }
+  }
 }
 
 /* Aki assistant: fixed above the header (100) and reading progress (120), below the skip link (900). */
