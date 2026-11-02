@@ -1,0 +1,502 @@
+/* Base styles for the fictional timekeeping demo: theme tokens (light and dark), the page shell, the stage
+   layout, shared components, the map and the live location card. mobile.css and web.css build on these tokens and classes. */
+
+:root {
+  color-scheme: light;
+  --bg: #eceef2;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --surface-3: #e5e7eb;
+  --text: #111827;
+  --muted: #4b5563;
+  --faint: #6b7280;
+  --line: #d1d5db;
+  --line-strong: #9ca3af;
+
+  --accent: #2563eb;          /* fills: primary buttons, active toggles */
+  --accent-hover: #1d4ed8;
+  --accent-ink: #ffffff;      /* text on --accent */
+  --accent-text: #1d4ed8;     /* accent-coloured text and links */
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --focus: #2563eb;
+
+  /* Status tones. *-dot for dots, borders and chart marks; plain name for text; *-soft for tinted fills. */
+  --ok: #15803d;    --ok-dot: #16a34a;    --ok-soft: #dcfce7;
+  --warn: #b45309;  --warn-dot: #d97706;  --warn-soft: #fef3c7;
+  --bad: #b91c1c;   --bad-dot: #dc2626;   --bad-soft: #fee2e2;
+  --info: #1d4ed8;  --info-dot: #2563eb;  --info-soft: #dbeafe;
+  --idle: #4b5563;  --idle-dot: #6b7280;  --idle-soft: #e5e7eb;
+
+  /* Map */
+  --map-land: #eef0ea;
+  --map-block: #dde0d7;
+  --map-building: #b6bbb0;
+  --map-park: #cde3c2;
+  --map-tree: #9cc58d;
+  --map-water: #a7c9e4;
+  --map-street: #ffffff;
+  --map-casing: #c6cac0;
+  --map-label: #4b5563;
+  --map-ring: #2563eb;
+  --map-ring-fill: rgba(37, 99, 235, 0.14);
+  --map-ring-in: #16a34a;
+  --map-ring-in-fill: rgba(22, 163, 74, 0.18);
+  --map-route: #2563eb;
+  --map-guard: #ff5722;
+  --map-home: #6b7280;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-black: 'Arial Black', 'Arial Bold', Gadget, Arial, sans-serif;
+  --font-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.08);
+  --shadow: 0 10px 30px rgba(17, 24, 39, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0b0f17;
+    --surface: #111827;
+    --surface-2: #1a2232;
+    --surface-3: #263041;
+    --text: #f3f4f6;
+    --muted: #b6bfcc;
+    --faint: #9ca3af;
+    --line: #2f3a4c;
+    --line-strong: #4b5768;
+
+    --accent: #2563eb;
+    --accent-hover: #3b74f0;
+    --accent-ink: #ffffff;
+    --accent-text: #93c5fd;
+    --accent-soft: rgba(96, 165, 250, 0.16);
+    --focus: #93c5fd;
+
+    --ok: #4ade80;    --ok-dot: #22c55e;    --ok-soft: rgba(34, 197, 94, 0.16);
+    --warn: #fbbf24;  --warn-dot: #f59e0b;  --warn-soft: rgba(245, 158, 11, 0.16);
+    --bad: #fca5a5;   --bad-dot: #ef4444;   --bad-soft: rgba(239, 68, 68, 0.16);
+    --info: #93c5fd;  --info-dot: #60a5fa;  --info-soft: rgba(96, 165, 250, 0.16);
+    --idle: #cbd5e1;  --idle-dot: #94a3b8;  --idle-soft: rgba(148, 163, 184, 0.16);
+
+    --map-land: #161d29;
+    --map-block: #222b3a;
+    --map-building: #3a4659;
+    --map-park: #1d3527;
+    --map-tree: #2e5a3b;
+    --map-water: #1c3a5c;
+    --map-street: #3a4558;
+    --map-casing: #0f141d;
+    --map-label: #c3ccd8;
+    --map-ring: #60a5fa;
+    --map-ring-fill: rgba(96, 165, 250, 0.16);
+    --map-ring-in: #4ade80;
+    --map-ring-in-fill: rgba(74, 222, 128, 0.18);
+    --map-route: #60a5fa;
+    --map-guard: #ff7a50;
+    --map-home: #94a3b8;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 var(--font);
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------- page shell */
+
+.page {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.head-text { flex: 1 1 22rem; min-width: 0; }
+
+.eyebrow, .badges, .tags {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow { margin: 0 0 4px; color: var(--accent-text); font-size: 12px; font-weight: 700; }
+
+h1 { margin: 0 0 8px; font-size: clamp(1.35rem, 3.6vw, 1.9rem); line-height: 1.15; letter-spacing: -0.01em; }
+
+.lede { max-width: 72ch; margin: 0 0 12px; color: var(--muted); }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 11px; }
+.badges li {
+  padding: 2px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.guide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: guide;
+  font-size: 13px;
+}
+.guide li {
+  counter-increment: guide;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.guide li::before {
+  content: counter(guide);
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font: 700 11px/1 var(--font-mono);
+}
+
+/* Below 1100px the two wrappers dissolve and everything stacks in this order: demo controls, live map,
+   phone, console. From 1100px the rail (controls and phone) sits left of the main column (map and console)
+   and, when the window is tall enough to show the whole phone, stays pinned under the top edge. */
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.rail, .main-col { display: contents; }
+#demo-controls { order: 1; }
+.panel-map { order: 2; }
+.panel-mobile { order: 3; }
+.panel-web { order: 4; }
+@media (min-width: 1100px) {
+  .stage { grid-template-columns: minmax(340px, 376px) minmax(0, 1fr); gap: 24px; }
+  .rail { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .main-col { display: grid; gap: 20px; min-width: 0; }
+}
+@media (min-width: 1100px) and (min-height: 760px) {
+  .rail { position: sticky; top: 12px; max-height: calc(100vh - 24px); }
+  /* A flex chain down to the phone frame, so the phone shrinks to fit the window (mobile.css sets its floor). */
+  .rail .panel-mobile, .rail #mobile-app { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+}
+
+.panel { min-width: 0; }
+.panel-head { margin-bottom: 10px; }
+.panel-head h2 { margin: 0 0 2px; font-size: 1.05rem; }
+.panel-head p { margin: 0; font-size: 13px; color: var(--muted); max-width: 70ch; }
+.mount { min-width: 0; }
+
+.foot { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.foot p { margin: 0 0 6px; max-width: 90ch; }
+.tags { font-size: 11px; color: var(--muted); }
+
+@media (min-width: 720px) {
+  .page { padding: 24px; }
+}
+
+/* ---------------------------------------------------------------- shared components */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn:hover { background: var(--surface-2); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-danger { background: #dc2626; border-color: #dc2626; color: #ffffff; }
+.btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+.btn-warn { background: var(--warn-soft); border-color: var(--warn-dot); color: var(--warn); }
+.btn-info { background: var(--info-soft); border-color: var(--info-dot); color: var(--info); }
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-sm { min-height: 32px; padding: 4px 10px; font-size: 13px; border-radius: var(--r-sm); }
+.btn-block { width: 100%; }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+
+.card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--idle-soft);
+  color: var(--idle);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.badge-ok { background: var(--ok-soft); color: var(--ok); }
+.badge-warn { background: var(--warn-soft); color: var(--warn); }
+.badge-bad { background: var(--bad-soft); color: var(--bad); }
+.badge-info { background: var(--info-soft); color: var(--info); }
+.badge-idle { background: var(--idle-soft); color: var(--idle); }
+
+.dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--idle-dot); }
+.dot-ok { background: var(--ok-dot); }
+.dot-warn { background: var(--warn-dot); }
+.dot-bad { background: var(--bad-dot); }
+.dot-info { background: var(--info-dot); }
+.dot-idle { background: var(--idle-dot); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Segmented control and filter pills: buttons with aria-pressed. */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); }
+.seg button, .pill {
+  min-height: 30px;
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.seg button[aria-pressed="true"], .pill[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.pill { border: 1px solid var(--line); background: var(--surface); }
+
+/* On/off switch: <button role="switch" aria-checked="true|false" class="switch">Label</button> */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.switch::before {
+  content: '';
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--line-strong) radial-gradient(circle at 10px 10px, #ffffff 7px, transparent 7.5px) no-repeat;
+  background-position: 0 0;
+  transition: background-color 0.15s, background-position 0.15s;
+}
+.switch[aria-checked="true"]::before { background-color: var(--ok-dot); background-position: 16px 0; }
+
+.field { display: grid; gap: 4px; min-width: 0; }
+.label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.input, .select {
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+textarea.input { min-height: 84px; resize: vertical; }
+.input[aria-invalid="true"] { border-color: var(--bad-dot); }
+.hint { margin: 0; font-size: 12px; color: var(--faint); }
+.error { margin: 0; font-size: 12px; color: var(--bad); }
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+}
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table caption { padding: 8px 10px; text-align: left; font-weight: 600; }
+.table th, .table td { padding: 8px 10px; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.table thead th { background: var(--surface-3); color: var(--muted); font-size: 12px; font-weight: 700; position: sticky; top: 0; }
+.table tbody tr:nth-child(even) { background: var(--surface-2); }
+.table tfoot td, .table tfoot th { font-weight: 700; background: var(--surface-3); }
+.table .left { text-align: left; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table td.num, .table th.num { text-align: right; }
+
+.empty { margin: 0; padding: 20px 12px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* Native <dialog class="modal"> opened with showModal(). */
+.modal {
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.modal-wide { width: min(1040px, calc(100vw - 24px)); }
+.modal::backdrop { background: rgba(3, 7, 18, 0.55); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-head h3 { margin: 0; font-size: 1.05rem; }
+.modal-body { padding: 16px; }
+.modal-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+
+/* Placeholder "attendance photo": an SVG silhouette, never a real picture. */
+.silhouette { display: block; width: 100%; height: auto; background: var(--surface-3); border-radius: var(--r-sm); }
+.silhouette .sil-shape { fill: var(--line-strong); }
+.silhouette .sil-box { fill: none; stroke: var(--ok-dot); stroke-width: 2; }
+.silhouette.is-bad .sil-box { stroke: var(--bad-dot); }
+
+/* ---------------------------------------------------------------- map (drawn by TK.mountMap) */
+
+.map { display: block; width: 100%; height: 100%; background: var(--map-land); }
+.map-land { fill: var(--map-land); }
+.map-block { fill: var(--map-block); }
+.map-park { fill: var(--map-park); }
+.map-tree { fill: var(--map-tree); }
+.map-river { fill: none; stroke: var(--map-water); stroke-width: 48; stroke-linecap: round; }
+.map-street-casing { stroke: var(--map-casing); stroke-width: 26; stroke-linecap: square; }
+.map-street { stroke: var(--map-street); stroke-width: 20; stroke-linecap: square; }
+.map-street-label, .map-park-label, .map-water-label { fill: var(--map-label); font: 600 15px var(--font); }
+.map-water-label { font-style: italic; }
+.map--compact .map-street-label, .map--compact .map-park-label, .map--compact .map-water-label { display: none; }
+.map-building { fill: var(--map-building); }
+.map-ring { fill: var(--map-ring-fill); stroke: var(--map-ring); stroke-width: 3; stroke-dasharray: 10 8; }
+.map-post-group.is-target .map-ring { stroke-width: 4; stroke-dasharray: none; }
+.map-post-group.is-inside .map-ring { fill: var(--map-ring-in-fill); stroke: var(--map-ring-in); }
+.map-post { fill: var(--map-ring); stroke: var(--map-street); stroke-width: 4; }
+.map-post-group.is-inside .map-post { fill: var(--map-ring-in); }
+.map-post-label { fill: var(--text); font: 700 17px var(--font); paint-order: stroke; stroke: var(--map-land); stroke-width: 5; stroke-linejoin: round; }
+.map--compact .map-post-label { font-size: 30px; stroke-width: 8; }
+.map-post-group:not(.is-target) .map-post-label { fill: var(--muted); }
+.map-route { fill: none; stroke: var(--map-route); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2 14; }
+.map-route-done { fill: none; stroke: var(--map-route); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
+.map--compact .map-route { stroke-width: 11; stroke-dasharray: 2 20; }
+.map--compact .map-route-done { stroke-width: 14; }
+.map-home { fill: var(--map-home); stroke: var(--map-street); stroke-width: 3; }
+.map-guard { transition: transform 0.25s linear; }
+.map-guard-dot { fill: var(--map-guard); stroke: #ffffff; stroke-width: 4; }
+.map-guard-halo { fill: var(--map-guard); opacity: 0.22; transform-box: fill-box; transform-origin: center; }
+.map-scale line { stroke: var(--map-label); stroke-width: 4; }
+.map-scale text { fill: var(--map-label); font: 600 15px var(--font); }
+.map--compact .map-scale { display: none; }
+
+/* Live location card (built by mobile.js into #live-map). */
+.lm-trip { margin: 0 0 8px; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.lm-map {
+  position: relative;
+  aspect-ratio: 10 / 7;
+  max-height: min(640px, 68vh);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--map-land);
+}
+.lm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin: 12px 0; }
+.lm-stats > div { min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); }
+.lm-stats dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+.lm-stats dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.lm-stats .badge { white-space: normal; }
+.lm-key { display: inline-block; flex: none; width: 14px; height: 14px; border-radius: 50%; }
+.lm-key-guard { background: var(--map-guard); }
+.lm-key-home { background: var(--map-home); }
+.lm-key-post { background: var(--map-ring); }
+.lm-key-ring { background: var(--map-ring-fill); border: 2px dashed var(--map-ring); }
+.lm-key-in { background: var(--map-ring-in-fill); border: 2px solid var(--map-ring-in); }
+.lm-key-route { width: 22px; height: 0; border-radius: 0; border-top: 4px dotted var(--map-route); }
+.lm-key-park { border-radius: 3px; background: var(--map-park); }
+.lm-key-river { border-radius: 3px; background: var(--map-water); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .map-guard.is-moving .map-guard-halo { animation: map-pulse 1.4s ease-out infinite; }
+  @keyframes map-pulse {
+    from { transform: scale(0.6); opacity: 0.4; }
+    to { transform: scale(1.4); opacity: 0; }
+  }
+}
+
+/* Reduced motion: every transition and animation completes instantly. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

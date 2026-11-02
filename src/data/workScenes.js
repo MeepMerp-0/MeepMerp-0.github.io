@@ -53,7 +53,7 @@ export const WORK_SCENES = [
     demo: {
       src: 'demos/timekeeping/index.html',
       title: 'Fictional timekeeping and payroll demo',
-      note: 'A separate illustration with invented people and numbers. It is not the delivered system and makes no payroll, tax, or compliance calculation.',
+      note: 'A separate illustration with invented people, posts, rates and rules. It follows the delivered system\'s flow, from the map and proximity check to payroll, but it is not that system, and its payroll figures are not real tax or compliance calculations.',
     },
   },
   {

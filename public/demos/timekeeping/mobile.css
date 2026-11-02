@@ -1,0 +1,511 @@
+/* Guard phone for the fictional timekeeping demo: the demo controls bar and a simulated Android attendance
+   app (light-grey utilitarian look). Page tokens come from base.css; phone tokens are defined here. */
+
+:root {
+  --m-blue: #007aff;        /* iOS blue for dots and outlines (non-text, 4:1 on white) */
+  --m-blue-fill: #0062cc;   /* blue fills behind white text: #007aff with white text is only 4.0:1 */
+  --m-blue-text: #0058b8;   /* blue text on light surfaces (6.8:1 on white) */
+  --m-orange: #b03a0b;      /* grace window line, 5.2:1 on the screen grey */
+  --m-frame: #18181b;
+  --m-screen: #f0f0f0;
+  --m-bar: #d9d9d9;
+  --m-card: #ffffff;
+  --m-text: #1a1a1a;
+  --m-muted: #4d4d4d;
+  --m-line: #c9c9c9;
+  --m-dot-off: #8a8a8a;
+  --m-drawer: #e9e9e9;
+  --m-report: #473c3c;
+  --m-entry: #f2ecec;
+  --m-pill-off: #e2e2e2;
+  --m-in-tint: #1b5e20;
+  --m-out-tint: #b71c1c;
+  --m-hand: #222222;
+  --m-face-bg: #ffffff;
+  --m-head: #b9bec7;
+  --m-feature: #4b5563;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --m-blue: #0a84ff;
+    --m-blue-text: #6cb2ff;
+    --m-orange: #fb923c;
+    --m-frame: #050506;
+    --m-screen: #15171b;
+    --m-bar: #2b2e34;
+    --m-card: #1f2228;
+    --m-text: #eef0f3;
+    --m-muted: #b8bec8;
+    --m-line: #3a3f47;
+    --m-dot-off: #7b8390;
+    --m-drawer: #23262c;
+    --m-entry: #2b2324;
+    --m-pill-off: #33363d;
+    --m-in-tint: #81c784;
+    --m-out-tint: #ef9a9a;
+    --m-hand: #eef0f3;
+    --m-face-bg: #2a2d33;
+    --m-head: #5b6270;
+    --m-feature: #d1d5db;
+  }
+}
+
+#mobile-app [hidden], #demo-controls [hidden] { display: none !important; }
+
+/* ---------------------------------------------------------------- demo controls */
+
+.m-controls { display: grid; gap: 8px; padding: 12px; }
+.m-ctl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; }
+.m-ctl-head h2 { margin: 0; font-size: 14px; }
+.m-ctl-guard { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.m-ctl-guard .select { flex: 1 1 180px; width: auto; min-width: 0; min-height: 34px; padding: 4px 8px; font-size: 13px; }
+.m-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.m-queue { font-size: 12px; font-weight: 700; color: var(--warn); }
+
+/* ---------------------------------------------------------------- phone frame */
+
+.m-phone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 360px;
+  height: 720px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 10px solid var(--m-frame);
+  border-radius: 38px;
+  background: var(--m-screen);
+  color: var(--m-text);
+  box-shadow: var(--shadow);
+  font-family: Roboto, var(--font);
+}
+/* In the pinned rail the phone gives up height before the window cuts it off (base.css builds the flex chain). */
+@media (min-width: 1100px) and (min-height: 760px) {
+  .rail .m-phone { flex: 0 1 720px; min-height: 440px; }
+}
+
+.m-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 18px 3px;
+  background: var(--m-bar);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.m-sb-right { display: inline-flex; align-items: center; gap: 6px; }
+.m-sb-net.is-off { color: var(--bad); }
+.m-battery { width: 24px; height: 12px; }
+.m-bat-case { fill: none; stroke: currentColor; }
+.m-bat-fill { fill: currentColor; }
+
+.m-bar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 6px;
+  background: var(--m-bar);
+  border-bottom: 1px solid var(--m-line);
+}
+.m-burger {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--m-text);
+  cursor: pointer;
+}
+.m-burger:hover { background: rgba(0, 0, 0, 0.07); }
+.m-burger svg { width: 22px; height: 22px; }
+.m-burger line { stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.m-title { margin: 0; text-align: center; font-size: 17px; font-weight: 800; letter-spacing: 0.06em; }
+
+.m-screen { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.m-pad { display: grid; gap: 10px; padding: 12px; }
+
+/* Invented brand mark. */
+.m-logo-shield { fill: currentColor; }
+.m-logo-line { fill: none; stroke: var(--m-drawer); stroke-width: 2.4; }
+.m-logo-ink { fill: var(--m-drawer); }
+.m-logo-flame { fill: #f4b740; }
+
+/* ---------------------------------------------------------------- Home */
+
+.m-home { position: relative; display: grid; gap: 10px; padding: 10px 12px 18px; }
+.m-home > :not(.m-watermark) { position: relative; }
+.m-watermark {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: 190px;
+  height: 222px;
+  transform: translate(-50%, -50%);
+  color: var(--m-text);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.m-assign { text-align: right; font-size: 12px; line-height: 1.45; color: var(--m-muted); }
+.m-assign p { margin: 0; }
+.m-grace { font-weight: 700; color: var(--m-orange); }
+
+/* Distance status under the assignment. The app draws no map; the map lives in the live location card. */
+.m-strip {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.84);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.m-strip.is-inside { background: rgba(21, 128, 61, 0.94); }
+
+.m-clock {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--m-card);
+  box-shadow: var(--shadow-sm);
+  touch-action: pan-y;
+  user-select: none;
+}
+.m-digital { display: grid; justify-items: center; gap: 2px; }
+.m-24 {
+  display: inline-flex;
+  padding: 2px;
+  border: 1.5px solid var(--m-blue);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.m-24 span { padding: 2px 9px; border-radius: 999px; color: var(--m-blue-text); }
+.m-24[aria-pressed="false"] .m-24-12,
+.m-24[aria-pressed="true"] .m-24-24 { background: var(--m-blue-fill); color: #ffffff; }
+.m-digits { margin: 4px 0 0; font: 700 30px/1.15 var(--font-mono); font-variant-numeric: tabular-nums; }
+.m-cdate { margin: 0; font-size: 13px; font-weight: 600; }
+.m-zone { margin: 0; font-size: 12px; font-style: italic; color: var(--m-muted); }
+
+.m-analog { width: 150px; height: 150px; }
+.m-an-face { fill: var(--m-card); stroke: var(--m-line); stroke-width: 2; }
+.m-an-tick { stroke: var(--m-muted); stroke-width: 1; }
+.m-an-tick.is-hour { stroke: var(--m-text); stroke-width: 2.5; }
+.m-an-num { fill: var(--m-text); font: 700 15px var(--font); }
+.m-an-hour { stroke: var(--m-hand); stroke-width: 6; stroke-linecap: round; }
+.m-an-min { stroke: #8a8a8a; stroke-width: 4; stroke-linecap: round; }
+.m-an-sec { stroke: #e53935; stroke-width: 1.8; stroke-linecap: round; }
+.m-an-pin { fill: #e53935; }
+
+.m-pager { display: flex; gap: 4px; }
+.m-dot { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.m-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--m-dot-off); }
+.m-dot[aria-pressed="true"]::before { width: 10px; height: 10px; background: var(--m-blue); }
+
+.m-ident { text-align: center; }
+.m-ident p { margin: 0; }
+.m-name { font-size: 24px; font-weight: 700; line-height: 1.2; }
+.m-empno { font-weight: 700; color: var(--m-muted); }
+.m-role { font-size: 13px; }
+
+/* The big clock button. Colours are fixed in both themes because each pairs its own text colour. */
+.m-clockbtn {
+  justify-self: center;
+  min-width: 52%;
+  max-width: 100%;
+  min-height: 64px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 20px;
+  font: 900 22px/1.1 var(--font-black);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+  transition: background-color 0.15s, color 0.15s;
+}
+/* White on #84c986 is 2.0:1, so the label is dark green (6.3:1). */
+.m-clockbtn.is-in { background: #84c986; color: #0b3d12; }
+/* White on #ff5722 is 3.2:1, which passes only as large bold text: 22px Arial Black qualifies. */
+.m-clockbtn.is-out { background: #ff5722; color: #ffffff; }
+.m-clockbtn.is-off, .m-clockbtn.is-busy { background: #cccccc; color: #374151; box-shadow: none; cursor: not-allowed; }
+.m-clockbtn.is-done { background: #999999; color: #1f2937; box-shadow: none; cursor: not-allowed; }
+.m-reason { margin: -4px 0 0; text-align: center; font-size: 12px; color: var(--m-muted); }
+.m-loc { margin: 0; text-align: center; font-size: 13px; }
+
+/* ---------------------------------------------------------------- drawer */
+
+.m-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0s 0.2s;
+}
+.m-scrim.is-open { opacity: 1; visibility: visible; transition: opacity 0.2s; }
+
+.m-drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: 70%;
+  overflow-y: auto;
+  border-radius: 0 22px 22px 0;
+  background: var(--m-drawer);
+  box-shadow: var(--shadow);
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform 0.22s ease, visibility 0s 0.22s;
+}
+.m-drawer.is-open { transform: none; visibility: visible; transition: transform 0.22s ease; }
+
+/* The header reads as one grey-to-charcoal gradient. Text sits only on the solid ends so it keeps its
+   contrast: dark text on #c5c5c5, white text on #404040. */
+.m-dbrand { padding: 18px 14px 6px; background: #c5c5c5; color: #111111; }
+.m-dlogo { width: 40px; height: 46px; color: #2a2a2a; }
+.m-dlogo .m-logo-line { stroke: #c5c5c5; }
+.m-dlogo .m-logo-ink { fill: #c5c5c5; }
+.m-dco { margin: 6px 0 0; font: 900 15px/1.2 var(--font-black); }
+.m-dtag { margin: 2px 0 0; font: italic 13px/1.3 var(--font-serif); }
+.m-dfade { flex: none; height: 36px; background: linear-gradient(180deg, #c5c5c5, #404040); }
+.m-dwelcome { margin: 0; padding: 0 14px 14px; background: #404040; color: #ffffff; font-size: 13px; }
+.m-dwelcome strong { font-size: 16px; }
+
+.m-dlist { display: grid; gap: 2px; margin: 0; padding: 10px 8px; list-style: none; }
+.m-ditem {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--m-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.m-ditem:hover { background: rgba(0, 0, 0, 0.07); }
+.m-ditem[aria-current="page"] { background: var(--m-blue-fill); color: #ffffff; }
+
+/* ---------------------------------------------------------------- alert and confirm */
+
+.m-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.m-overlay.is-open { display: grid; }
+.m-alert {
+  width: 100%;
+  max-width: 290px;
+  padding: 18px 18px 10px;
+  border-radius: 14px;
+  background: var(--m-card);
+  color: var(--m-text);
+  box-shadow: var(--shadow);
+}
+.m-alert-title { margin: 0 0 6px; font-size: 17px; }
+.m-alert-msg { margin: 0 0 12px; font-size: 14px; color: var(--m-muted); }
+.m-alert-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.m-abtn {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--m-blue-text);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.m-abtn:hover { background: rgba(0, 0, 0, 0.07); }
+.m-abtn-danger { color: var(--bad); }
+.m-abtn-primary { background: var(--m-blue-fill); color: #ffffff; }
+.m-abtn-primary:hover { background: #0052ab; }
+
+/* ---------------------------------------------------------------- face check (simulated) */
+
+.m-face { display: grid; justify-items: center; gap: 8px; padding: 10px 12px 16px; text-align: center; }
+.m-face p { margin: 0; }
+.m-face-top { font-size: 12px; font-weight: 700; color: var(--m-muted); }
+.m-face-title { margin: 0; font-size: 20px; }
+.m-face-sub { font-size: 13px; color: var(--m-muted); }
+.m-face-card {
+  position: relative;
+  width: 90%;
+  padding: 10px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--m-face-bg);
+  box-shadow: var(--shadow-sm);
+}
+.m-face-art { display: block; width: 100%; max-height: 210px; }
+.m-head { transform-box: fill-box; transform-origin: 50% 80%; }
+.m-head-shape { fill: var(--m-head); }
+.m-eye { fill: var(--m-feature); transform-box: fill-box; transform-origin: center; }
+.m-mouth { fill: none; stroke: var(--m-feature); stroke-width: 3; stroke-linecap: round; transform-box: fill-box; transform-origin: center; }
+.m-oval { fill: none; stroke: #9e9e9e; stroke-width: 3; stroke-dasharray: 8 6; }
+.m-oval.is-found { stroke: #4caf50; stroke-width: 6; stroke-dasharray: none; }
+.m-track { fill: none; stroke: none; }
+.m-track.is-good { fill: rgba(76, 175, 80, 0.16); stroke: #4caf50; stroke-width: 2; }
+
+.m-head.is-left { animation: m-turn-left 0.6s ease-in-out; }
+.m-head.is-right { animation: m-turn-right 0.6s ease-in-out; }
+.m-head.is-blink .m-eye { animation: m-blink 0.28s ease-in-out 2; }
+.m-head.is-smile .m-mouth { animation: m-smile 0.6s ease-in-out; }
+@keyframes m-turn-left { 50% { transform: translateX(-16px) rotate(-6deg); } }
+@keyframes m-turn-right { 50% { transform: translateX(16px) rotate(6deg); } }
+@keyframes m-blink { 50% { transform: scaleY(0.1); } }
+@keyframes m-smile { 50% { transform: scale(1.3, 1.7); } }
+
+.m-flash { position: absolute; inset: 0; background: #ffffff; opacity: 0; pointer-events: none; }
+.m-flash.is-on { animation: m-flash 0.4s ease-out; }
+@keyframes m-flash { 20% { opacity: 0.9; } 100% { opacity: 0; } }
+
+.m-face-pill {
+  max-width: 100%;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.m-face-banner {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #2e7d32;
+  color: #ffffff;
+  font-size: 13px;
+}
+.m-face-banner strong { font-size: 15px; }
+.m-face-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.m-face-note { font-size: 12px; }
+.m-face-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+/* ---------------------------------------------------------------- Members */
+
+.m-seg { justify-self: start; }
+.m-mlist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.m-mcard {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--m-card);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+}
+.m-mcard p { margin: 0; }
+.m-mcard-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; font-size: 15px; }
+.m-mcard-head .badge { white-space: normal; }
+.m-muser { color: var(--m-muted); font-size: 12px; }
+.m-mtimes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0; }
+.m-mtime { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.m-mtime-text { display: grid; line-height: 1.25; }
+.m-mlabel { font-size: 11px; color: var(--m-muted); }
+.silhouette.m-thumb, .m-thumb { flex: none; width: 26px; height: 31px; }
+.m-thumb-empty { display: inline-block; border: 1px dashed var(--m-dot-off); border-radius: var(--r-sm); }
+
+/* ---------------------------------------------------------------- Reports */
+
+.m-rhead { padding: 12px 14px; border-radius: 14px; background: var(--m-report); color: #ffffff; }
+.m-rhead h4 { margin: 0; font-size: 16px; }
+.m-rhead p { margin: 2px 0 0; font-size: 13px; }
+.m-rpills { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-rpill {
+  min-height: 32px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--m-pill-off);
+  color: var(--m-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.m-rpill[aria-pressed="true"] { background: var(--m-report); color: #ffffff; }
+.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.m-stat { display: grid; gap: 2px; padding: 10px; border-radius: 12px; background: var(--m-card); box-shadow: var(--shadow-sm); }
+.m-stat-l { font-size: 12px; color: var(--m-muted); }
+.m-stat-v { font-size: 18px; font-variant-numeric: tabular-nums; }
+.m-rsum { margin: 0; font-size: 13px; }
+.m-listhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.m-listhead h5 { margin: 0 auto 0 0; font-size: 14px; }
+.m-dsel { width: auto; max-width: 100%; min-height: 34px; padding: 4px 8px; font-size: 13px; }
+.m-entries { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.m-entry {
+  padding: 10px 12px;
+  border-left: 5px solid var(--m-in-tint);
+  border-radius: 12px;
+  background: var(--m-entry);
+  font-size: 13px;
+}
+.m-entry-out { border-left-color: var(--m-out-tint); }
+.m-entry-head { display: flex; align-items: baseline; gap: 8px; }
+.m-entry-in strong { color: var(--m-in-tint); }
+.m-entry-out strong { color: var(--m-out-tint); }
+.m-entry-n { font-size: 12px; color: var(--m-muted); }
+.m-entry-time { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.m-entry-meta { margin: 2px 0 0; color: var(--m-muted); }
+.m-entries-empty { padding: 20px 10px; text-align: center; color: var(--m-muted); font-size: 13px; }
+.m-entries-empty p { margin: 4px 0 0; }
+
+/* ---------------------------------------------------------------- Payslip */
+
+.m-pselects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.m-pcard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--m-card);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+}
+.m-pcard-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.m-pcard-head h4 { margin: 0; font-size: 18px; }
+.m-pbtns { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-bbtn { border-color: var(--m-blue-fill); background: var(--m-blue-fill); color: #ffffff; }
+.m-bbtn:hover { border-color: #0052ab; background: #0052ab; }
+.m-pchip { justify-self: start; }
+.m-pcard dl { display: grid; gap: 3px; margin: 0; }
+.m-prow { display: flex; justify-content: space-between; gap: 10px; }
+.m-prow dt { color: var(--m-muted); }
+.m-prow dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.m-prow.is-neg dd { color: var(--bad); }
+.m-psec { padding-top: 8px; border-top: 1px solid var(--m-line); }
+.m-psec h5 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+.m-ptotals { display: grid; gap: 4px; padding-top: 10px; border-top: 2px solid var(--m-line); }
+.m-ptotals p { display: flex; justify-content: space-between; gap: 10px; margin: 0; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.m-gross { color: var(--m-blue-text); }
+.m-net { color: var(--ok); }
+.m-pempty { padding: 30px 10px; text-align: center; color: var(--m-muted); }
+.m-pempty h4 { margin: 10px 0 6px; font-size: 17px; color: var(--m-text); }
+.m-pempty p { margin: 0; font-size: 13px; }
+.m-pempty-logo { width: 48px; height: 56px; color: var(--m-dot-off); }

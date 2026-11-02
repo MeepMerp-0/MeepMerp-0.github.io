@@ -8,16 +8,20 @@
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:,">
   <title>Timekeeping demo (fictional)</title>
-  <link rel="stylesheet" href="./timekeeping.css">
-  <script src="./timekeeping.js" defer></script>
+  <link rel="stylesheet" href="./base.css">
+  <link rel="stylesheet" href="./mobile.css">
+  <link rel="stylesheet" href="./web.css">
+  <script src="./core.js" defer></script>
+  <script src="./mobile.js" defer></script>
+  <script src="./web.js" defer></script>
 </head>
 <body>
   <div class="page">
     <header class="head">
       <div class="head-text">
         <p class="eyebrow">FICTIONAL DEMO</p>
-        <h1>Timekeeping, payroll &amp; attendance &mdash; sample week</h1>
-        <p class="lede">Four invented guards, one sample week. Walk a guard into range of their post, tap to clock in, pass a simulated face check, and watch the entry land on the dashboard by itself. You can also change a day's status by hand.</p>
+        <h1>Guard attendance to payroll, end to end</h1>
+        <p class="lede">An invented guard travels to an invented post on a hand-drawn map. Inside the post&rsquo;s radius the phone unlocks TIME IN, a simulated face check runs, and the attendance row reaches the web console as it happens. The admin then reviews attendance, runs payroll for the cut-off from the logs and issues a payslip the guard can open on the phone.</p>
         <ul class="badges" aria-label="Demo boundaries">
           <li>Fictional data</li>
           <li>Local interaction only</li>
@@ -27,96 +31,54 @@
       <button type="button" class="btn" id="reset">Reset demo</button>
     </header>
 
-    <main>
-      <section class="card" aria-labelledby="h-checkin">
-        <h2 id="h-checkin">Clock-in on the guard&rsquo;s phone</h2>
-        <p class="note">Simulation: no location, camera or device data is read. Distances, faces and times are fictional.</p>
-        <div class="clock">
-          <div>
-            <div class="field">
-              <label class="label" for="guard">Guard</label>
-              <select id="guard" class="input"></select>
-            </div>
-            <div class="field">
-              <label class="label" for="site">Post</label>
-              <select id="site" class="input"></select>
-            </div>
-            <ol class="steps" id="steps" aria-label="Clock-in steps">
-              <li>In range of the post</li>
-              <li>Tap to clock in</li>
-              <li>Face check</li>
-              <li>Logged to the dashboard</li>
-            </ol>
-          </div>
-          <div class="phone" id="phone" data-phase="out">
-            <p class="phone-distance" id="distance"></p>
-            <div class="face" aria-hidden="true">
-              <svg viewBox="0 0 64 64"><circle cx="32" cy="25" r="11" /><path d="M13 56c3-11 10-16 19-16s16 5 19 16" /></svg>
-              <span class="scan"></span>
-            </div>
-            <p class="phone-msg" id="phone-msg"></p>
-            <button type="button" class="btn" id="range-btn">Walk into range</button>
-            <button type="button" class="btn btn-primary" id="tap-btn">Tap to clock in</button>
-          </div>
-        </div>
-        <p class="status" id="checkin-status" aria-live="polite"></p>
-        <h3>Event log</h3>
-        <ol class="log" id="log" aria-label="Simulated event log, newest first"></ol>
-        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
-      </section>
+    <ol class="guide" aria-label="Suggested walkthrough">
+      <li>Travel to the post on the phone</li>
+      <li>Clock in once inside the radius</li>
+      <li>Pass the simulated face check</li>
+      <li>Watch the row arrive in Attendance</li>
+      <li>Run payroll and finalize the cut-off</li>
+      <li>Open the payslip on the phone</li>
+    </ol>
 
-      <section class="card" aria-labelledby="h-attendance">
-        <h2 id="h-attendance">Web dashboard: attendance grid</h2>
-        <div class="controls">
-          <div class="field">
-            <span class="label" id="l-filter">Filter by role</span>
-            <div class="seg" id="filter" role="group" aria-labelledby="l-filter"></div>
+    <main class="stage">
+      <div class="rail">
+        <div id="demo-controls" class="mount"></div>
+        <section class="panel panel-mobile" aria-labelledby="mobile-title">
+          <header class="panel-head">
+            <h2 id="mobile-title">Guard&rsquo;s phone</h2>
+            <p>The simulated attendance app.</p>
+          </header>
+          <div id="mobile-app" class="mount">
+            <noscript><p class="empty">This demo needs JavaScript. Nothing is sent anywhere.</p></noscript>
           </div>
-          <div class="field">
-            <label class="label" for="rate">Illustrative rate (sample units / hour)</label>
-            <select id="rate" class="input"></select>
-          </div>
-        </div>
-        <p class="hint">Friday fills in from the phone. Each day is also a button: select it to cycle Present, Late, Absent, Leave. Present = 8 h, Late = 7 h, Absent = 0 h, Leave = 8 h (paid in this example). <span id="shown"></span></p>
-        <ul class="roster" id="roster" aria-label="Guards and weekly attendance"></ul>
-        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
-      </section>
+        </section>
+      </div>
 
-      <section class="card" aria-labelledby="h-summary">
-        <h2 id="h-summary">Weekly summary</h2>
-        <p class="note">Illustrative example only: hours &times; a preset rate, in sample units. Not payroll, not a tax, statutory or labour calculation, and no payment is made.</p>
-        <table class="sum">
-          <caption class="sr">Hours and illustrative totals per person, in sample units</caption>
-          <thead>
-            <tr>
-              <th scope="col">Person</th>
-              <th scope="col" class="num">Hours</th>
-              <th scope="col" class="num">Illustrative total (sample units)</th>
-            </tr>
-          </thead>
-          <tbody id="sum-body"></tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">Team total</th>
-              <td class="num" id="team-hours"></td>
-              <td class="num" id="team-total"></td>
-            </tr>
-          </tfoot>
-        </table>
-        <p class="live" id="live" aria-live="polite"></p>
-        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
+      <div class="main-col">
+        <section class="panel panel-map card" aria-labelledby="map-title">
+          <header class="panel-head">
+            <h2 id="map-title">Live location &middot; demo layer</h2>
+            <p>Added for this demo so you can watch the guard travel to the post. The real app only measures the distance to the post and draws no map.</p>
+          </header>
+          <div id="live-map" class="mount"></div>
+        </section>
 
-        <h3>Sample payslip</h3>
-        <div class="field">
-          <label class="label" for="slip-person">Person</label>
-          <select id="slip-person" class="input"></select>
-        </div>
-        <div class="slip" id="slip" role="group" aria-label="Sample payslip text">
-          <p class="slip-flag">Sample &mdash; not a real payslip</p>
-          <dl id="slip-list"></dl>
-        </div>
-      </section>
+        <section class="panel panel-web" aria-labelledby="web-title">
+          <header class="panel-head">
+            <h2 id="web-title">Admin web console</h2>
+            <p>Attendance, schedules, leave and payroll, updated live from the phone.</p>
+          </header>
+          <div id="web-app" class="mount"></div>
+        </section>
+      </div>
     </main>
+
+    <footer class="foot">
+      <p>Everything here is invented: the company, guards, posts, streets, rates, contribution rules and amounts. &curren; is a made-up currency. No location, camera or device data is read, nothing is stored and nothing leaves this page. It follows the flow of a delivered system; it is not that system.</p>
+      <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
+    </footer>
+
+    <div id="live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </div>
 </body>
 </html>
