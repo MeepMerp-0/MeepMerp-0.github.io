@@ -58,7 +58,23 @@ function buildAki() {
   ball.add(new Mesh(new SphereGeometry(0.168, 24, 16), new MeshBasicMaterial({ color: AKI.shell, side: BackSide })));
   add(ball, 0, 1.88, 0);
   // Two block eyes on the LED screen.
-  [-1, 1].forEach((side) => add(new Mesh(new RoundedBoxGeometry(0.34, 0.56, 0.05, 2, 0.05), led), side * 0.55, 0.12, 0.83));
+  const eyes = [-1, 1].map((side) => {
+    const eye = new Mesh(new RoundedBoxGeometry(0.34, 0.56, 0.05, 2, 0.05), led);
+    add(eye, side * 0.55, 0.12, 0.83);
+    return eye;
+  });
+  // The launcher's happy face: arched eyes and a smile, half-torus arcs that grow in as the block eyes flatten.
+  const arc = (r) => new TorusGeometry(r, 0.055, 8, 24, Math.PI);
+  const happy = [-1, 1].map((side) => {
+    const eye = new Mesh(arc(0.17), led);
+    eye.position.set(side * 0.55, 0.06, 0.83);
+    return eye;
+  });
+  const smile = new Mesh(arc(0.3), led);
+  smile.rotation.z = Math.PI;
+  smile.position.set(0, -0.18, 0.83);
+  happy.push(smile);
+  body.add(...happy);
 
   g.userData.update = (s, ctx) => {
     // ctx.intro runs 0 to 1 with the scroll as Work comes in. The shell lands first and the eyes last.
@@ -73,6 +89,10 @@ function buildAki() {
       piece.position.set(home.x + jitter(i, 1) * 3 * rest, home.y + drop * (1 - u * u), home.z + jitter(i, 2) * 2 * rest);
       piece.rotation.set(turn.x + jitter(i, 3) * 4 * rest, turn.y + jitter(i, 4) * 4 * rest, turn.z + jitter(i, 5) * 4 * rest);
     });
+    // Once every piece has landed (s = -0.1), the last stretch of the chapter turns the face happy, before the hand-over.
+    const joy = smoothstep(-0.1, 0.12, s);
+    eyes.forEach((eye) => { eye.scale.y = Math.max(0.001, 1 - joy); eye.visible &&= joy < 1; });
+    happy.forEach((part) => { part.visible = joy > 0; part.scale.setScalar(Math.max(0.001, joy)); });
     g.rotation.set(0.06, -0.32 + Math.max(0, s) * 0.5, 0);
   };
   return g;

@@ -3,7 +3,7 @@ import { useReveal } from '../hooks/useReveal.js';
 import { RollText, Scramble } from './TextMotion.jsx';
 
 export function Footer() {
-  const [ref, reveal] = useReveal(0.5);
+  const [ref, reveal] = useReveal(0); // At the page end its top never climbs far, so any visible pixel reveals it.
   return (
     <footer className="footer"><div ref={ref} className="shell footer-inner" data-reveal={reveal}>
       <span className="tm-fade">© {new Date().getFullYear()} {PERSONAL.name}</span>
