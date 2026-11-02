@@ -454,7 +454,6 @@ section[id] { scroll-margin-top: 0; }
 }
 @media (max-width: 1050px) {
   .shell { width: min(100% - 64px, 1296px); }
-  :root { --shell-gutter: 32px; }
   .section-intro { grid-template-columns: 130px 1fr; }
   .capabilities-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-panel { width: min(520px, 54%); }
@@ -537,8 +536,7 @@ section[id] { scroll-margin-top: 0; }
 }
 
 /* Aki assistant: fixed above the header (100) and reading progress (120), below the skip link (900). */
-/* The launcher and panel line up with the page's content edge (the .shell gutter), not the window edge. */
-.aki { position: fixed; z-index: 250; right: max(var(--shell-gutter, 48px), calc((100% - 1296px) / 2)); bottom: 24px; }
+.aki { position: fixed; z-index: 250; right: 24px; bottom: 24px; }
 .aki-launcher { display: block; width: 72px; height: 72px; padding: 0; background: none; border: 0; border-radius: 0; line-height: 0; overflow: visible; cursor: pointer; }
 .aki-launcher canvas { display: block; }
 .aki-bubble { position: absolute; right: 84px; bottom: 14px; display: flex; flex-direction: column; gap: 1px; width: max-content; max-width: calc(100vw - 140px); padding: 7px 11px; background: var(--text); color: var(--bg); border: 0; border-radius: 12px; text-align: left; white-space: nowrap; font: 400 12px/1.35 var(--font-body); cursor: pointer; animation: aki-bubble-in .45s .6s cubic-bezier(.22, 1, .36, 1) both; }
@@ -561,7 +559,7 @@ section[id] { scroll-margin-top: 0; }
   --chat-line: var(--border);
   --chat-mine: var(--signal-wash);
   --chat-mine-line: var(--accent-border);
-  position: fixed; right: max(var(--shell-gutter, 48px), calc((100% - 1296px) / 2)); bottom: 108px; display: flex; flex-direction: column; width: min(372px, calc(100vw - 48px)); max-height: calc(100dvh - 132px);
+  position: fixed; right: 24px; bottom: 108px; display: flex; flex-direction: column; width: min(372px, calc(100vw - 48px)); max-height: calc(100dvh - 132px);
   background: var(--chat-surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 18px; outline: none;
   box-shadow: 0 34px 80px -30px rgba(0, 0, 0, .65), 0 0 0 1px color-mix(in srgb, var(--signal) 8%, transparent) inset;
   backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15);
@@ -611,7 +609,9 @@ section[id] { scroll-margin-top: 0; }
 /* Chat step keeps one height; the log scrolls instead of the panel growing. */
 .aki-panel:has(.aki-chat) { height: min(540px, calc(100dvh - 132px)); }
 .aki-chat { flex: 1 1 auto; }
-.aki-body > .aki-log { flex: 1 1 auto; min-height: min(120px, 30dvh); overflow-y: auto; }
+/* The scrollbar sits in the panel's side padding, with its space always kept, so both sides of the conversation end
+   exactly at the message box's edges whether or not the log scrolls. */
+.aki-body > .aki-log { flex: 1 1 auto; min-height: min(120px, 30dvh); overflow-y: auto; scrollbar-gutter: stable; margin-right: -10px; padding-right: 4px; }
 .aki-log, .aki-log > [role='log'] { display: flex; flex-direction: column; overflow-wrap: anywhere; }
 .aki-log > * { flex-shrink: 0; }
 .aki-log .aki-try { margin: 6px 0 -2px; }
