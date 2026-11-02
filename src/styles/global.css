@@ -805,6 +805,8 @@ section[id] { scroll-margin-top: 0; }
 .aki-mic, .aki-discard { border-color: var(--chat-line); background: var(--bg); color: var(--text); }
 .aki-mic:not(:disabled):hover, .aki-discard:hover { background: var(--nav-hover-bg); border-color: var(--line-strong); }
 .aki-mic[data-listening] { border-color: var(--signal); color: var(--signal); }
+/* Hold-to-talk on touchscreens: a long press must not select, open a callout or turn into a scroll. */
+.aki-mic { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 /* Takes the box's place while the mic listens; the canvas strokes in its own text colour. */
 .aki-wave { flex: 1; min-width: 0; height: 40px; border: 1px solid var(--signal); border-radius: 12px; background: var(--bg); color: var(--signal); }
 #aki-count { font-size: 11px; color: var(--muted); }

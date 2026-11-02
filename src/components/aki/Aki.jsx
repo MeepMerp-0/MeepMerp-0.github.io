@@ -261,6 +261,7 @@ function AkiWidget() {
                   listening={listening}
                   level={voice.level}
                   onMic={toggleVoice}
+                  onMicRelease={voice.finish}
                   onDiscard={discardVoice}
                   onSend={send}
                 />

@@ -1328,6 +1328,42 @@ async function runAkiSmoke() {
       check(v.micFocused && v.box && v.value === 'Tell me about' && !chatCalls().length, 'after a silent turn ' + JSON.stringify(v));
     });
 
+    await step('voice on a touchscreen: hold to talk, release to stop; a short tap still toggles', async () => {
+      const state = () => evaluate('(() => { const el = document.getElementById("aki-input");'
+        + 'return { wave: Boolean(document.querySelector(".aki-wave")), value: el.value, speech: window.__speech?.calls.join() }; })()');
+      const touch = async (type) => {
+        const r = await evaluate('(() => { const b = document.querySelector(".aki-mic").getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()');
+        await call('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: r.x, y: r.y }] });
+      };
+      await akiPage();
+      await openChat();
+      await call('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+      try {
+        await touch('touchStart');
+        await until('document.querySelector(".aki-wave")', 'listening while held');
+        await evaluate('window.__speech.emit("his projects")');
+        await delay(500);
+        await touch('touchEnd');
+        await until('!document.querySelector(".aki-wave")', 'release to end the turn');
+        let v = await state();
+        check(v.value === 'his projects' && v.speech === 'start,stop' && !chatCalls().length, 'after a hold ' + JSON.stringify(v));
+        // A quick tap keeps tap-to-start: the turn stays open until the stop tap.
+        await delay(700);
+        await touch('touchStart');
+        await touch('touchEnd');
+        await until('document.querySelector(".aki-wave")', 'listening after a tap');
+        await delay(400);
+        v = await state();
+        check(v.wave && v.speech === 'start', 'a short tap ended the turn ' + JSON.stringify(v));
+        await touch('touchStart');
+        await touch('touchEnd');
+        await until('!document.querySelector(".aki-wave")', 'the stop tap to end the turn');
+        check(!chatCalls().length, 'a touch turn sent a message');
+      } finally {
+        await call('Emulation.setTouchEmulationEnabled', { enabled: false });
+      }
+    });
+
     await step('voice review: a finished turn waits in the box until Send or Enter', async () => {
       const said = 'Tell me about his projects.';
       const both = said + ' And his clients';
