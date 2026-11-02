@@ -83,7 +83,7 @@
 }
 /* In the pinned rail the phone gives up height before the window cuts it off (base.css builds the flex chain). */
 @media (min-width: 1100px) and (min-height: 760px) {
-  .rail .m-phone { flex: 0 1 720px; min-height: 440px; }
+  .rail .m-phone { flex: 0 1 720px; min-height: 420px; }
 }
 
 .m-statusbar {

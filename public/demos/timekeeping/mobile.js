@@ -48,7 +48,7 @@
   }
   const btn = (text, onclick, cls = 'btn btn-sm') => h('button', { type: 'button', class: cls, text, onclick });
 
-  // The invented lantern-in-a-shield mark, used in the drawer and as the faint Home watermark.
+  // The invented lantern-in-a-shield mark (not the client's logo), used in the drawer and as the faint Home watermark.
   function logo(cls) {
     const root = S('svg', { viewBox: '0 0 48 56', class: 'm-logo ' + cls, 'aria-hidden': 'true', focusable: 'false' });
     S('path', { class: 'm-logo-shield', d: 'M24 2 L44 9 V27 C44 41 35 50 24 54 C13 50 4 41 4 27 V9 Z' }, root);
