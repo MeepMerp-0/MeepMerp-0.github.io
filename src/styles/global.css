@@ -125,7 +125,8 @@ section[id] { scroll-margin-top: 0; }
 [data-theme='light'] .hero { --hero-copper: #9a5426; }
 /* A 100svh measuring stick for the fit check, so a mobile URL bar showing or hiding cannot flip the mode. */
 .hero-probe { position: fixed; top: 0; left: 0; width: 0; height: 100vh; height: 100svh; visibility: hidden; pointer-events: none; }
-.hero[data-mode='pinned'] .hero-track { height: 230vh; height: 230svh; }
+/* Scroll length of the pinned Hero; longer is slower. */
+.hero[data-mode='pinned'] .hero-track { height: 320vh; height: 320svh; }
 .hero-stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'art' 'labels' 'foot'; gap: 24px; padding-block: 32px 40px; }
 .hero[data-mode='pinned'] .hero-stage { position: sticky; top: var(--header-h, 72px); height: calc(100vh - var(--header-h, 72px)); height: calc(100svh - var(--header-h, 72px)); grid-template-areas: 'copy' 'cue' 'labels' 'art' 'foot'; grid-template-rows: auto auto auto minmax(180px, 1fr) auto; gap: 8px; padding-block: 8px; }
 .hero-copy { grid-area: copy; align-self: start; min-width: 0; }
@@ -266,7 +267,8 @@ section[id] { scroll-margin-top: 0; }
 .work-head .section-intro { margin-bottom: 14px; }
 .work-skip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: clamp(20px, 3vw, 36px); color: var(--muted); font: 600 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; text-underline-offset: 5px; }
 .work-skip:hover { color: var(--signal); }
-.work-track { position: relative; height: calc(100svh - var(--header-h, 72px) + var(--chapters) * 100svh); }
+/* 160svh of scroll per chapter (longer is slower), so each hand-over and Aki's fall read at an easy pace. */
+.work-track { position: relative; height: calc(100svh - var(--header-h, 72px) + var(--chapters) * 160svh); }
 .work-stage { position: sticky; top: var(--header-h, 72px); height: calc(100svh - var(--header-h, 72px)); overflow: hidden; background: radial-gradient(55% 70% at 70% 50%, var(--glow), transparent 75%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 /* Keeps copy readable over the scene on the left of the stage. */
 .work-stage::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--scrim) 0%, color-mix(in srgb, var(--scrim) 70%, transparent) 38%, transparent 62%); }
@@ -353,8 +355,9 @@ section[id] { scroll-margin-top: 0; }
 .about-timeline strong { font-size: 15px; font-weight: 650; }
 .about-company { font-size: 14px; color: var(--muted); }
 .capabilities { margin-top: clamp(56px, 8vw, 100px); }
-/* Still blocks: when pinned the track gives each step about 55svh of scroll while the stage stays under the header. */
-.steps-track[data-pinned='true'] { height: calc(var(--stage-h, 0px) + var(--steps) * 55svh); }
+/* Still blocks: when pinned the track gives each step about 95svh of scroll (longer is slower) while the stage stays
+   under the header. */
+.steps-track[data-pinned='true'] { height: calc(var(--stage-h, 0px) + var(--steps) * 95svh); }
 .steps-track[data-pinned='true'] .steps-stage { position: sticky; top: var(--stick-top, calc(var(--header-h, 72px) + 24px)); }
 /* Measures 100svh, the screen height with the browser bars shown, so the fit does not change as a phone's
    address bar hides and shows. */
