@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; font-src 'none'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+  <meta charset="utf-8">
+  <link rel="icon" href="data:,">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pinewick &amp; Reed demo site</title>
+  <link rel="stylesheet" href="./website.css">
+  <script src="./website.js" defer></script>
+</head>
+<body>
+  <div class="demo-bar">
+    <ul class="badges" aria-label="About this demo">
+      <li>Fictional website</li>
+      <li>Local interaction only</li>
+      <li>No real action</li>
+    </ul>
+    <div class="controls">
+      <div class="seg" role="group" aria-labelledby="seg-label">
+        <span id="seg-label" class="seg-label">Preview width</span>
+        <button type="button" class="seg-btn" data-width="desktop" aria-pressed="true">Desktop</button>
+        <button type="button" class="seg-btn" data-width="tablet" aria-pressed="false">Tablet</button>
+        <button type="button" class="seg-btn" data-width="mobile" aria-pressed="false">Mobile</button>
+      </div>
+      <button type="button" id="reset" class="reset-btn">Reset demo</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="site-frame" id="frame" data-width="desktop">
+      <div class="site">
+        <header class="site-head" id="site-head">
+          <a class="brand" href="#top">
+            <svg class="brand-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">
+              <rect class="m-a" x="1" y="1" width="30" height="30" rx="7"/>
+              <path class="m-b" d="M8 24V8h8a5 5 0 0 1 0 10H8"/>
+              <rect class="m-c" x="19" y="19" width="5" height="5" rx="1"/>
+            </svg>
+            <span class="brand-text">Pinewick &amp; Reed<small>Studio Kitchens</small></span>
+          </a>
+          <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+          <nav class="nav" id="site-nav" aria-label="Sections">
+            <ul>
+              <li><a href="#services">Services</a></li>
+              <li><a href="#work">Work</a></li>
+              <li><a href="#process">Process</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+        </header>
+
+        <main id="top">
+          <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-copy">
+              <p class="kicker">Invented studio, real layout behavior</p>
+              <h1 id="hero-title">Kitchens that start with how you cook.</h1>
+              <p class="lead">Pinewick &amp; Reed is a made-up studio. It exists so you can resize this page, open the menu and try the form.</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="#contact">Plan your kitchen</a>
+                <a class="btn btn-ghost" href="#work">See selected work</a>
+              </div>
+            </div>
+            <svg class="hero-art" viewBox="0 0 320 240" role="img" aria-label="Simple illustration of a kitchen with cabinets, a window and a pendant lamp">
+              <rect class="h-wall" x="0" y="0" width="320" height="240"/>
+              <rect class="h-win" x="118" y="40" width="84" height="74" rx="4"/>
+              <circle class="h-sun" cx="160" cy="77" r="16"/>
+              <rect class="h-upper" x="14" y="30" width="88" height="62" rx="3"/>
+              <rect class="h-upper" x="218" y="30" width="88" height="62" rx="3"/>
+              <path class="h-cord" d="M160 0V22"/>
+              <path class="h-lamp" d="M146 22h28l8 18h-44z"/>
+              <rect class="h-top" x="0" y="150" width="320" height="12"/>
+              <rect class="h-base" x="14" y="162" width="92" height="66" rx="3"/>
+              <rect class="h-base" x="114" y="162" width="92" height="66" rx="3"/>
+              <rect class="h-base" x="214" y="162" width="92" height="66" rx="3"/>
+              <circle class="h-knob" cx="92" cy="176" r="4"/>
+              <circle class="h-knob" cx="192" cy="176" r="4"/>
+              <circle class="h-knob" cx="292" cy="176" r="4"/>
+            </svg>
+          </section>
+
+          <section class="band" id="services" aria-labelledby="services-title">
+            <h2 id="services-title">Services</h2>
+            <p class="section-intro">Three things the studio would do, if it existed.</p>
+            <div class="cards">
+              <article class="card">
+                <h3>Layout planning</h3>
+                <p>Floor plans built around your walking paths, not the other way round.</p>
+              </article>
+              <article class="card">
+                <h3>Custom joinery</h3>
+                <p>Cabinets drawn to fit awkward corners, with hardware you can actually reach.</p>
+              </article>
+              <article class="card">
+                <h3>Install and handover</h3>
+                <p>One schedule, one point of contact and a walkthrough on the final day.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="band" id="work" aria-labelledby="work-title">
+            <h2 id="work-title">Selected work</h2>
+            <p class="section-intro">Invented projects, drawn as abstract shapes.</p>
+            <div class="tiles">
+              <figure class="tile">
+                <svg viewBox="0 0 200 140" aria-hidden="true" focusable="false">
+                  <rect class="t-bg" width="200" height="140"/>
+                  <rect class="t-a" x="16" y="24" width="48" height="100" rx="3"/>
+                  <rect class="t-b" x="76" y="24" width="48" height="100" rx="3"/>
+                  <rect class="t-c" x="136" y="24" width="48" height="100" rx="3"/>
+                  <circle class="t-dot" cx="56" cy="74" r="3"/>
+                  <circle class="t-dot" cx="84" cy="74" r="3"/>
+                  <circle class="t-dot" cx="144" cy="74" r="3"/>
+                </svg>
+                <figcaption><strong>Larder Row</strong><span>Galley, ash and slate</span></figcaption>
+              </figure>
+              <figure class="tile">
+                <svg viewBox="0 0 200 140" aria-hidden="true" focusable="false">
+                  <rect class="t-bg" width="200" height="140"/>
+                  <path class="t-a" d="M40 124V64a60 60 0 0 1 120 0v60z"/>
+                  <path class="t-b" d="M72 124V70a28 28 0 0 1 56 0v54z"/>
+                  <rect class="t-c" x="16" y="116" width="168" height="10"/>
+                </svg>
+                <figcaption><strong>Cedar Loft</strong><span>Open plan, arched pantry</span></figcaption>
+              </figure>
+              <figure class="tile">
+                <svg viewBox="0 0 200 140" aria-hidden="true" focusable="false">
+                  <rect class="t-bg" width="200" height="140"/>
+                  <rect class="t-a" x="20" y="20" width="76" height="46" rx="3"/>
+                  <rect class="t-b" x="104" y="20" width="76" height="46" rx="3"/>
+                  <rect class="t-c" x="20" y="74" width="160" height="48" rx="3"/>
+                  <circle class="t-dot" cx="100" cy="98" r="12"/>
+                </svg>
+                <figcaption><strong>Tidewater Pantry</strong><span>Compact, two-tone</span></figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <section class="band" id="process" aria-labelledby="process-title">
+            <h2 id="process-title">Process</h2>
+            <ol class="steps">
+              <li><h3>Listen</h3><p>A short call about how you cook and who is in the room.</p></li>
+              <li><h3>Sketch</h3><p>Two layouts on one page, with honest trade-offs.</p></li>
+              <li><h3>Build</h3><p>Joinery made, delivered and fitted in a single stretch.</p></li>
+              <li><h3>Hand over</h3><p>A walkthrough, a care sheet and a follow-up visit.</p></li>
+            </ol>
+          </section>
+
+          <section class="band contact" id="contact" aria-labelledby="contact-title">
+            <div class="contact-copy">
+              <h2 id="contact-title">Contact</h2>
+              <p class="section-intro">Try the form. It checks your input in this page only, and nothing leaves the browser.</p>
+            </div>
+            <form class="form" id="contact-form" novalidate>
+              <div class="field">
+                <label for="f-name">Name</label>
+                <input id="f-name" name="name" type="text" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-name-error">
+                <p class="error" id="f-name-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="f-email">Email</label>
+                <input id="f-email" name="email" type="email" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-email-error">
+                <p class="error" id="f-email-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="f-topic">Topic</label>
+                <select id="f-topic" name="topic" aria-required="true" aria-invalid="false" aria-describedby="f-topic-error">
+                  <option value="">Choose a topic</option>
+                  <option value="design">New kitchen design</option>
+                  <option value="renovation">Renovating a kitchen</option>
+                  <option value="other">Something else</option>
+                </select>
+                <p class="error" id="f-topic-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="f-message">Message</label>
+                <textarea id="f-message" name="message" rows="4" aria-required="true" aria-invalid="false" aria-describedby="f-message-error"></textarea>
+                <p class="error" id="f-message-error" hidden></p>
+              </div>
+              <button type="button" class="btn btn-primary" id="send">Send message</button>
+              <div class="notice" id="sent" role="status" tabindex="-1" hidden>
+                <p class="notice-who" id="sent-who"></p>
+                <p><strong>Simulated — nothing was sent. This form is not connected to any service.</strong></p>
+                <p>The workflow below this preview shows what would happen next.</p>
+              </div>
+            </form>
+          </section>
+        </main>
+
+        <footer class="site-foot">
+          <p>Fictional business created for a portfolio demonstration.</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <section class="flow" aria-labelledby="flow-title">
+    <div class="flow-head">
+      <h2 id="flow-title">The workflow behind the form</h2>
+      <p class="flow-note">Send the form above, or try a chat message. Each step is simulated in this page: no sheet, message or reminder is created anywhere.</p>
+    </div>
+    <ol class="flow-steps" id="flow-steps">
+      <li data-node="trigger"><strong>Enquiry received</strong><span id="flow-trigger">Waiting for the website form or a chat message.</span></li>
+      <li data-node="route"><strong>Assistant sorts it</strong><span id="flow-route">Reads the topic and picks the route.</span></li>
+      <li data-node="sheet"><strong>Saved to the enquiry sheet</strong><span>A new row with the name, topic and message.</span></li>
+      <li data-node="notify"><strong>Owner notified</strong><span>A short alert with the summary.</span></li>
+      <li data-node="remind"><strong>Follow-up reminder set</strong><span>So every enquiry gets a reply.</span></li>
+      <li data-node="owner"><strong>Owner sees the summary</strong><span id="flow-owner">Nothing yet.</span></li>
+    </ol>
+    <div class="flow-actions">
+      <button type="button" class="reset-btn" id="flow-chat">Try it with a chat message</button>
+    </div>
+    <p class="flow-status" id="flow-status" role="status"></p>
+  </section>
+</body>
+</html>
