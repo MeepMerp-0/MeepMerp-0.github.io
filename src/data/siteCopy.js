@@ -1,5 +1,5 @@
 // Page copy for the hero, About, Process and Contact. Facts come from portfolioData.js; work arrangements were
-// confirmed by Jason for this rework. Aki does not read this file, so editing it does not change Aki's answers.
+// confirmed by Jason for this work. Aki does not read this file, so editing it does not change Aki's answers.
 import { EXPERIENCE, PERSONAL } from './portfolioData.js';
 
 export const HERO = {
@@ -55,7 +55,7 @@ export const ABOUT = {
       id: 'delivery',
       label: 'Planning & delivery',
       body: 'Turning a loose request into flows, technical boundaries and a plan, then shipping in small, reviewable steps with the checks written down.',
-      evidence: 'Capstone project leadership; this rework',
+      evidence: 'Capstone project leadership; this work',
     },
   ],
 };
