@@ -450,6 +450,9 @@ section[id] { scroll-margin-top: 0; }
   /* The heading moves into the left column beside the form, so it does not add to the section's height. */
   .contact-section .shell { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); column-gap: clamp(36px, 7vw, 110px); align-items: start; }
   .contact-grid { display: contents; }
+  /* Contact is the last screen: with the footer below it, it fills the view under the header, so scrolling to the end
+     settles on Contact alone, like the pinned blocks above. The footer is one 61px line at this width. */
+  .page-section.contact-section { display: grid; align-content: center; min-height: calc(100vh - var(--header-h, 72px) - 61px); min-height: calc(100svh - var(--header-h, 72px) - 61px); }
   .contact-section .section-intro { grid-column: 1; grid-template-columns: 1fr; gap: 8px; }
   .contact-sidebar { grid-column: 1; }
   .contact-form-wrap { grid-column: 2; grid-row: 1 / span 2; }
