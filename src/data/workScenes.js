@@ -71,8 +71,8 @@ export const WORK_SCENES = [
     samples: FUTUROHUB.samples,
     demo: {
       src: 'demos/website/index.html',
-      title: 'Fictional client website and workflow illustration',
-      note: 'An invented business, written for this portfolio. It is not a FuturoHub site, and its form and simulated workflow send nothing.',
+      title: 'Fictional shop website with a simulated ordering workflow',
+      note: 'An invented shop, written for this portfolio. Its chat assistant checks stock, takes orders and simulates payments, and a node-style workflow updates the inventory table as each order is paid. It is not a FuturoHub site, and its form, chat and simulated workflow send nothing.',
     },
   },
 ];

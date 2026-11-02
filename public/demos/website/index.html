@@ -7,9 +7,11 @@
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pinewick &amp; Reed demo site</title>
+  <title>Pinewick &amp; Reed demo shop</title>
   <link rel="stylesheet" href="./website.css">
+  <link rel="stylesheet" href="./flow.css">
   <script src="./website.js" defer></script>
+  <script src="./flow.js" defer></script>
 </head>
 <body>
   <div class="demo-bar">
@@ -27,6 +29,16 @@
       </div>
       <button type="button" id="reset" class="reset-btn">Reset demo</button>
     </div>
+  </div>
+
+  <!-- Step guide: part of the demo, not the fictional site. flow.js fills it from the demo's own data. -->
+  <div class="guide" id="guide">
+    <nav class="guide-nav" aria-label="Demo steps">
+      <ol class="guide-steps" id="guide-steps"></ol>
+    </nav>
+    <p class="guide-now" id="guide-now"><strong class="guide-count" id="guide-count"></strong> <span id="guide-tip"></span></p>
+    <button type="button" class="guide-show" id="guide-show" aria-describedby="guide-now">Show me</button>
+    <p class="sr-only" id="guide-live" aria-live="polite"></p>
   </div>
 
   <div class="stage">
@@ -47,7 +59,7 @@
               <li><a href="#services">Services</a></li>
               <li><a href="#work">Work</a></li>
               <li><a href="#process">Process</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><a href="#order">Order</a></li>
             </ul>
           </nav>
         </header>
@@ -57,9 +69,9 @@
             <div class="hero-copy">
               <p class="kicker">Invented studio, real layout behavior</p>
               <h1 id="hero-title">Kitchens that start with how you cook.</h1>
-              <p class="lead">Pinewick &amp; Reed is a made-up studio. It exists so you can resize this page, open the menu and try the form.</p>
+              <p class="lead">Pinewick &amp; Reed is a made-up studio with a small shelf of kitchen goods and a few bookable services. Resize this page, open the menu, or ask the shop assistant what is in stock.</p>
               <div class="actions">
-                <a class="btn btn-primary" href="#contact">Plan your kitchen</a>
+                <a class="btn btn-primary" href="#order">Check availability</a>
                 <a class="btn btn-ghost" href="#work">See selected work</a>
               </div>
             </div>
@@ -83,19 +95,19 @@
 
           <section class="band" id="services" aria-labelledby="services-title">
             <h2 id="services-title">Services</h2>
-            <p class="section-intro">Three things the studio would do, if it existed.</p>
+            <p class="section-intro">Three things you can book, if the studio existed. Slots are limited.</p>
             <div class="cards">
               <article class="card">
-                <h3>Layout planning</h3>
-                <p>Floor plans built around your walking paths, not the other way round.</p>
+                <h3>Kitchen layout consult</h3>
+                <p>Sixty minutes on your floor plan and walking paths, with two sketches to keep. ¤120.</p>
               </article>
               <article class="card">
-                <h3>Custom joinery</h3>
-                <p>Cabinets drawn to fit awkward corners, with hardware you can actually reach.</p>
+                <h3>Install day</h3>
+                <p>A crew of two fits cabinets and hardware in one day, then walks you through it. ¤480.</p>
               </article>
               <article class="card">
-                <h3>Install and handover</h3>
-                <p>One schedule, one point of contact and a walkthrough on the final day.</p>
+                <h3>Knife sharpening</h3>
+                <p>Drop your knives off in the morning and collect them sharp the same afternoon. ¤15.</p>
               </article>
             </div>
           </section>
@@ -148,44 +160,91 @@
             </ol>
           </section>
 
-          <section class="band contact" id="contact" aria-labelledby="contact-title">
-            <div class="contact-copy">
-              <h2 id="contact-title">Contact</h2>
-              <p class="section-intro">Try the form. It checks your input in this page only, and nothing leaves the browser.</p>
+          <section class="band order" id="order" aria-labelledby="order-title">
+            <h2 id="order-title">Order or check availability</h2>
+            <p class="section-intro">Use the form or ask in the chat. Both run in this page only, and nothing leaves the browser.</p>
+
+            <div class="order-grid">
+              <form class="form" id="order-form" novalidate aria-labelledby="form-title">
+                <h3 class="form-title" id="form-title">Availability request</h3>
+                <div class="field">
+                  <label for="f-name">Name</label>
+                  <input id="f-name" name="name" type="text" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-name-error">
+                  <p class="error" id="f-name-error" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="f-contact">Email or phone</label>
+                  <input id="f-contact" name="contact" type="text" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-contact-error">
+                  <p class="error" id="f-contact-error" hidden></p>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="f-item">What are you looking for?</label>
+                    <select id="f-item" name="item" aria-required="true" aria-invalid="false" aria-describedby="f-item-error">
+                      <option value="">Choose an item</option>
+                      <optgroup label="Products">
+                        <option value="P-101">Ash cutting board</option>
+                        <option value="P-102">Brass drawer pulls, set of 4</option>
+                        <option value="P-103">Cast-iron skillet, 26 cm</option>
+                        <option value="P-104">Copper kettle</option>
+                      </optgroup>
+                      <optgroup label="Services">
+                        <option value="S-201">Kitchen layout consult, 60 min</option>
+                        <option value="S-202">Install day, crew of two</option>
+                        <option value="S-203">Knife sharpening drop-off</option>
+                      </optgroup>
+                      <option value="unsure">Not sure, ask the team</option>
+                    </select>
+                    <p class="error" id="f-item-error" hidden></p>
+                  </div>
+                  <div class="field field-qty">
+                    <label for="f-qty">Quantity</label>
+                    <input id="f-qty" name="qty" type="number" inputmode="numeric" min="1" max="10" step="1" value="1" aria-required="true" aria-invalid="false" aria-describedby="f-qty-error">
+                    <p class="error" id="f-qty-error" hidden></p>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="f-note">Note <span class="optional">(optional)</span></label>
+                  <textarea id="f-note" name="note" rows="3" maxlength="300"></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" id="send">Check availability</button>
+                <div class="notice" id="sent" role="status" tabindex="-1" hidden>
+                  <p class="notice-who" id="sent-who"></p>
+                  <p><strong>Simulated, nothing was sent. This form is not connected to any service.</strong></p>
+                  <p>The assistant answers in the chat, and the workflow below this preview shows each step.</p>
+                </div>
+              </form>
+
+              <section class="chat" aria-labelledby="chat-title">
+                <header class="chat-head">
+                  <span class="chat-avatar" aria-hidden="true">P&amp;R</span>
+                  <div>
+                    <h3 id="chat-title">Chat with Pinewick &amp; Reed</h3>
+                    <p class="chat-sub">Simulated assistant: keyword rules, no AI call</p>
+                  </div>
+                </header>
+                <ol class="chat-log" id="chat-log" tabindex="0" aria-label="Chat messages"></ol>
+                <div class="trail" id="trail">
+                  <p class="trail-label" id="trail-label">Workflow: idle</p>
+                  <ol class="trail-steps" id="trail-steps" aria-labelledby="trail-label"></ol>
+                  <button type="button" class="trail-watch" id="trail-watch">See the workflow &darr;</button>
+                </div>
+                <div class="chips" role="group" aria-label="Quick replies">
+                  <button type="button" class="chip" data-say="Do you have skillets?">Do you have skillets?</button>
+                  <button type="button" class="chip" data-say="Book a layout consult">Book a layout consult</button>
+                  <button type="button" class="chip" data-say="Is the copper kettle back?">Is the copper kettle back?</button>
+                  <button type="button" class="chip" data-say="Order 3 skillets">Order 3 skillets</button>
+                  <button type="button" class="chip" data-say="What's in stock?">What's in stock?</button>
+                  <button type="button" class="chip" data-say="Can I talk to a person?">Can I talk to a person?</button>
+                </div>
+                <form class="chat-form" id="chat-form" novalidate>
+                  <label for="chat-text" class="sr-only">Message</label>
+                  <input id="chat-text" type="text" autocomplete="off" maxlength="200" placeholder="Ask about an item or a booking" aria-invalid="false" aria-describedby="chat-text-error">
+                  <button type="button" class="btn btn-primary" id="chat-send">Send</button>
+                  <p class="error" id="chat-text-error" hidden></p>
+                </form>
+              </section>
             </div>
-            <form class="form" id="contact-form" novalidate>
-              <div class="field">
-                <label for="f-name">Name</label>
-                <input id="f-name" name="name" type="text" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-name-error">
-                <p class="error" id="f-name-error" hidden></p>
-              </div>
-              <div class="field">
-                <label for="f-email">Email</label>
-                <input id="f-email" name="email" type="email" autocomplete="off" aria-required="true" aria-invalid="false" aria-describedby="f-email-error">
-                <p class="error" id="f-email-error" hidden></p>
-              </div>
-              <div class="field">
-                <label for="f-topic">Topic</label>
-                <select id="f-topic" name="topic" aria-required="true" aria-invalid="false" aria-describedby="f-topic-error">
-                  <option value="">Choose a topic</option>
-                  <option value="design">New kitchen design</option>
-                  <option value="renovation">Renovating a kitchen</option>
-                  <option value="other">Something else</option>
-                </select>
-                <p class="error" id="f-topic-error" hidden></p>
-              </div>
-              <div class="field">
-                <label for="f-message">Message</label>
-                <textarea id="f-message" name="message" rows="4" aria-required="true" aria-invalid="false" aria-describedby="f-message-error"></textarea>
-                <p class="error" id="f-message-error" hidden></p>
-              </div>
-              <button type="button" class="btn btn-primary" id="send">Send message</button>
-              <div class="notice" id="sent" role="status" tabindex="-1" hidden>
-                <p class="notice-who" id="sent-who"></p>
-                <p><strong>Simulated — nothing was sent. This form is not connected to any service.</strong></p>
-                <p>The workflow below this preview shows what would happen next.</p>
-              </div>
-            </form>
           </section>
         </main>
 
@@ -196,23 +255,105 @@
     </div>
   </div>
 
-  <section class="flow" aria-labelledby="flow-title">
+  <section class="flow" id="flow" aria-labelledby="flow-title">
     <div class="flow-head">
-      <h2 id="flow-title">The workflow behind the form</h2>
-      <p class="flow-note">Send the form above, or try a chat message. Each step is simulated in this page: no sheet, message or reminder is created anywhere.</p>
+      <h2 id="flow-title">The workflow behind the shop</h2>
+      <p class="flow-note">Everything runs in this page. No message, payment, sheet or alert is sent anywhere.</p>
+      <p class="flow-note">Each form, chat message, button press or payment above runs the workflow once. Select a node to see its input and output.</p>
+      <p class="flow-note"><a class="back-link" href="#chat-title">&uarr; Back to the chat</a></p>
     </div>
-    <ol class="flow-steps" id="flow-steps">
-      <li data-node="trigger"><strong>Enquiry received</strong><span id="flow-trigger">Waiting for the website form or a chat message.</span></li>
-      <li data-node="route"><strong>Assistant sorts it</strong><span id="flow-route">Reads the topic and picks the route.</span></li>
-      <li data-node="sheet"><strong>Saved to the enquiry sheet</strong><span>A new row with the name, topic and message.</span></li>
-      <li data-node="notify"><strong>Owner notified</strong><span>A short alert with the summary.</span></li>
-      <li data-node="remind"><strong>Follow-up reminder set</strong><span>So every enquiry gets a reply.</span></li>
-      <li data-node="owner"><strong>Owner sees the summary</strong><span id="flow-owner">Nothing yet.</span></li>
-    </ol>
-    <div class="flow-actions">
-      <button type="button" class="reset-btn" id="flow-chat">Try it with a chat message</button>
+
+    <div class="canvas-wrap" id="canvas-wrap">
+      <div class="canvas-bar">
+        <p class="canvas-name"><span class="canvas-dot" aria-hidden="true"></span>Shop assistant</p>
+        <p class="run-chip" id="run-chip" data-state="idle">Idle</p>
+      </div>
+      <p class="scroll-hint">The canvas scrolls sideways.</p>
+      <div class="canvas-scroll" id="canvas-scroll" tabindex="0" role="region" aria-label="Workflow canvas">
+        <div class="canvas" id="canvas">
+          <svg class="wires" id="wires" aria-hidden="true" focusable="false"></svg>
+        </div>
+      </div>
+
+      <section class="inspector" id="inspector" role="dialog" aria-labelledby="insp-title" aria-describedby="insp-desc" tabindex="-1" hidden>
+        <div class="insp-head">
+          <span class="insp-icon" id="insp-icon" aria-hidden="true"></span>
+          <div class="insp-titles">
+            <h3 id="insp-title">Node</h3>
+            <p class="insp-type" id="insp-type"></p>
+          </div>
+          <button type="button" class="insp-close" id="insp-close">Close</button>
+        </div>
+        <p class="insp-desc" id="insp-desc"></p>
+        <p class="insp-run" id="insp-run"></p>
+        <div class="insp-io">
+          <section aria-labelledby="insp-in-title">
+            <h4 id="insp-in-title">Input</h4>
+            <pre id="insp-in" tabindex="0" aria-labelledby="insp-in-title"></pre>
+          </section>
+          <section aria-labelledby="insp-out-title">
+            <h4 id="insp-out-title">Output</h4>
+            <pre id="insp-out" tabindex="0" aria-labelledby="insp-out-title"></pre>
+          </section>
+        </div>
+      </section>
     </div>
-    <p class="flow-status" id="flow-status" role="status"></p>
+
+    <div class="flow-panels">
+      <section class="panel panel-inventory" aria-labelledby="inv-title">
+        <h3 id="inv-title">Data table: inventory</h3>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="inv-title">
+          <table class="data">
+            <thead>
+              <tr>
+                <th scope="col">SKU</th>
+                <th scope="col">Item</th>
+                <th scope="col">Type</th>
+                <th scope="col" class="num">Price</th>
+                <th scope="col" class="num">In stock / slots</th>
+                <th scope="col" class="num">Reorder at</th>
+                <th scope="col" class="num">Sold</th>
+                <th scope="col" class="num">Waitlist</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel panel-orders" aria-labelledby="orders-title">
+        <h3 id="orders-title">Data table: orders</h3>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="orders-title">
+          <table class="data">
+            <thead>
+              <tr>
+                <th scope="col">Order</th>
+                <th scope="col">Item</th>
+                <th scope="col" class="num">Qty</th>
+                <th scope="col" class="num">Total</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel panel-execs" aria-labelledby="execs-title">
+        <h3 id="execs-title">Executions</h3>
+        <ol class="exec-list" id="exec-list"></ol>
+        <p class="empty" id="exec-empty">No executions yet.</p>
+      </section>
+
+      <section class="panel panel-alerts" aria-labelledby="alerts-title">
+        <h3 id="alerts-title">Owner's phone <span class="muted">(simulated)</span></h3>
+        <ol class="alert-list" id="alert-list"></ol>
+        <p class="empty" id="alert-empty">No alerts yet. Hand-overs and stock alerts would arrive here.</p>
+      </section>
+    </div>
+
+    <p class="sr-only" id="flow-status" role="status"></p>
   </section>
 </body>
 </html>

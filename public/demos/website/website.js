@@ -1,33 +1,37 @@
 'use strict';
 
-// All state lives in the DOM and in memory. Nothing is stored or sent anywhere.
+// The fictional site: preview width, menu and the availability form.
+// The chat and the workflow live in flow.js. Nothing is stored or sent anywhere.
 const byId = (id) => document.getElementById(id);
 
 const frame = byId('frame');
 const head = byId('site-head');
 const toggle = byId('nav-toggle');
 const nav = byId('site-nav');
+const form = byId('order-form');
 const sent = byId('sent');
+const note = byId('f-note');
 const widthButtons = document.querySelectorAll('.seg-btn');
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_CHARS = /^\+?[\d\s().-]+$/;
+
+function checkContact(v) {
+  if (!v) return 'Enter an email address or a phone number.';
+  if (v.includes('@')) return EMAIL.test(v) ? '' : 'Enter an email like name@example.com.';
+  const digits = v.replace(/\D/g, '').length;
+  return PHONE_CHARS.test(v) && digits >= 7 && digits <= 15
+    ? ''
+    : 'Enter a phone number with 7 to 15 digits, or an email address.';
+}
 
 const fields = [
+  { id: 'f-name', check: (v) => (v.length < 2 ? 'Enter your name (at least 2 characters).' : '') },
+  { id: 'f-contact', check: checkContact },
+  { id: 'f-item', check: (v) => (v ? '' : 'Choose an item, or "Not sure, ask the team".') },
   {
-    id: 'f-name',
-    check: (v) => (v.length < 2 ? 'Enter your name (at least 2 characters).' : ''),
-  },
-  {
-    id: 'f-email',
-    check: (v) => (!v ? 'Enter your email address.' : EMAIL.test(v) ? '' : 'Enter an email like name@example.com.'),
-  },
-  {
-    id: 'f-topic',
-    check: (v) => (v ? '' : 'Choose a topic.'),
-  },
-  {
-    id: 'f-message',
-    check: (v) => (v.length < 10 ? 'Write a message of at least 10 characters.' : ''),
+    id: 'f-qty',
+    check: (v) => (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 10 ? '' : 'Enter a quantity from 1 to 10.'),
   },
 ].map((f) => ({ ...f, input: byId(f.id), error: byId(`${f.id}-error`) }));
 
@@ -60,74 +64,39 @@ function send() {
     invalid[0].input.focus();
     return;
   }
-  const name = fields[0].input.value.trim();
-  byId('sent-who').textContent = `Thanks, ${name}. Your details passed the checks.`;
+  const [name, contact, item, qty] = fields.map((f) => f.input.value.trim());
+  byId('sent-who').textContent = `Thanks, ${name}. Your request passed the checks.`;
   sent.hidden = false;
   sent.focus();
-  runFlow('form', name, fields[2].input.value);
-}
-
-// The automation behind the form, simulated step by step: the enquiry arrives, the assistant sorts it by topic,
-// three actions run side by side, and the owner gets the summary. Nothing leaves the page.
-const flowSteps = [...document.querySelectorAll('#flow-steps li')];
-const flowTexts = ['flow-trigger', 'flow-route', 'flow-owner'].map((id) => [id, byId(id).textContent]);
-const ROUTES = { design: 'New design lead', renovation: 'Renovation lead', other: 'General enquiry' };
-// Trigger, route, the three actions together, then the owner.
-const STAGES = [[0], [1], [2, 3, 4], [5]];
-let flowTimer = 0;
-
-function runFlow(source, name, topic) {
-  window.clearTimeout(flowTimer);
-  const route = ROUTES[topic] || ROUTES.other;
-  byId('flow-trigger').textContent = `${source === 'chat' ? 'Chat message' : 'Website form'} from ${name}.`;
-  byId('flow-route').textContent = `Topic read: ${route}.`;
-  byId('flow-owner').textContent = 'Waiting for the actions.';
-  byId('flow-status').textContent = '';
-  flowSteps.forEach((li) => { li.dataset.state = 'todo'; });
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let stage = 0;
-  const advance = () => {
-    STAGES[stage].forEach((n) => { flowSteps[n].dataset.state = 'done'; });
-    stage += 1;
-    if (stage < STAGES.length) {
-      STAGES[stage].forEach((n) => { flowSteps[n].dataset.state = 'current'; });
-      if (still) advance();
-      else flowTimer = window.setTimeout(advance, 650);
-      return;
-    }
-    const summary = `${route} from ${name}, by ${source}: saved, owner notified, reminder set.`;
-    byId('flow-owner').textContent = summary;
-    byId('flow-status').textContent = `Workflow finished (simulated). ${summary}`;
-  };
-  STAGES[0].forEach((n) => { flowSteps[n].dataset.state = 'current'; });
-  if (still) advance();
-  else flowTimer = window.setTimeout(advance, 650);
-}
-
-function resetFlow() {
-  window.clearTimeout(flowTimer);
-  flowSteps.forEach((li) => { delete li.dataset.state; });
-  flowTexts.forEach(([id, text]) => { byId(id).textContent = text; });
-  byId('flow-status').textContent = '';
+  // flow.js picks this up and runs the workflow.
+  form.dispatchEvent(new CustomEvent('order-request', {
+    detail: { name, contact, sku: item, qty: Number(qty), note: note.value.trim() },
+  }));
 }
 
 function reset() {
   fields.forEach((f) => {
-    f.input.value = '';
+    f.input.value = f.id === 'f-qty' ? '1' : '';
     showError(f, '');
   });
+  note.value = '';
   sent.hidden = true;
   byId('sent-who').textContent = '';
   setMenu(false, false);
   setWidth('desktop');
-  resetFlow();
   window.scrollTo(0, 0);
 }
 
 widthButtons.forEach((b) => b.addEventListener('click', () => setWidth(b.dataset.width)));
 byId('reset').addEventListener('click', reset);
+// The portfolio shows this page in an iframe sandboxed without allow-forms, where a form never fires `submit`.
+// So the button works from a click, and Enter in a text field is caught before the browser tries to submit.
 byId('send').addEventListener('click', send);
-byId('flow-chat').addEventListener('click', () => runFlow('chat', 'Sam (fictional)', 'renovation'));
+form.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || e.isComposing || e.target.tagName !== 'INPUT') return;
+  e.preventDefault();
+  send();
+});
 
 toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true', false));
 
