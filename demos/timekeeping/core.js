@@ -10,12 +10,12 @@
   const PERIOD = { start: '2026-10-01', end: '2026-10-15', label: 'Oct 1 – 15, 2026', payDate: '2026-10-15', seq: 1 };
   const CITY = 'Port Lumen';
   const BRAND = {
-    name: 'Lanternwatch Guard Co.',
-    short: 'Lanternwatch',
-    tagline: 'Steady watch, every shift',
+    name: 'AsseroGlobal',
+    short: 'AsseroGlobal',
+    tagline: 'Attendance for guards on post',
     blurb: 'Attendance for guards on post',
     console: 'Payroll & Timekeeping System',
-    host: 'console.lanternwatch.example',
+    host: 'console.asseroglobal.example',
   };
 
   const hm = (h, m) => h * 60 + m; // minutes since midnight
@@ -915,7 +915,9 @@
       const ring = svg('circle', { class: 'map-ring', cx: p.loc.x, cy: p.loc.y, r: p.radius }, g);
       svg('rect', { class: 'map-building', x: p.loc.x - 32, y: p.loc.y - 24, width: 64, height: 48, rx: 6 }, g);
       svg('circle', { class: 'map-post', cx: p.loc.x, cy: p.loc.y, r: compact ? 15 : 10 }, g);
-      svg('text', { class: 'map-post-label', x: p.loc.x, y: p.loc.y + (compact ? 62 : 46), 'text-anchor': 'middle', text: p.name }, g);
+      // A post near the right edge ends its label at the edge, so the large compact label is not cut off.
+      const edge = p.loc.x + 160 > MAP.w;
+      svg('text', { class: 'map-post-label', x: edge ? MAP.w - 10 : p.loc.x, y: p.loc.y + (compact ? 62 : 46), 'text-anchor': edge ? 'end' : 'middle', text: p.name }, g);
       rings[p.id] = { g, ring };
     });
     const home = svg('circle', { class: 'map-home', r: compact ? 12 : 8, cx: 0, cy: 0 }, root);

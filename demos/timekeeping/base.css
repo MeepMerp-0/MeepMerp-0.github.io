@@ -171,42 +171,126 @@ h1 { margin: 0 0 8px; font-size: clamp(1.35rem, 3.6vw, 1.9rem); line-height: 1.1
   background: var(--surface);
 }
 
-.guide {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-  margin: 16px 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: guide;
-  font-size: 13px;
+/* ---------------------------------------------------------------- step guide (built by guide.js into #guide)
+   A bar pinned to the top of the window while the demo scrolls: numbered steps joined by a line, the step to do
+   now and a Show me button. guide.js writes its height to --guide-h so the pinned rail and focus scrolling clear it.
+   z-index 20 keeps it above the phone and console overlays (5 to 10) that scroll under it; modals sit in the top layer. */
+html { scroll-padding-top: calc(var(--guide-h, 0px) + 8px); }
+.guide-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "steps show" "now now";
+  align-items: center;
+  gap: 4px 12px;
+  margin: 14px -16px 16px;
+  padding: 6px 16px 8px;
+  border-block: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
-.guide li {
-  counter-increment: guide;
+.guide-bar:empty { display: none; }
+.gd-nav { grid-area: steps; min-width: 0; }
+.gd-steps { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; }
+.gd-step { display: flex; flex: 1 1 0; align-items: center; min-width: 0; }
+.gd-step:first-child { flex: 0 0 auto; }
+/* The line leading into each step; it fills once the walkthrough reaches that step. */
+.gd-step + .gd-step::before {
+  content: '';
+  flex: 1 1 8px;
+  min-width: 6px;
+  height: 2px;
+  margin: 0 6px;
+  border-radius: 1px;
+  background: var(--line-strong);
+}
+.gd-step.is-done::before, .gd-step.is-current::before { background: var(--accent); }
+.gd-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 4px;
-  border: 1px solid var(--line);
+  gap: 8px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 2px;
+  border: 0;
   border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gd-btn:hover .gd-label { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.gd-dot {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--line-strong);
+  border-radius: 50%;
   background: var(--surface);
   color: var(--muted);
+  font: 700 12px/1 var(--font-mono);
 }
-.guide li::before {
-  content: counter(guide);
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font: 700 11px/1 var(--font-mono);
+.gd-check { display: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.gd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.is-done .gd-btn { color: var(--text); }
+.is-done .gd-dot { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.is-done .gd-num { display: none; }
+.is-done .gd-check { display: block; }
+.is-current .gd-btn { color: var(--text); font-weight: 700; }
+.is-current .gd-dot { border-color: var(--accent); color: var(--accent-text); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* A step picked to read its instruction, when it is not the current one. */
+.is-viewing:not(.is-current) .gd-dot { box-shadow: 0 0 0 3px var(--line); }
+.is-viewing .gd-label { text-decoration: underline; text-underline-offset: 3px; }
+.gd-now { grid-area: now; min-width: 0; margin: 0; font-size: 13px; line-height: 1.35; color: var(--muted); }
+.gd-count { color: var(--text); }
+.gd-show { grid-area: show; white-space: nowrap; }
+@media (min-width: 720px) {
+  .guide-bar { margin-inline: -24px; padding-inline: 24px; }
+}
+/* Narrow screens keep the numbered circles and name the step in the line below. */
+@media (max-width: 1099.98px) {
+  .gd-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  /* Sized so five circles, their lines and Show me fit a 320px screen. */
+  .guide-bar { column-gap: 8px; }
+  .gd-btn { min-height: 32px; padding: 0; }
+  .gd-dot { width: 26px; height: 26px; }
+  .gd-step + .gd-step::before { min-width: 4px; margin: 0 4px; }
+  /* Room for the longest instruction, so the pinned bar keeps one height from step to step. */
+  .gd-now { min-height: calc(2 * 1.35em); }
+}
+@media (max-width: 599.98px) {
+  .gd-now { min-height: calc(3 * 1.35em); }
+}
+@media (min-width: 1100px) {
+  /* Steps and Show me on one row, the instruction on one line under them: about 58px, so the pinned rail
+     below keeps room for the phone. */
+  .guide-bar { padding-block: 4px 6px; row-gap: 2px; }
+  .gd-btn { min-height: 28px; }
+  .gd-dot { width: 24px; height: 24px; }
+  .guide-bar .gd-show { min-height: 28px; padding-block: 2px; }
+  .gd-count { display: none; }
+}
+
+/* Show me: a short ring on the control it points at. An attribute, not a class, because the demo rewrites some
+   class lists on every tick. */
+[data-guide-flash] { outline: 3px solid var(--accent) !important; outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-guide-flash] { animation: gd-flash 0.8s ease-out 2; }
+  @keyframes gd-flash {
+    from { box-shadow: 0 0 0 0 var(--accent-soft); }
+    to { box-shadow: 0 0 0 12px transparent; }
+  }
 }
 
 /* Below 1100px the two wrappers dissolve and everything stacks in this order: demo controls, live map,
    phone, console. From 1100px the rail (controls and phone) sits left of the main column (map and console)
-   and, when the window is tall enough to show the whole phone, stays pinned under the top edge. */
+   and, when the window is tall enough to show the whole phone, stays pinned under the step guide bar. The
+   760px floor fits that bar (about 60px), the controls and the phone at its 420px minimum. */
 .stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -218,15 +302,24 @@ h1 { margin: 0 0 8px; font-size: clamp(1.35rem, 3.6vw, 1.9rem); line-height: 1.1
 .panel-map { order: 2; }
 .panel-mobile { order: 3; }
 .panel-web { order: 4; }
+/* Between 860px and 1100px the phone sits beside the map instead of below it, so neither leaves an empty column. */
+@media (min-width: 860px) and (max-width: 1099.98px) {
+  .stage { grid-template-columns: minmax(0, 1fr) minmax(320px, 360px); }
+  #demo-controls, .panel-web { grid-column: 1 / -1; }
+}
 @media (min-width: 1100px) {
   .stage { grid-template-columns: minmax(340px, 376px) minmax(0, 1fr); gap: 24px; }
   .rail { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .main-col { display: grid; gap: 20px; min-width: 0; }
 }
 @media (min-width: 1100px) and (min-height: 760px) {
-  .rail { position: sticky; top: 12px; max-height: calc(100vh - 24px); }
+  /* The rail pins below the step guide bar (--guide-h is its height, set by guide.js). */
+  .rail { position: sticky; top: calc(var(--guide-h, 0px) + 8px); max-height: calc(100vh - var(--guide-h, 0px) - 20px); }
   /* A flex chain down to the phone frame, so the phone shrinks to fit the window (mobile.css sets its floor). */
   .rail .panel-mobile, .rail #mobile-app { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  /* The phone's heading and its note share one line here, which gives the phone that line's height back. */
+  .rail .panel-mobile .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+  .rail .panel-mobile .panel-head h2 { margin: 0; }
 }
 
 .panel { min-width: 0; }
@@ -463,6 +556,8 @@ textarea.input { min-height: 84px; resize: vertical; }
   position: relative;
   aspect-ratio: 10 / 7;
   max-height: min(640px, 68vh);
+  /* When the height cap narrows the map, it stays centred in the card. */
+  margin-inline: auto;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r);

@@ -166,6 +166,217 @@ textarea {
   font-weight: 600;
 }
 
+/* ---------- Step guide, pinned while the demo scrolls ---------- */
+html {
+  scroll-padding-top: calc(var(--guide-h, 0px) + 8px); /* --guide-h is set by flow.js */
+}
+
+.guide {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'steps show'
+    'now now';
+  align-items: center;
+  gap: 2px 12px;
+  padding: 6px 12px 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.guide-nav {
+  grid-area: steps;
+  min-width: 0;
+}
+
+.guide-steps {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-step {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+}
+
+.guide-step:first-child {
+  flex: none;
+}
+
+/* The line leading into each step fills once the step before it is done. */
+.guide-step + .guide-step::before {
+  content: '';
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: 2px;
+  margin-inline: 4px;
+  border-radius: 1px;
+  background: var(--line);
+}
+
+.guide-step[data-state='done']::before,
+.guide-step[data-state='current']::before {
+  background: var(--accent);
+}
+
+.guide-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.guide-num {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  font: 700 0.75rem/1 var(--mono);
+}
+
+.guide-check {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.guide-step[data-state='done'] .guide-btn {
+  color: var(--text);
+}
+
+.guide-step[data-state='done'] .guide-num {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.guide-step[data-state='current'] .guide-btn {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.guide-step[data-state='current'] .guide-num {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.guide-btn:hover .guide-num {
+  border-color: var(--accent);
+}
+
+/* A step picked to read about, other than the current one */
+.guide-step[data-viewing] .guide-num {
+  border-style: dashed;
+  border-color: var(--text);
+}
+
+.guide-step[data-viewing] .guide-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guide-label {
+  white-space: nowrap;
+}
+
+.guide-now {
+  grid-area: now;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.guide-count {
+  color: var(--text);
+}
+
+.guide-show {
+  grid-area: show;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.guide-show:hover {
+  filter: brightness(1.08);
+}
+
+/* Narrow screens: circles only; the line below names the step. */
+@media (max-width: 1099.98px) {
+  .guide-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+/* "Show me" briefly rings what it points at. */
+.guide-hl {
+  animation: guide-hl 1.6s ease-out forwards;
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent);
+}
+
+tr.guide-hl {
+  animation-name: guide-hl-row;
+  box-shadow: none;
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+@keyframes guide-hl {
+  70% {
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 3px transparent, 0 0 0 6px transparent;
+  }
+}
+
+@keyframes guide-hl-row {
+  70% {
+    outline-color: var(--accent);
+  }
+
+  100% {
+    outline-color: transparent;
+  }
+}
+
 /* ---------- Stage and responsive frame ---------- */
 .stage {
   padding: 12px 8px 24px;
@@ -322,8 +533,7 @@ textarea {
 }
 
 .hero-copy,
-.band > *,
-.contact-copy {
+.band > * {
   min-width: 0;
 }
 
@@ -536,12 +746,40 @@ textarea {
   font-size: 0.8125rem;
 }
 
-/* ---------- Contact form ---------- */
+/* ---------- Order form ---------- */
+.order-grid {
+  display: grid;
+  gap: 20px;
+  margin-top: 22px;
+}
+
+.order-grid > * {
+  min-width: 0;
+}
+
 .form {
   display: grid;
+  align-content: start;
   gap: 16px;
-  margin-top: 22px;
   min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: var(--s-surface);
+}
+
+.form-title {
+  font-size: 1.25rem;
+}
+
+.field-row {
+  display: grid;
+  gap: 16px;
+}
+
+.optional {
+  color: var(--s-muted);
+  font-weight: 400;
 }
 
 .field {
@@ -599,6 +837,395 @@ textarea {
   display: none;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Chat (generic look, not any messaging brand) ---------- */
+.chat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: var(--s-surface);
+  overflow: hidden;
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--s-line);
+  background: var(--s-surface-2);
+}
+
+.chat-head h3 {
+  font-size: 1.125rem;
+}
+
+.chat-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--s-accent);
+  color: var(--s-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chat-sub {
+  color: var(--s-muted);
+  font-size: 0.8125rem;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 460px;
+  margin: 0;
+  padding: 16px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  background: var(--s-bg);
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: min(100%, 30rem);
+}
+
+.msg-customer {
+  align-self: flex-end;
+  align-items: flex-end;
+  max-width: 85%;
+}
+
+.msg-assistant {
+  align-self: flex-start;
+}
+
+.msg-system {
+  align-self: center;
+  max-width: 100%;
+  padding: 4px 12px;
+  border: 1px dashed var(--s-line);
+  border-radius: 999px;
+  color: var(--s-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.bubble {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+
+.msg-customer .bubble {
+  border-bottom-right-radius: 4px;
+  background: var(--s-accent);
+  color: var(--s-ink);
+}
+
+.msg-assistant .bubble {
+  border: 1px solid var(--s-line);
+  border-bottom-left-radius: 4px;
+  background: var(--s-surface);
+}
+
+.msg-meta {
+  padding-inline: 4px;
+  color: var(--s-muted);
+  font-size: 0.75rem;
+}
+
+.msg-meta a {
+  text-underline-offset: 2px;
+}
+
+.msg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.msg-typing .bubble {
+  display: flex;
+  gap: 5px;
+  padding: 14px 16px;
+}
+
+.msg-typing .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  animation: typing 1s ease-in-out infinite;
+}
+
+.msg-typing .dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.msg-typing .dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.btn-sm {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+
+.site .btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Item cards inside an assistant reply */
+.pcards {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pcard {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--s-line);
+  border-radius: 10px;
+  background: var(--s-bg);
+}
+
+.pcard-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pcard-price {
+  flex: none;
+  white-space: nowrap;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pcard-meta {
+  color: var(--s-muted);
+  font-size: 0.8125rem;
+}
+
+.stock {
+  font-weight: 600;
+}
+
+.stock[data-level='ok'] {
+  color: var(--s-accent);
+}
+
+.stock[data-level='low'] {
+  color: var(--s-warm);
+}
+
+.stock[data-level='out'] {
+  color: var(--s-error);
+}
+
+.pcard-buy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--s-muted);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.step-btn {
+  width: 40px;
+  min-height: 40px;
+  border: 0;
+  background: var(--s-surface-2);
+  font-size: 1.125rem;
+  cursor: pointer;
+}
+
+.step-btn[aria-disabled='true'] {
+  color: var(--s-muted);
+  cursor: not-allowed;
+}
+
+.site .step-input {
+  width: 3.25rem;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.step-input::-webkit-inner-spin-button,
+.step-input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* Payment request and receipt */
+.paycard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--s-accent);
+  border-radius: 10px;
+  background: var(--s-bg);
+}
+
+.paycard-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tag {
+  padding: 1px 8px;
+  border: 1px solid var(--s-warm);
+  border-radius: 999px;
+  color: var(--s-warm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tag-ok {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+
+.summary {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary dt {
+  flex: none;
+  color: var(--s-muted);
+}
+
+.summary dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--s-line);
+  font-weight: 700;
+}
+
+.summary .summary-total dt {
+  color: inherit;
+}
+
+.paycard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Quick replies and the message box */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 14px 0;
+  border-top: 1px solid var(--s-line);
+}
+
+.chip {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--s-line);
+  border-radius: 999px;
+  background: var(--s-surface-2);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--s-accent);
+}
+
+.chat-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
+.chat-form .error {
+  grid-column: 1 / -1;
+}
+
 .site-foot {
   padding: 20px 16px;
   border-top: 1px solid var(--s-line);
@@ -654,14 +1281,14 @@ textarea {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .contact {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 40px;
+  .order-grid {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: 28px;
   }
 
-  .form {
-    margin-top: 0;
+  .field-row {
+    grid-template-columns: minmax(0, 1fr) 7rem;
   }
 }
 
@@ -675,90 +1302,67 @@ textarea {
   }
 }
 
-/* ---------- workflow behind the form (demo chrome tokens) ---------- */
-
-.flow {
-  margin: 0 8px 24px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--body);
+/* ---------- Run trail under the chat ---------- */
+.trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+  padding: 8px 14px;
+  border-top: 1px solid var(--s-line);
+  background: var(--s-surface-2);
+  font-size: 0.75rem;
 }
 
-.flow h2 {
-  margin: 0 0 4px;
-  font: 600 1.25rem/1.25 var(--display);
-}
-
-.flow-note,
-.flow-status {
+.trail-label {
+  flex: none;
   margin: 0;
-  color: var(--muted);
-  font-size: 0.875rem;
+  color: var(--s-muted);
+  font-weight: 600;
 }
 
-.flow-status:not(:empty) {
-  margin-top: 10px;
-  color: var(--text);
-}
-
-.flow-steps {
-  display: grid;
-  gap: 8px;
-  margin: 14px 0 12px;
+.trail-steps {
+  display: flex;
+  flex: 1 1 100%;
+  order: 3;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
   padding: 0;
+  overflow-x: auto;
   list-style: none;
+  scrollbar-width: none;
 }
 
-.flow-steps li {
-  display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-left-width: 4px;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  transition: border-color 0.2s, background-color 0.2s;
+.trail-step {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--s-line);
+  border-radius: 999px;
+  background: var(--s-surface);
+  color: var(--s-text);
+  white-space: nowrap;
 }
 
-.flow-steps li span {
-  color: var(--muted);
+.trail-step[data-state='running'] {
+  border-color: var(--s-accent);
 }
 
-.flow-steps li[data-state='current'] {
-  border-color: var(--accent);
+.trail-step[data-state='done'] {
+  color: var(--s-muted);
 }
 
-.flow-steps li[data-state='done'] {
-  border-color: var(--accent);
-  background: var(--bg);
-}
-
-.flow-steps li[data-state='done'] strong::before {
-  content: '\2713  ';
-  color: var(--accent);
-}
-
-/* Wide: laid out like a workflow editor, with the three actions side by side between route and owner. */
-@media (min-width: 760px) {
-  .flow-steps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-areas: 'trigger route sheet owner' 'trigger route notify owner' 'trigger route remind owner';
-    align-items: center;
-  }
-
-  .flow-steps li[data-node='trigger'] { grid-area: trigger; }
-  .flow-steps li[data-node='route'] { grid-area: route; }
-  .flow-steps li[data-node='sheet'] { grid-area: sheet; }
-  .flow-steps li[data-node='notify'] { grid-area: notify; }
-  .flow-steps li[data-node='remind'] { grid-area: remind; }
-  .flow-steps li[data-node='owner'] { grid-area: owner; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .flow-steps li {
-    transition: none;
-  }
+.trail-watch {
+  flex: none;
+  margin-left: auto;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--s-accent);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }

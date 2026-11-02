@@ -52,7 +52,7 @@
     TK.svg('path', { d: ICONS[name] }, s);
     return s;
   }
-  // The invented Lanternwatch mark: a shield holding a small lantern.
+  // An invented mark, not the client's logo: a shield holding a small lantern.
   function logo() {
     const s = TK.svg('svg', { viewBox: '0 0 32 32', class: 'w-logo', 'aria-hidden': 'true', focusable: 'false' });
     TK.svg('path', { class: 'w-logo-shield', d: 'M16 2 L28 6.5 V15 C28 22 22.8 27.4 16 30 C9.2 27.4 4 22 4 15 V6.5 Z' }, s);
