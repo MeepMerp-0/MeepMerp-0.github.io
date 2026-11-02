@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; font-src 'none'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Timekeeping demo (fictional)</title>
+  <link rel="stylesheet" href="./timekeeping.css">
+  <script src="./timekeeping.js" defer></script>
+</head>
+<body>
+  <div class="page">
+    <header class="head">
+      <div class="head-text">
+        <p class="eyebrow">FICTIONAL DEMO</p>
+        <h1>Timekeeping, payroll &amp; attendance &mdash; sample week</h1>
+        <p class="lede">Four invented guards, one sample week. Walk a guard into range of their post, tap to clock in, pass a simulated face check, and watch the entry land on the dashboard by itself. You can also change a day's status by hand.</p>
+        <ul class="badges" aria-label="Demo boundaries">
+          <li>Fictional data</li>
+          <li>Local interaction only</li>
+          <li>No real action</li>
+        </ul>
+      </div>
+      <button type="button" class="btn" id="reset">Reset demo</button>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="h-checkin">
+        <h2 id="h-checkin">Clock-in on the guard&rsquo;s phone</h2>
+        <p class="note">Simulation: no location, camera or device data is read. Distances, faces and times are fictional.</p>
+        <div class="clock">
+          <div>
+            <div class="field">
+              <label class="label" for="guard">Guard</label>
+              <select id="guard" class="input"></select>
+            </div>
+            <div class="field">
+              <label class="label" for="site">Post</label>
+              <select id="site" class="input"></select>
+            </div>
+            <ol class="steps" id="steps" aria-label="Clock-in steps">
+              <li>In range of the post</li>
+              <li>Tap to clock in</li>
+              <li>Face check</li>
+              <li>Logged to the dashboard</li>
+            </ol>
+          </div>
+          <div class="phone" id="phone" data-phase="out">
+            <p class="phone-distance" id="distance"></p>
+            <div class="face" aria-hidden="true">
+              <svg viewBox="0 0 64 64"><circle cx="32" cy="25" r="11" /><path d="M13 56c3-11 10-16 19-16s16 5 19 16" /></svg>
+              <span class="scan"></span>
+            </div>
+            <p class="phone-msg" id="phone-msg"></p>
+            <button type="button" class="btn" id="range-btn">Walk into range</button>
+            <button type="button" class="btn btn-primary" id="tap-btn">Tap to clock in</button>
+          </div>
+        </div>
+        <p class="status" id="checkin-status" aria-live="polite"></p>
+        <h3>Event log</h3>
+        <ol class="log" id="log" aria-label="Simulated event log, newest first"></ol>
+        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-attendance">
+        <h2 id="h-attendance">Web dashboard: attendance grid</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="label" id="l-filter">Filter by role</span>
+            <div class="seg" id="filter" role="group" aria-labelledby="l-filter"></div>
+          </div>
+          <div class="field">
+            <label class="label" for="rate">Illustrative rate (sample units / hour)</label>
+            <select id="rate" class="input"></select>
+          </div>
+        </div>
+        <p class="hint">Friday fills in from the phone. Each day is also a button: select it to cycle Present, Late, Absent, Leave. Present = 8 h, Late = 7 h, Absent = 0 h, Leave = 8 h (paid in this example). <span id="shown"></span></p>
+        <ul class="roster" id="roster" aria-label="Guards and weekly attendance"></ul>
+        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-summary">
+        <h2 id="h-summary">Weekly summary</h2>
+        <p class="note">Illustrative example only: hours &times; a preset rate, in sample units. Not payroll, not a tax, statutory or labour calculation, and no payment is made.</p>
+        <table class="sum">
+          <caption class="sr">Hours and illustrative totals per person, in sample units</caption>
+          <thead>
+            <tr>
+              <th scope="col">Person</th>
+              <th scope="col" class="num">Hours</th>
+              <th scope="col" class="num">Illustrative total (sample units)</th>
+            </tr>
+          </thead>
+          <tbody id="sum-body"></tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Team total</th>
+              <td class="num" id="team-hours"></td>
+              <td class="num" id="team-total"></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p class="live" id="live" aria-live="polite"></p>
+        <p class="tags">Fictional data &middot; Local interaction only &middot; No real action</p>
+
+        <h3>Sample payslip</h3>
+        <div class="field">
+          <label class="label" for="slip-person">Person</label>
+          <select id="slip-person" class="input"></select>
+        </div>
+        <div class="slip" id="slip" role="group" aria-label="Sample payslip text">
+          <p class="slip-flag">Sample &mdash; not a real payslip</p>
+          <dl id="slip-list"></dl>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
