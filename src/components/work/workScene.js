@@ -2,7 +2,7 @@
 // Loaded with import() only when the Work section is near, so Three.js never delays the first paint.
 // It renders on demand (scroll, theme, size), never in an idle loop: when scrolling stops, the frame holds.
 import {
-  BoxGeometry, BufferGeometry, CapsuleGeometry, Color, ConeGeometry, CubicBezierCurve3, CylinderGeometry, DoubleSide, EdgesGeometry,
+  BackSide, BoxGeometry, BufferGeometry, CapsuleGeometry, Color, ConeGeometry, CubicBezierCurve3, CylinderGeometry, DoubleSide, EdgesGeometry,
   Group, IcosahedronGeometry, InstancedMesh, Line, LineSegments, MathUtils, Mesh, MeshBasicMaterial,
   MeshStandardMaterial, Object3D, OctahedronGeometry, PerspectiveCamera, QuadraticBezierCurve3, SphereGeometry,
   TorusGeometry, TubeGeometry, Vector3,
@@ -52,7 +52,11 @@ function buildAki() {
   });
   add(new Mesh(new CylinderGeometry(0.2, 0.26, 0.16, 24), trim), 0, 1.18, 0);
   add(new Mesh(new CylinderGeometry(0.045, 0.045, 0.6, 12), trim), 0, 1.52, 0);
-  add(new Mesh(new SphereGeometry(0.16, 24, 16), led), 0, 1.88, 0);
+  // The antenna ball is near white, so a thin shell-coloured rim (a back-face sphere just behind it) keeps it
+  // visible on the light theme.
+  const ball = new Mesh(new SphereGeometry(0.16, 24, 16), led);
+  ball.add(new Mesh(new SphereGeometry(0.168, 24, 16), new MeshBasicMaterial({ color: AKI.shell, side: BackSide })));
+  add(ball, 0, 1.88, 0);
   // Two block eyes on the LED screen.
   [-1, 1].forEach((side) => add(new Mesh(new RoundedBoxGeometry(0.34, 0.56, 0.05, 2, 0.05), led), side * 0.55, 0.12, 0.83));
 
